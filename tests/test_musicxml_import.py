@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pytest
-from music21 import chord, metadata, meter, note, stream
+from music21 import chord, key, metadata, meter, note, stream
 
 from app.core.musicxml import parse
 
@@ -182,5 +182,52 @@ def test_parse_extracts_highest_pitch_from_chord_melody(tmp_path: Path) -> None:
     assert score.melody[1].quarter_length == pytest.approx(2.0)
 
 
+def test_parse_supports_compressed_mxl_scores(tmp_path: Path) -> None:
+    compressed_path = tmp_path / "compressed_score.mxl"
+    _write_single_part_score(compressed_path, title="Compressed Score", tonic="C", melody_pitch="C4")
+
+    score = parse(compressed_path)
+
+    assert score.title == "Compressed Score"
+    assert score.key == "C major"
+    assert score.time_signature == "4/4"
+    assert score.melody[0].pitch == "C4"
+
+
+def test_parse_falls_back_to_filename_when_metadata_missing(tmp_path: Path) -> None:
+    untitled_path = tmp_path / "missing_metadata.musicxml"
+    _write_single_part_score(untitled_path, title=None, tonic="G", melody_pitch="G4")
+
+    score = parse(untitled_path)
+
+    assert score.title == "Missing Metadata"
+    assert score.key == "G major"
+    assert score.time_signature == "4/4"
+    assert score.melody[0].pitch == "G4"
+
+
 def test_fixture_inventory_reaches_ten_scores() -> None:
     assert len(list(FIXTURES_DIR.glob("*.musicxml"))) == 10
+
+
+def _write_single_part_score(
+    path: Path,
+    *,
+    title: str | None,
+    tonic: str,
+    melody_pitch: str,
+) -> None:
+    score_stream = stream.Score()
+    if title is not None:
+        score_stream.metadata = metadata.Metadata(title=title)
+
+    part = stream.Part()
+    measure = stream.Measure(number=1)
+    measure.insert(0, meter.TimeSignature("4/4"))
+    measure.insert(0, key.Key(tonic))
+    measure.append(note.Note(melody_pitch, quarterLength=4.0))
+    part.append(measure)
+    score_stream.append(part)
+
+    output_format = "mxl" if path.suffix.lower() == ".mxl" else "musicxml"
+    score_stream.write(output_format, fp=path)

@@ -18,7 +18,7 @@ _KEY_PRIORITY: dict[str, int] = {name: index for index, name in enumerate(_CANDI
 _PREFERRED_CHORDS = {"Am", "C", "F", "G"}
 _BEGINNER_FRIENDLY_CHORDS = {"A7", "Am", "C", "D7", "Dm", "Em", "F", "G", "G7"}
 _CAUTION_CHORDS = {"Ab", "B", "Bb", "Bm", "E", "Eb", "F#m"}
-_KEY_PATTERN = re.compile(r"^([A-G][#b]?)\s+(major|minor)$")
+_KEY_PATTERN = re.compile(r"^([A-G][#b]?)\s+([a-z]+)$")
 
 
 @dataclass(frozen=True)
@@ -34,8 +34,13 @@ class _CandidateEvaluation:
 
 def suggest_key(score: Score) -> KeyRecommendation:
     """Recommend a ukulele-friendly key using chord simplicity and light transposition."""
-    _parse_key_name(score.key)
-    evaluations = tuple(_evaluate_candidate(score, candidate) for candidate in _CANDIDATE_KEYS)
+    original_tonic, original_mode = _parse_key_name(score.key)
+    if original_mode not in {"major", "minor"}:
+        return _build_mode_fallback(score, original_tonic, original_mode)
+
+    evaluations = tuple(
+        _evaluate_candidate(score, candidate, original_tonic) for candidate in _CANDIDATE_KEYS
+    )
     selected = _select_candidate(evaluations)
     return KeyRecommendation(
         original_key=score.key,
@@ -46,8 +51,7 @@ def suggest_key(score: Score) -> KeyRecommendation:
     )
 
 
-def _evaluate_candidate(score: Score, candidate_key: str) -> _CandidateEvaluation:
-    original_tonic, _ = _parse_key_name(score.key)
+def _evaluate_candidate(score: Score, candidate_key: str, original_tonic: str) -> _CandidateEvaluation:
     target_tonic, _ = _parse_key_name(candidate_key)
     semitone_shift = signed_semitone_shift(original_tonic, target_tonic)
     friendly_chords = _transpose_and_simplify_chords(score, semitone_shift, target_tonic)
@@ -71,7 +75,25 @@ def _parse_key_name(key_name: str) -> tuple[str, str]:
     if match is None:
         raise ValueError(f"Unsupported key format: {key_name}")
     tonic, mode = match.groups()
-    return tonic, mode
+    return tonic, mode.lower()
+
+
+def _build_mode_fallback(score: Score, original_tonic: str, original_mode: str) -> KeyRecommendation:
+    """Default modal or otherwise unsupported keys back to C major."""
+    fallback_key = "C major"
+    semitone_shift = signed_semitone_shift(original_tonic, "C")
+    friendly_chords = _transpose_and_simplify_chords(score, semitone_shift, "C")
+    chord_preview = ", ".join(friendly_chords[:4])
+    return KeyRecommendation(
+        original_key=score.key,
+        target_key=fallback_key,
+        semitone_shift=semitone_shift,
+        friendly_chords=friendly_chords,
+        reason=(
+            f"{score.key} uses unsupported {original_mode} mode, so the advisor falls back to "
+            f"{fallback_key} and centers chords like {chord_preview}."
+        ),
+    )
 
 
 def _transpose_and_simplify_chords(score: Score, semitone_shift: int, target_tonic: str) -> list[str]:

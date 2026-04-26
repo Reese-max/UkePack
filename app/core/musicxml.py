@@ -8,6 +8,7 @@ from music21 import chord, converter, harmony, key, note, tempo
 from app.models import ChordEvent, MelodyNote, Score
 
 SUPPORTED_EXTENSIONS = {".musicxml", ".mxl", ".xml"}
+_PLACEHOLDER_TITLES = {"Music21 Fragment"}
 
 
 def parse(path: Path) -> Score:
@@ -41,7 +42,7 @@ def _extract_title(parsed_score: Any, path: Path) -> str:
     metadata = parsed_score.metadata
     if metadata is not None:
         title = metadata.title or metadata.movementName
-        if title:
+        if title and str(title) not in _PLACEHOLDER_TITLES:
             return str(title)
     return path.stem.replace("_", " ").title()
 

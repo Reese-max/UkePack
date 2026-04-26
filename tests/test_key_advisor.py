@@ -40,6 +40,23 @@ def test_suggest_key_skips_omitted_diminished_chords() -> None:
     assert recommendation.friendly_chords == ["C", "G"]
 
 
+def test_suggest_key_handles_scores_without_chords() -> None:
+    recommendation = suggest_key(_build_score("E major", []))
+
+    assert recommendation.target_key == "D major"
+    assert recommendation.semitone_shift == -2
+    assert recommendation.friendly_chords == ["D"]
+
+
+def test_suggest_key_falls_back_to_c_major_for_unsupported_modes() -> None:
+    recommendation = suggest_key(_build_score("D dorian", ["D", "A", "Bm", "G"]))
+
+    assert recommendation.target_key == "C major"
+    assert recommendation.semitone_shift == -2
+    assert recommendation.friendly_chords == ["C", "G", "Am", "F"]
+    assert "falls back to C major" in recommendation.reason
+
+
 def _build_score(key_name: str, chords: list[str]) -> Score:
     return Score(
         title="Suggestion Fixture",

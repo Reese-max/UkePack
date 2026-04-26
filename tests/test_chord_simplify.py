@@ -7,13 +7,16 @@ from app.arrangement import simplify
     ("original", "expected"),
     [
         pytest.param("Cmaj7", "C", id="cmaj7"),
+        pytest.param("CMaj7", "C", id="capital-maj"),
+        pytest.param("CΔ7", "C", id="delta"),
         pytest.param("Gsus4", "G", id="gsus4"),
         pytest.param("Am7", "Am", id="am7"),
         pytest.param("Fmaj7", "F", id="fmaj7"),
         pytest.param("Dm7", "Dm", id="dm7"),
         pytest.param("G/B", "G", id="g-over-b"),
-        pytest.param("Bdim", "G7", id="bdim"),
-        pytest.param("F#m7b5", "Am", id="fsharp-half-diminished"),
+        pytest.param("Bdim", "N.C.", id="bdim"),
+        pytest.param("F#m7b5", "Dm", id="fsharp-half-diminished"),
+        pytest.param("Gdim7", "N.C.", id="dim7"),
         pytest.param("Cadd9", "C", id="cadd9"),
         pytest.param("Csus2", "C", id="csus2"),
         pytest.param("Dsus4", "D", id="dsus4"),
@@ -26,6 +29,8 @@ from app.arrangement import simplify
         pytest.param("Eaug", "E", id="eaug"),
         pytest.param("G13", "G7", id="g13"),
         pytest.param(" E7sus4 ", "E7", id="whitespace"),
+        pytest.param("C　Maj7", "C", id="full-width-space"),
+        pytest.param("n.c.", "N.C.", id="no-chord"),
     ],
 )
 def test_simplify_maps_extended_chords_to_beginner_friendly_shapes(

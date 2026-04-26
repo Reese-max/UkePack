@@ -33,6 +33,13 @@ def test_suggest_key_prefers_small_downward_move_for_f_sharp_major() -> None:
     assert recommendation.friendly_chords == ["F", "C", "Dm", "Bb"]
 
 
+def test_suggest_key_skips_omitted_diminished_chords() -> None:
+    recommendation = suggest_key(_build_score("C major", ["C", "Bdim", "G"]))
+
+    assert recommendation.target_key == "C major"
+    assert recommendation.friendly_chords == ["C", "G"]
+
+
 def _build_score(key_name: str, chords: list[str]) -> Score:
     return Score(
         title="Suggestion Fixture",

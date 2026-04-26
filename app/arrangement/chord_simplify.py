@@ -2,7 +2,18 @@
 
 import re
 
-_ROOT_PATTERN = re.compile(r"^([A-Ga-g])([#b]?)(.*)$")
+from app.core.music_theory import split_chord_root
+
+_FULL_WIDTH_SPACE = "\u3000"
+_NO_CHORD_MARKERS = {"N.C.", "N.C", "NC"}
+_SUFFIX_NORMALIZERS: tuple[tuple[re.Pattern[str], str], ...] = (
+    (re.compile("Δ|△"), "maj"),
+    (re.compile(r"(?i)maj"), "maj"),
+    (re.compile(r"(?i)min"), "min"),
+    (re.compile(r"(?i)add"), "add"),
+    (re.compile(r"(?i)sus"), "sus"),
+    (re.compile(r"(?i)dim"), "dim"),
+)
 _SUFFIX_RULES: tuple[tuple[str, str], ...] = (
     ("maj9", ""),
     ("maj7", ""),
@@ -10,6 +21,7 @@ _SUFFIX_RULES: tuple[tuple[str, str], ...] = (
     ("add9", ""),
     ("sus4", ""),
     ("sus2", ""),
+    ("dim7", "N.C."),
     ("m11", "m"),
     ("m9", "m"),
     ("m7", "m"),
@@ -30,7 +42,7 @@ _EXACT_SIMPLIFICATIONS: dict[str, str] = {
     "Am7": "Am",
     "Am9": "Am",
     "Bbmaj7": "Bb",
-    "Bdim": "G7",
+    "Bdim": "N.C.",
     "Bm7b5": "Dm",
     "Cadd9": "C",
     "Caug": "C",
@@ -43,7 +55,7 @@ _EXACT_SIMPLIFICATIONS: dict[str, str] = {
     "Eaug": "E",
     "E7sus4": "E7",
     "Ebmaj7": "Eb",
-    "F#m7b5": "Am",
+    "F#m7b5": "Dm",
     "Fadd9": "F",
     "Fmaj7": "F",
     "G/B": "G",
@@ -57,6 +69,8 @@ def simplify(chord: str) -> str:
     normalized = _normalize_symbol(chord)
     if not normalized:
         raise ValueError("Chord symbol cannot be empty")
+    if normalized == "N.C.":
+        return normalized
 
     direct_match = _EXACT_SIMPLIFICATIONS.get(normalized)
     if direct_match is not None:
@@ -70,18 +84,25 @@ def simplify(chord: str) -> str:
 
 def _normalize_symbol(chord: str) -> str:
     """Collapse whitespace and normalize the root note casing."""
-    compact = "".join(chord.split())
-    match = _ROOT_PATTERN.match(compact)
-    if match is None:
+    compact = "".join(chord.replace(_FULL_WIDTH_SPACE, " ").split())
+    if compact.upper() in _NO_CHORD_MARKERS:
+        return "N.C."
+
+    parsed = split_chord_root(compact)
+    if parsed is None:
         return compact
 
-    root, accidental, suffix = match.groups()
-    return f"{root.upper()}{accidental}{suffix}"
+    root, suffix = parsed
+    for pattern, replacement in _SUFFIX_NORMALIZERS:
+        suffix = pattern.sub(replacement, suffix)
+    return f"{root}{suffix}"
 
 
 def _simplify_suffix(chord: str) -> str:
     """Apply stable suffix-based fallback rules when no exact mapping exists."""
     for suffix, replacement in _SUFFIX_RULES:
         if chord.endswith(suffix):
+            if replacement == "N.C.":
+                return replacement
             return f"{chord.removesuffix(suffix)}{replacement}"
     return chord

@@ -4,6 +4,7 @@ import re
 from dataclasses import dataclass
 
 from app.arrangement.chord_simplify import simplify
+from app.core.music_theory import signed_semitone_shift, transpose_chord_symbol
 from app.models import KeyRecommendation, Score
 
 _CANDIDATE_KEYS: tuple[str, ...] = (
@@ -18,32 +19,6 @@ _PREFERRED_CHORDS = {"Am", "C", "F", "G"}
 _BEGINNER_FRIENDLY_CHORDS = {"A7", "Am", "C", "D7", "Dm", "Em", "F", "G", "G7"}
 _CAUTION_CHORDS = {"Ab", "B", "Bb", "Bm", "E", "Eb", "F#m"}
 _KEY_PATTERN = re.compile(r"^([A-G][#b]?)\s+(major|minor)$")
-_CHORD_PATTERN = re.compile(r"^([A-G])([#b]?)(.*)$")
-_PITCH_CLASS: dict[str, int] = {
-    "C": 0,
-    "B#": 0,
-    "C#": 1,
-    "Db": 1,
-    "D": 2,
-    "D#": 3,
-    "Eb": 3,
-    "E": 4,
-    "Fb": 4,
-    "E#": 5,
-    "F": 5,
-    "F#": 6,
-    "Gb": 6,
-    "G": 7,
-    "G#": 8,
-    "Ab": 8,
-    "A": 9,
-    "A#": 10,
-    "Bb": 10,
-    "B": 11,
-    "Cb": 11,
-}
-_SHARP_NAMES = ("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
-_FLAT_NAMES = ("C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B")
 
 
 @dataclass(frozen=True)
@@ -74,7 +49,7 @@ def suggest_key(score: Score) -> KeyRecommendation:
 def _evaluate_candidate(score: Score, candidate_key: str) -> _CandidateEvaluation:
     original_tonic, _ = _parse_key_name(score.key)
     target_tonic, _ = _parse_key_name(candidate_key)
-    semitone_shift = _signed_shift(original_tonic, target_tonic)
+    semitone_shift = signed_semitone_shift(original_tonic, target_tonic)
     friendly_chords = _transpose_and_simplify_chords(score, semitone_shift, target_tonic)
     preferred_count = sum(chord in _PREFERRED_CHORDS for chord in friendly_chords)
     friendly_count = sum(chord in _BEGINNER_FRIENDLY_CHORDS for chord in friendly_chords)
@@ -99,14 +74,6 @@ def _parse_key_name(key_name: str) -> tuple[str, str]:
     return tonic, mode
 
 
-def _signed_shift(original_tonic: str, target_tonic: str) -> int:
-    """Return the shortest signed semitone shift, preferring downward tritones."""
-    delta = (_PITCH_CLASS[target_tonic] - _PITCH_CLASS[original_tonic]) % 12
-    if delta == 6:
-        return -6
-    return delta - 12 if delta > 6 else delta
-
-
 def _transpose_and_simplify_chords(score: Score, semitone_shift: int, target_tonic: str) -> list[str]:
     """Project score chords into a candidate key and keep stable unique shapes."""
     prefer_flats = "b" in target_tonic or target_tonic == "F"
@@ -116,34 +83,14 @@ def _transpose_and_simplify_chords(score: Score, semitone_shift: int, target_ton
     unique_chords: list[str] = []
     seen: set[str] = set()
     for chord_event in score.chords:
-        transposed = _transpose_chord_symbol(chord_event.symbol, semitone_shift, prefer_flats)
+        transposed = transpose_chord_symbol(chord_event.symbol, semitone_shift, prefer_flats)
         simplified = simplify(transposed)
+        if simplified == "N.C.":
+            continue
         if simplified not in seen:
             unique_chords.append(simplified)
             seen.add(simplified)
-    return unique_chords
-
-
-def _transpose_chord_symbol(chord_symbol: str, semitone_shift: int, prefer_flats: bool) -> str:
-    """Transpose a chord root while preserving the original suffix."""
-    root_part, slash, bass_part = chord_symbol.partition("/")
-    transposed_root = _transpose_chord_part(root_part, semitone_shift, prefer_flats)
-    if not slash:
-        return transposed_root
-    transposed_bass = _transpose_chord_part(bass_part, semitone_shift, prefer_flats)
-    return f"{transposed_root}/{transposed_bass}"
-
-
-def _transpose_chord_part(chord_part: str, semitone_shift: int, prefer_flats: bool) -> str:
-    """Transpose the note name at the front of a chord token."""
-    match = _CHORD_PATTERN.match(chord_part.strip())
-    if match is None:
-        return chord_part.strip()
-
-    root, accidental, suffix = match.groups()
-    pitch_class = (_PITCH_CLASS[f"{root.upper()}{accidental}"] + semitone_shift) % 12
-    names = _FLAT_NAMES if prefer_flats else _SHARP_NAMES
-    return f"{names[pitch_class]}{suffix}"
+    return unique_chords or [target_tonic]
 
 
 def _score_candidate(chords: list[str], preferred_count: int, friendly_count: int) -> int:

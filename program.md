@@ -34,6 +34,18 @@
 - [x] 20. 寫 `tests/test_key_advisor.py`：3 case（E→C, B→G, F#→F）
 - [x] 21. git commit `feat(arrangement): chord simplify + key advisor`
 
+## 階段三.5：技術債收口（reflect 2026-04-27 新增，先做完才能進階段四）
+
+> 動機：reflect 抓出 (a) Spectra spec 是空殼、(b) chord_simplify 兩條映射功能性錯誤、(c) 樂理常量在 chord_simplify 與 key_advisor 雙寫、(d) musicxml 旋律抽取漏 chord.Chord、(e) 測試邊界缺口。先收齊再開新模組，避免在錯地基上疊樓。
+
+- [x] 22a. 抽 `app/core/music_theory.py`：集中 `_PITCH_CLASS` / `_SHARP_NAMES` / `_FLAT_NAMES` / 和弦 root 解析 / `transpose_chord_symbol`，讓 `chord_simplify.py` 與 `key_advisor.py` 共用，刪重複常量
+- [x] 22b. 修 `chord_simplify`：核對 PRD §9.6 後修正 `Bdim → G7` 與 `F#m7b5 → Am`（功能性錯誤），補 `dim7 / Δ / N.C. / 全形空白 / 大寫 Maj` 等映射與測試
+- [ ] 22c. 補 `app/core/musicxml.py::_extract_melody`：處理 `chord.Chord`（取最高音為 melody line），加 fixture 驗證
+- [ ] 22d. 補測試邊界：`.mxl` zip 解析、metadata 缺失、空 chords 的 key advisor、非 major/minor mode 降級回 C major（不要直接 raise）
+- [ ] 22e. 填 `openspec/specs/`：至少落地 MusicXML import / chord simplify / key advisor 三條 spec，讓 `.spectra.yaml` 從擺設變實貨
+- [ ] 22f. 同步 BACKLOG.md：勾掉 P0-06（ruff/mypy 已全綠）+ 把 22a–22e 搬進 BACKLOG 對應 Phase 0 區塊
+- [ ] 22g. git commit `refactor(core): consolidate music theory utils + fix chord simplify mappings`
+
 ## 階段四：難度分級 + 刷法
 
 - [ ] 22. 建 `app/arrangement/level_classifier.py`：可彈性評分（PRD §10.4）

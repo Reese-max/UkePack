@@ -55,19 +55,19 @@
 
 ## 階段四：難度分級 + 刷法
 
-- [ ] 22. 建 `app/arrangement/level_classifier.py`：可彈性評分（PRD §10.4）
-- [ ] 23. 建 `app/arrangement/strum_pattern.py`：5 種刷法（PRD §9.10）
-- [ ] 24. 測試
-- [ ] 25. git commit `feat(arrangement): level classifier + strum patterns`
+- [x] 22. 建 `app/arrangement/level_classifier.py`：可彈性評分（PRD §10.4）
+- [x] 23. 建 `app/arrangement/strum_pattern.py`：5 種刷法（PRD §9.10）
+- [x] 24. 測試
+- [x] 25. git commit `feat(arrangement): level classifier + strum patterns`
 
 ## 階段五：PDF 渲染
 
-- [ ] 26. 建 `app/render/chord_diagram.py`：GCEA SVG 和弦圖 generator
-- [ ] 27. 建 `app/render/pdf.py`：4 頁 A4 reportlab
-- [ ] 28. 整合：和弦圖 SVG → svglib → reportlab Drawing
-- [ ] 29. 加授權聲明 footer（依 source_type 切版）
-- [ ] 30. 測試：3 首 fixture 產 PDF 成功
-- [ ] 31. git commit `feat(render): pdf pipeline + chord diagram svg`
+- [x] 26. 建 `app/render/chord_diagram.py`：GCEA SVG 和弦圖 generator
+- [x] 27. 建 `app/render/pdf.py`：4 頁 A4 reportlab
+- [x] 28. 整合：和弦圖 SVG → svglib → reportlab Drawing
+- [x] 29. 加授權聲明 footer（依 source_type 切版）
+- [x] 30. 測試：3 首 fixture 產 PDF 成功
+- [x] 31. git commit `feat(render): pdf pipeline + chord diagram svg`
 
 ## 階段六：CLI demo（北極星驗證）
 

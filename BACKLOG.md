@@ -12,7 +12,6 @@
 ## Phase 0：研究與原型（1–2 週）
 
 ### 基礎設施
-- [ ] P0-06 ruff + mypy 設定加入 pyproject.toml，CI 命令 `make lint` 全綠
 
 ### MusicXML 解析
 - [ ] P0-10 補到 30 首 fixture，計算成功率，寫 `tests/fixtures/REPORT.md`
@@ -87,8 +86,14 @@
 - [x] P0-03 `app/main.py` FastAPI hello world，`uv run uvicorn app.main:app` 起得來，`/health` 回 200
 - [x] P0-04 建立 `tests/` + `pytest.ini` + 第一個冒煙 test（test_health.py）
 - [x] P0-05 建立 `.env.example` + `app/config.py`（用 pydantic-settings）
+- [x] P0-06 ruff + mypy 設定加入 pyproject.toml，lint/type-check 全綠
 - [x] P0-07 `app/core/musicxml.py` — 用 music21 讀 .musicxml，回 `Score` pydantic model
 - [x] P0-08 `tests/fixtures/` 加 5 首公版 MusicXML（小星星/生日歌/Mary Had a Little Lamb/London Bridge/Jingle Bells）
 - [x] P0-09 寫 `test_musicxml_import.py` 驗 5 首全部解析成功 + 取得 key/bpm/小節數
 - [x] P0-11 `app/arrangement/chord_simplify.py` — 和弦簡化映射表 ≥ 20 條（PRD §9.6）
 - [x] P0-12 `app/arrangement/key_advisor.py` — Key 建議邏輯（C/G/F/Am 友善度評分）
+- [x] P0-12a `app/core/music_theory.py` — 抽共用音名/和弦 root 解析/轉調工具
+- [x] P0-12b 修 `chord_simplify` 映射與邊界（`Bdim -> N.C.`、`F#m7b5 -> Dm`、`dim7`、`Δ`、`N.C.`、全形空白）
+- [x] P0-12c 補 `musicxml` chord melody 抽取，`chord.Chord` 取最高音當 melody line
+- [x] P0-12d 補匯入與 key advisor 邊界測試（`.mxl`、metadata 缺失、空 chords、unsupported mode）
+- [x] P0-12e 建立 OpenSpec 契約：MusicXML import / chord simplify / key advisor

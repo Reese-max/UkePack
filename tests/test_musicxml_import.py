@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+from music21 import chord, metadata, meter, note, stream
 
 from app.core.musicxml import parse
 
@@ -160,6 +161,25 @@ def test_parse_rejects_unsupported_extensions(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="Unsupported score format"):
         parse(invalid_path)
+
+
+def test_parse_extracts_highest_pitch_from_chord_melody(tmp_path: Path) -> None:
+    chord_melody_path = tmp_path / "chord_melody.musicxml"
+    score_stream = stream.Score()
+    score_stream.metadata = metadata.Metadata(title="Chord Melody")
+    part = stream.Part()
+    measure = stream.Measure(number=1)
+    measure.insert(0, meter.TimeSignature("4/4"))
+    measure.insert(0, note.Note("C4", quarterLength=1.0))
+    measure.insert(1.0, chord.Chord(["E4", "G4", "C5"], quarterLength=2.0))
+    part.append(measure)
+    score_stream.append(part)
+    score_stream.write("musicxml", fp=chord_melody_path)
+
+    score = parse(chord_melody_path)
+
+    assert [melody_note.pitch for melody_note in score.melody] == ["C4", "C5"]
+    assert score.melody[1].quarter_length == pytest.approx(2.0)
 
 
 def test_fixture_inventory_reaches_ten_scores() -> None:

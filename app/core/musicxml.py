@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Any
 
-from music21 import converter, harmony, key, note, tempo
+from music21 import chord, converter, harmony, key, note, tempo
 
 from app.models import ChordEvent, MelodyNote, Score
 
@@ -103,16 +103,30 @@ def _extract_melody(parsed_stream: Any) -> list[MelodyNote]:
     """Collect pitched notes from the melody part."""
     melody: list[MelodyNote] = []
     for event in parsed_stream.recurse().notes:
-        if isinstance(event, note.Note):
-            melody.append(
-                MelodyNote(
-                    pitch=event.nameWithOctave,
-                    measure=_normalize_measure(event.measureNumber),
-                    beat=float(event.beat),
-                    quarter_length=float(event.quarterLength),
-                )
+        pitch = _extract_melody_pitch(event)
+        if pitch is None:
+            continue
+        melody.append(
+            MelodyNote(
+                pitch=pitch,
+                measure=_normalize_measure(event.measureNumber),
+                beat=float(event.beat),
+                quarter_length=float(event.quarterLength),
             )
+        )
     return melody
+
+
+def _extract_melody_pitch(event: Any) -> str | None:
+    """Treat chord voicings as melody by keeping their highest pitch."""
+    if isinstance(event, note.Note):
+        return event.nameWithOctave
+    if isinstance(event, harmony.ChordSymbol):
+        return None
+    if isinstance(event, chord.Chord) and event.pitches:
+        highest_pitch = max(event.pitches, key=lambda candidate: candidate.midi)
+        return highest_pitch.nameWithOctave
+    return None
 
 
 def _normalize_measure(measure_number: int | None) -> int:

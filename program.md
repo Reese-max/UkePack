@@ -28,8 +28,8 @@
 
 ## 階段三：和弦簡化 + Key 建議
 
-- [ ] 17. 建 `app/arrangement/chord_simplify.py`：`simplify(chord: str) -> str` + 20 條映射
-- [ ] 18. 寫 `tests/test_chord_simplify.py`：20 條全綠
+- [x] 17. 建 `app/arrangement/chord_simplify.py`：`simplify(chord: str) -> str` + 20 條映射
+- [x] 18. 寫 `tests/test_chord_simplify.py`：20 條全綠
 - [ ] 19. 建 `app/arrangement/key_advisor.py`：`suggest_key(score: Score) -> KeyRecommendation`
 - [ ] 20. 寫 `tests/test_key_advisor.py`：3 case（E→C, B→G, F#→F）
 - [ ] 21. git commit `feat(arrangement): chord simplify + key advisor`

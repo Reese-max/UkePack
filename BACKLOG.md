@@ -18,7 +18,6 @@
 - [ ] P0-10 補到 30 首 fixture，計算成功率，寫 `tests/fixtures/REPORT.md`
 
 ### 烏克麗麗化引擎（核心）
-- [ ] P0-12 `app/arrangement/key_advisor.py` — Key 建議邏輯（C/G/F/Am 友善度評分）
 - [ ] P0-13 `app/arrangement/level_classifier.py` — 難度分級（PRD §10.4 評分公式）
 - [ ] P0-14 `app/arrangement/strum_pattern.py` — 5 種刷法（PRD §9.10 表）
 
@@ -92,3 +91,4 @@
 - [x] P0-08 `tests/fixtures/` 加 5 首公版 MusicXML（小星星/生日歌/Mary Had a Little Lamb/London Bridge/Jingle Bells）
 - [x] P0-09 寫 `test_musicxml_import.py` 驗 5 首全部解析成功 + 取得 key/bpm/小節數
 - [x] P0-11 `app/arrangement/chord_simplify.py` — 和弦簡化映射表 ≥ 20 條（PRD §9.6）
+- [x] P0-12 `app/arrangement/key_advisor.py` — Key 建議邏輯（C/G/F/Am 友善度評分）

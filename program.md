@@ -30,9 +30,9 @@
 
 - [x] 17. 建 `app/arrangement/chord_simplify.py`：`simplify(chord: str) -> str` + 20 條映射
 - [x] 18. 寫 `tests/test_chord_simplify.py`：20 條全綠
-- [ ] 19. 建 `app/arrangement/key_advisor.py`：`suggest_key(score: Score) -> KeyRecommendation`
-- [ ] 20. 寫 `tests/test_key_advisor.py`：3 case（E→C, B→G, F#→F）
-- [ ] 21. git commit `feat(arrangement): chord simplify + key advisor`
+- [x] 19. 建 `app/arrangement/key_advisor.py`：`suggest_key(score: Score) -> KeyRecommendation`
+- [x] 20. 寫 `tests/test_key_advisor.py`：3 case（E→C, B→G, F#→F）
+- [x] 21. git commit `feat(arrangement): chord simplify + key advisor`
 
 ## 階段四：難度分級 + 刷法
 

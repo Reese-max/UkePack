@@ -1,5 +1,5 @@
 """Application data models."""
 
-from app.models.score import ChordEvent, MelodyNote, Score
+from app.models.score import ChordEvent, KeyRecommendation, MelodyNote, Score
 
-__all__ = ["ChordEvent", "MelodyNote", "Score"]
+__all__ = ["ChordEvent", "KeyRecommendation", "MelodyNote", "Score"]

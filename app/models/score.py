@@ -30,3 +30,13 @@ class Score(BaseModel):
     measures: int
     chords: list[ChordEvent] = Field(default_factory=list)
     melody: list[MelodyNote] = Field(default_factory=list)
+
+
+class KeyRecommendation(BaseModel):
+    """Recommended beginner-friendly key for a parsed score."""
+
+    original_key: str
+    target_key: str
+    semitone_shift: int
+    friendly_chords: list[str] = Field(default_factory=list)
+    reason: str

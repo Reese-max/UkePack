@@ -46,6 +46,13 @@
 - [x] 22f. 同步 BACKLOG.md：勾掉 P0-06（ruff/mypy 已全綠）+ 把 22a–22e 搬進 BACKLOG 對應 Phase 0 區塊
 - [x] 22g. git commit `refactor(core): consolidate music theory utils + fix chord simplify mappings`
 
+## 階段三.6：基礎設施收尾（reflect 2026-04-27 第二輪新增，與階段四可並行；先做完才能進階段五 PDF）
+
+> 動機：第二輪 reflect 抓出 (a) `.spectra.yaml` 整檔註解、spec 落地了但 runtime 沒啟用 (b) fixture 仍只有 10 首，距 MISSION 要求的 30 首基準有 20 首缺口，會卡死「匯入成功率 ≥ 90%」的 MVP DoD §2。先把這兩條收掉再開階段五，避免在 fixture 不足的基礎上做 PDF 渲染回歸。
+
+- [x] 22h. 啟用 `.spectra.yaml` runtime：解開 `tdd: true` / `audit: true` / `locale: tw` 三條註解，跑一次 `pytest -q && ruff check . && mypy app/` 確認沒副作用，commit `chore(spec): enable spectra runtime gates`
+- [ ] 22i. 補 `tests/fixtures/` 到 30 首 MusicXML（CC0 來源：MuseScore community / Mutopia / Wikifonia 重建版），執行 `app/core/musicxml.py::parse` 跑全集，解析失敗的標 `@pytest.mark.xfail` 並寫進 `tests/fixtures/REPORT.md`（成功率、失敗原因分類、music21 版本），確認成功率 ≥ 90% 後 commit `test(core): expand fixture corpus to thirty songs`
+
 ## 階段四：難度分級 + 刷法
 
 - [ ] 22. 建 `app/arrangement/level_classifier.py`：可彈性評分（PRD §10.4）

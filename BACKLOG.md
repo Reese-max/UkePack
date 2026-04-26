@@ -15,9 +15,6 @@
 - [ ] P0-06 ruff + mypy 設定加入 pyproject.toml，CI 命令 `make lint` 全綠
 
 ### MusicXML 解析
-- [ ] P0-07 `app/core/musicxml.py` — 用 music21 讀 .musicxml，回 `Score` pydantic model
-- [ ] P0-08 `tests/fixtures/` 加 5 首公版 MusicXML（小星星/生日歌/Mary Had a Little Lamb/London Bridge/Jingle Bells）
-- [ ] P0-09 寫 `test_musicxml_import.py` 驗 5 首全部解析成功 + 取得 key/bpm/小節數
 - [ ] P0-10 補到 30 首 fixture，計算成功率，寫 `tests/fixtures/REPORT.md`
 
 ### 烏克麗麗化引擎（核心）
@@ -92,3 +89,6 @@
 - [x] P0-03 `app/main.py` FastAPI hello world，`uv run uvicorn app.main:app` 起得來，`/health` 回 200
 - [x] P0-04 建立 `tests/` + `pytest.ini` + 第一個冒煙 test（test_health.py）
 - [x] P0-05 建立 `.env.example` + `app/config.py`（用 pydantic-settings）
+- [x] P0-07 `app/core/musicxml.py` — 用 music21 讀 .musicxml，回 `Score` pydantic model
+- [x] P0-08 `tests/fixtures/` 加 5 首公版 MusicXML（小星星/生日歌/Mary Had a Little Lamb/London Bridge/Jingle Bells）
+- [x] P0-09 寫 `test_musicxml_import.py` 驗 5 首全部解析成功 + 取得 key/bpm/小節數

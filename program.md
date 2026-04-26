@@ -71,10 +71,10 @@
 
 ## 階段六：CLI demo（北極星驗證）
 
-- [ ] 32. 建 `app/demo.py`：argparse `--input --level --out`
-- [ ] 33. 量測：3 首 fixture × Level 1 各跑 1 次，記錄秒數到 `engineering-log.md`
-- [ ] 34. 確認：< 5 秒 + PDF 可開 + 4 個基本和弦圖都在
-- [ ] 35. git commit `feat(demo): cli end-to-end pipeline`
+- [x] 32. 建 `app/demo.py`：argparse `--input --level --out`
+- [x] 33. 量測：3 首 fixture × Level 1 各跑 1 次，記錄秒數到 `engineering-log.md`
+- [x] 34. 確認：< 5 秒 + PDF 可開 + 4 個基本和弦圖都在
+- [x] 35. git commit `feat(demo): cli end-to-end pipeline`
 
 ## 階段七：Web API（Phase 1 啟動）
 

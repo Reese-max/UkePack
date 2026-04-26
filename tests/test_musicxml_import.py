@@ -20,6 +20,28 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
     ),
     [
         pytest.param(
+            "are_you_sleeping.musicxml",
+            "Are You Sleeping",
+            "F major",
+            96,
+            "4/4",
+            8,
+            "F",
+            "F4",
+            id="are-you-sleeping",
+        ),
+        pytest.param(
+            "greensleeves.musicxml",
+            "Greensleeves",
+            "E minor",
+            84,
+            "6/8",
+            8,
+            "Em",
+            "E4",
+            id="greensleeves",
+        ),
+        pytest.param(
             "happy_birthday.musicxml",
             "Happy Birthday",
             "G major",
@@ -64,6 +86,39 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
             id="mary-had-a-little-lamb",
         ),
         pytest.param(
+            "old_macdonald_had_a_farm.musicxml",
+            "Old MacDonald Had a Farm",
+            "G major",
+            104,
+            "4/4",
+            8,
+            "G",
+            "B4",
+            id="old-macdonald",
+        ),
+        pytest.param(
+            "row_row_row_your_boat.musicxml",
+            "Row Row Row Your Boat",
+            "C major",
+            92,
+            "4/4",
+            8,
+            "C",
+            "C4",
+            id="row-row-row-your-boat",
+        ),
+        pytest.param(
+            "this_old_man.musicxml",
+            "This Old Man",
+            "D major",
+            116,
+            "2/4",
+            8,
+            "D",
+            "E4",
+            id="this-old-man",
+        ),
+        pytest.param(
             "twinkle_twinkle_little_star.musicxml",
             "Twinkle Twinkle Little Star",
             "C major",
@@ -105,3 +160,7 @@ def test_parse_rejects_unsupported_extensions(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="Unsupported score format"):
         parse(invalid_path)
+
+
+def test_fixture_inventory_reaches_ten_scores() -> None:
+    assert len(list(FIXTURES_DIR.glob("*.musicxml"))) == 10

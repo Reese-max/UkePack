@@ -23,8 +23,8 @@
 - [x] 12. 建 `app/models/score.py`（pydantic：title/key/bpm/time_signature/measures/chords/melody）
 - [x] 13. 建 `app/core/musicxml.py`：`parse(path: Path) -> Score`
 - [x] 14. 寫 `tests/test_musicxml_import.py`：5 首全綠
-- [ ] 15. 補到 10 首 fixture，再跑測試
-- [ ] 16. git commit `feat(core): musicxml parser + 10 fixtures`
+- [x] 15. 補到 10 首 fixture，再跑測試
+- [x] 16. git commit `feat(core): musicxml parser + 10 fixtures`
 
 ## 階段三：和弦簡化 + Key 建議
 

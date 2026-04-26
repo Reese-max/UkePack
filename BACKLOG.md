@@ -14,7 +14,6 @@
 ### 基礎設施
 
 ### MusicXML 解析
-- [ ] P0-10 補到 30 首 fixture，計算成功率，寫 `tests/fixtures/REPORT.md`
 
 ### 烏克麗麗化引擎（核心）
 - [ ] P0-13 `app/arrangement/level_classifier.py` — 難度分級（PRD §10.4 評分公式）
@@ -97,3 +96,4 @@
 - [x] P0-12c 補 `musicxml` chord melody 抽取，`chord.Chord` 取最高音當 melody line
 - [x] P0-12d 補匯入與 key advisor 邊界測試（`.mxl`、metadata 缺失、空 chords、unsupported mode）
 - [x] P0-12e 建立 OpenSpec 契約：MusicXML import / chord simplify / key advisor
+- [x] P0-10 補到 30 首 fixture，計算成功率，寫 `tests/fixtures/REPORT.md`

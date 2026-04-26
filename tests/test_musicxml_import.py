@@ -6,6 +6,23 @@ from music21 import chord, key, metadata, meter, note, stream
 from app.core.musicxml import parse
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
+EXPECTED_XFAIL_FIXTURES: dict[str, str] = {}
+ALL_FIXTURE_PATHS = sorted(FIXTURES_DIR.glob("*.musicxml"))
+CORPUS_FIXTURE_PARAMS = [
+    pytest.param(
+        fixture_path,
+        id=fixture_path.stem,
+        marks=[
+            pytest.mark.xfail(
+                reason=EXPECTED_XFAIL_FIXTURES[fixture_path.name],
+                strict=True,
+            )
+        ]
+        if fixture_path.name in EXPECTED_XFAIL_FIXTURES
+        else [],
+    )
+    for fixture_path in ALL_FIXTURE_PATHS
+]
 
 
 @pytest.mark.parametrize(
@@ -206,8 +223,40 @@ def test_parse_falls_back_to_filename_when_metadata_missing(tmp_path: Path) -> N
     assert score.melody[0].pitch == "G4"
 
 
-def test_fixture_inventory_reaches_ten_scores() -> None:
-    assert len(list(FIXTURES_DIR.glob("*.musicxml"))) == 10
+@pytest.mark.parametrize("fixture_path", CORPUS_FIXTURE_PARAMS)
+def test_parse_fixture_corpus(fixture_path: Path) -> None:
+    score = parse(fixture_path)
+
+    assert score.title
+    assert score.key
+    assert score.time_signature
+    assert score.measures > 0
+    assert score.chords
+    assert score.melody
+
+
+def test_fixture_inventory_reaches_thirty_scores() -> None:
+    assert len(ALL_FIXTURE_PATHS) == 30
+
+
+def test_fixture_corpus_success_rate() -> None:
+    successes = 0
+    unexpected_failures: list[str] = []
+
+    for fixture_path in ALL_FIXTURE_PATHS:
+        try:
+            score = parse(fixture_path)
+        except Exception as exc:
+            if fixture_path.name not in EXPECTED_XFAIL_FIXTURES:
+                unexpected_failures.append(f"{fixture_path.name}: {exc}")
+            continue
+
+        assert score.title
+        assert score.key
+        successes += 1
+
+    assert not unexpected_failures
+    assert successes / len(ALL_FIXTURE_PATHS) >= 0.9
 
 
 def _write_single_part_score(

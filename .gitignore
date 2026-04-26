@@ -41,7 +41,13 @@ exports/
 *.pdf
 !docs/**/*.pdf
 !samples/public_domain/**/*.musicxml
+!tests/fixtures/**/*.musicxml
+!tests/fixtures/**/*.mxl
+!tests/fixtures/**/*.xml
 !samples/public_domain/**/*.mid
 
 # 私人研究素材永遠不上傳
 samples/private_research/
+
+# Spectra app data
+.spectra/

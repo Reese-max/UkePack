@@ -6,16 +6,16 @@
 
 ## 階段一：地基（必須先全綠）
 
-- [ ] 1. 建 `pyproject.toml`（python = "^3.12"，依賴：music21, fastapi, uvicorn, reportlab, svglib, mido, jinja2, pydantic-settings, sqlmodel, httpx）+ dev：pytest, pytest-cov, ruff, mypy
-- [ ] 2. `uv sync` 跑通（無錯）
-- [ ] 3. 建 `app/__init__.py` + `app/main.py`（FastAPI app + `/health` endpoint）
-- [ ] 4. 建 `app/config.py`（pydantic-settings 讀 `.env`）
-- [ ] 5. 建 `.env.example`（DATA_DIR / DEBUG / SQLITE_PATH）
-- [ ] 6. 建 `tests/conftest.py` + `tests/test_health.py`
-- [ ] 7. 跑 `uv run pytest -q` 綠
-- [ ] 8. 跑 `uv run ruff check .` 綠
-- [ ] 9. 跑 `uv run mypy app/` 綠
-- [ ] 10. git commit `chore: bootstrap python skeleton`
+- [x] 1. 建 `pyproject.toml`（python = "^3.12"，依賴：music21, fastapi, uvicorn, reportlab, svglib, mido, jinja2, pydantic-settings, sqlmodel, httpx）+ dev：pytest, pytest-cov, ruff, mypy
+- [x] 2. `uv sync` 跑通（無錯）
+- [x] 3. 建 `app/__init__.py` + `app/main.py`（FastAPI app + `/health` endpoint）
+- [x] 4. 建 `app/config.py`（pydantic-settings 讀 `.env`）
+- [x] 5. 建 `.env.example`（DATA_DIR / DEBUG / SQLITE_PATH）
+- [x] 6. 建 `tests/conftest.py` + `tests/test_health.py`
+- [x] 7. 跑 `uv run pytest -q` 綠
+- [x] 8. 跑 `uv run ruff check .` 綠
+- [x] 9. 跑 `uv run mypy app/` 綠
+- [x] 10. git commit `chore: bootstrap python skeleton`
 
 ## 階段二：MusicXML 解析
 

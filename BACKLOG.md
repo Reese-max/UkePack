@@ -12,11 +12,6 @@
 ## Phase 0：研究與原型（1–2 週）
 
 ### 基礎設施
-- [ ] P0-01 建立 `pyproject.toml` + `uv sync` 跑通（music21/fastapi/reportlab/mido/pytest/ruff/mypy）
-- [ ] P0-02 建立 `app/` 目錄骨架（main.py/api/core/arrangement/render/models/templates）
-- [ ] P0-03 `app/main.py` FastAPI hello world，`uv run uvicorn app.main:app` 起得來，`/health` 回 200
-- [ ] P0-04 建立 `tests/` + `pytest.ini` + 第一個冒煙 test（test_health.py）
-- [ ] P0-05 建立 `.env.example` + `app/config.py`（用 pydantic-settings）
 - [ ] P0-06 ruff + mypy 設定加入 pyproject.toml，CI 命令 `make lint` 全綠
 
 ### MusicXML 解析
@@ -92,3 +87,8 @@
 
 - [x] P-00 PRD v1.0 Draft 寫成 `PRD.md`
 - [x] P-00 README/MISSION/AGENTS/BACKLOG/program 骨架建立
+- [x] P0-01 建立 `pyproject.toml` + `uv sync` 跑通（music21/fastapi/reportlab/mido/pytest/ruff/mypy）
+- [x] P0-02 建立 `app/` 目錄骨架（main.py/api/core/arrangement/render/models/templates）
+- [x] P0-03 `app/main.py` FastAPI hello world，`uv run uvicorn app.main:app` 起得來，`/health` 回 200
+- [x] P0-04 建立 `tests/` + `pytest.ini` + 第一個冒煙 test（test_health.py）
+- [x] P0-05 建立 `.env.example` + `app/config.py`（用 pydantic-settings）

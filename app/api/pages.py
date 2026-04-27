@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Any
@@ -11,10 +12,17 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlmodel import Session
 
+from app.api.project_uploads import import_musicxml_into_project, save_upload_with_limit
+from app.arrangement.key_advisor import suggest_key
+from app.arrangement.level_classifier import classify
+from app.arrangement.strum_pattern import suggest_for_level
+from app.config import get_settings
 from app.core.db import get_session
 from app.models.project import Project, ProjectCreate
+from app.models.score import ChordEvent, Score
 
 router = APIRouter(tags=["pages"])
+logger = logging.getLogger(__name__)
 
 _TEMPLATES = Jinja2Templates(
     directory=str(Path(__file__).resolve().parent.parent / "templates")
@@ -70,32 +78,28 @@ async def create_project_htmx(
     if file and file.filename:
         suffix = Path(file.filename).suffix.lower()
         if suffix in _MUSICXML_EXTS:
-            from app.arrangement.key_advisor import suggest_key
-            from app.arrangement.level_classifier import classify
-            from app.config import get_settings
-            from app.core.musicxml import parse
-
             settings = get_settings()
             save_dir = settings.data_dir / "projects" / str(project.id)
-            save_dir.mkdir(parents=True, exist_ok=True)
             save_path = save_dir / f"original{suffix}"
-            save_path.write_bytes(await file.read())
+            relative_path = str(save_path.relative_to(settings.data_dir))
+
+            await save_upload_with_limit(file, save_path)
 
             try:
-                score = parse(save_path)
-                key_rec = suggest_key(score)
-                playability = classify(score)
-                project.musicxml_path = str(save_path.relative_to(settings.data_dir))
-                project.score_json = score.model_dump_json()
-                project.original_key = score.key
-                project.bpm = score.bpm
-                project.target_key = key_rec.target_key
-                project.arrangement_level = playability.recommended_level
-                project.updated_at = datetime.now(UTC)
+                import_musicxml_into_project(
+                    project,
+                    save_path,
+                    relative_path=relative_path,
+                )
                 session.add(project)
                 session.commit()
-            except Exception:  # non-fatal: import error shouldn't abort project creation
+            except (ValueError, RuntimeError) as exc:
+                logger.warning("htmx import failed: %s", exc, exc_info=True)
                 save_path.unlink(missing_ok=True)
+                return RedirectResponse(
+                    url=f"/projects/{project.id}?import_error=1",
+                    status_code=303,
+                )
 
     return RedirectResponse(url=f"/projects/{project.id}", status_code=303)
 
@@ -115,7 +119,11 @@ def project_analysis_page(
     return _TEMPLATES.TemplateResponse(
         request=request,
         name="analysis.html",
-        context={"project": project.model_dump(), "analysis": analysis},
+        context={
+            "project": project.model_dump(),
+            "analysis": analysis,
+            "import_error": request.query_params.get("import_error") == "1",
+        },
     )
 
 
@@ -130,8 +138,6 @@ def strum_partial(
     project = session.get(Project, project_id)
     if project is None:
         raise HTTPException(404, "Project not found")
-
-    from app.arrangement.strum_pattern import suggest_for_level
 
     score = _score_from_project(project)
     patterns = suggest_for_level(score, level)
@@ -183,8 +189,6 @@ def project_preview_page(
 
 def _score_from_project(project: Project) -> Any:
     """Return a Score object from stored JSON or chords text."""
-    from app.models.score import ChordEvent, Score
-
     if project.score_json:
         return Score.model_validate_json(project.score_json)
 
@@ -211,10 +215,6 @@ def _build_analysis(project: Project) -> dict[str, Any] | None:
     """Build analysis dict for template, or return None if no score data yet."""
     if not project.score_json and not project.chords_text:
         return None
-
-    from app.arrangement.key_advisor import suggest_key
-    from app.arrangement.level_classifier import classify
-    from app.arrangement.strum_pattern import suggest_for_level
 
     score = _score_from_project(project)
     key_rec = suggest_key(score)

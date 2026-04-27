@@ -137,6 +137,34 @@
 - [x] 56. `tests/test_pages.py` 22 cases 全綠
 - [x] 57. git commit `feat(templates): HTMX web UI + children-first styles`
 
+## 階段九：API 匯入安全收口（reflect 2026-04-27 第五輪新增，P0 阻塞外網部署）
+
+> 動機：第五輪 reflect 抓出 36f 安全護欄只防到 `app/core/musicxml.py::parse` 的 `MAX_IMPORT_BYTES`，但 `app/api/projects.py::import_musicxml` 與 `app/api/pages.py::create_project_htmx` 都先 `await file.read()` 把整個 upload 吃進記憶體 + 寫盤，再呼叫 parse 才檢查大小——10MB 限制等於裝飾，1GB POST 可直接打爆 RAM/磁碟。再加上 `pages.py:96` 裸 `except Exception:` 吞錯 + 0 logging，silent failure 在前端表現是「redirect 成功但 project 空殼」。**外網部署或邀老師試用前必須收**。
+
+- [x] 36m. `app/api/projects.py::import_musicxml`：改 streaming chunked read（每塊 64KB 累加 size，>10MB 立刻 raise `HTTPException(413, "File too large")`），同步 `app/api/projects.py::import_midi` 與 `app/api/pages.py::create_project_htmx`；補對應 unit tests（`UploadFile` 流式 fake、超大檔 413、邊界值 10MB±1B）
+- [x] 36n. `app/api/pages.py:96` 裸 `except Exception:` 改成 `except (ValueError, RuntimeError) as exc:` + `logging.getLogger(__name__).warning("htmx import failed: %s", exc, exc_info=True)` + redirect 帶 `?import_error=1` query；`templates/analysis.html` 偵測該 query 顯示「匯入失敗，請檢查檔案格式」紅框
+- [x] 36o. `app/api/projects.py:135` `except (ValueError, Exception)` → `except Exception`（移除冗餘 ValueError）；`projects.py` / `pages.py` 把 inline import（`from app.core.musicxml import parse` 等）提到模組頂層
+- [x] 36p. git commit `fix(api): streaming size guard + observable import errors`
+
+## 階段十：Phase 1 測試門檻收尾（reflect 2026-04-27 第五輪新增，對齊 BACKLOG P1-16/17/18）
+
+> 動機：MVP DoD §2「30 首 fixture 端到端產 PDF 成功率 ≥ 95%」目前只有 parse 級別 100%、整條 pipeline 沒批次跑。P1-16 條目寫「全 repo coverage ≥ 70%」現況已 97%，但內含的 4 條觀察池缺口（music_theory/key_advisor/pdf.py/db.py 共 19 行）一條沒補；條目語意失真誤導 auto-engineer。P1-18 老師試用 feedback 沒材料就邀請等於給人添亂。
+
+- [ ] 36q. 改寫 BACKLOG `P1-16` 描述為「補 4 條觀察池缺口」並列出 specific lines：`music_theory.py:57-58/73`（3 行）+ `key_advisor.py:76`（1 行）+ `pdf.py` svglib `contextlib.suppress` 12 行（mock `svglib.svglib.svg2rlg` 失敗）+ `core/db.py` 3 行 session cleanup；補測試使該 4 模組 coverage 拉到 ≥ 99%
+- [ ] 36r. 新增 `tests/test_corpus_e2e_pdf.py`：對 `tests/fixtures/` 30 首 × Level 1 完整跑 `parse → suggest_key → classify → suggest_strum → render_pdf`，斷言成功率 ≥ 95%、每個 PDF `%PDF-` magic 正確、bytes > 0；失敗的標 xfail 並寫進 `tests/fixtures/E2E_REPORT.md`（P1-17）
+- [ ] 36s. 建 `feedback.md` template（5 問題清單：分級準確度 / 字體大小 / 和弦圖可讀性 / 刷法合理度 / 整體可用性）+ 老師試用 SOP（`docs/teacher_trial_sop.md`：demo 影片腳本、邀請信範本、收 feedback 流程、驗收欄位）；P1-18 拆成 18a 準備材料 / 18b 邀請 / 18c 收 feedback / 18d 寫結論四步
+- [ ] 36t. git commit `test: phase 1 dod gate (coverage gaps + corpus e2e + feedback sop)`
+
+## 階段十一：技術債一次到位 + spec 補課（reflect 2026-04-27 第五輪新增，可與階段十並行）
+
+> 動機：`pdf.py` 423 行單檔連續 3 輪反思未動，Phase 2 P2-01 段落辨識 / P2-03 老師審稿還會擴，現在不拆未來貴 2x。`core/db.py` ResourceWarning 連測試都跑出大量 unclosed sqlite connection 警告。Phase 1 新增 9 endpoint + 6 page route 零 OpenSpec 契約，spec-driven 又一次「先寫程式再補規格」漂移。`engineering-log.md` + `results.log` 雙事實源連續 4 輪未統一。
+
+- [ ] 36u. 拆 `app/render/pdf.py` 為 `app/render/pages/{page1,page2,page3,page4}.py`（每檔 < 120 行）+ `app/render/_layout.py`（`_section / _divider / _footer / _chord_box / _practice_table` 共用 helper）；`render_pdf` 變 dispatcher，import path 對外不變
+- [ ] 36v. 修 `app/core/db.py` session ResourceWarning：確認 `get_session` context manager / `dispose()` 路徑被測試覆蓋；pytest 跑出的 `ResourceWarning: unclosed database` 應全消；db.py coverage ≥ 95%
+- [ ] 36w. 補 API layer OpenSpec：`openspec/specs/projects-api.md`（9 endpoints：FR-001~FR-015 input/output schema + status code）+ `openspec/specs/pages-routes.md`（6 routes：HTMX 互動契約、redirect 規則、license gate 行為）
+- [ ] 36x. 收口雙事實源：本輪起新規定 — `engineering-log.md` 只留 reflection + 重大 incident（含換策略）、每輪 sprint 實作 metadata 只寫 `results.log`；不回頭改舊 entries；在 `AGENTS.md` 或 `program.md` 全域守則加一條備忘
+- [ ] 36y. git commit `refactor: pdf split + db cleanup + api specs + log consolidation`
+
 ---
 
 ## 全域守則（每輪 AI 都要遵守）

@@ -34,6 +34,12 @@
         </div>
     </div>
 
+    {% if import_error %}
+    <div class="alert alert-danger" role="alert" style="margin-bottom:1rem">
+        匯入失敗，請檢查檔案格式
+    </div>
+    {% endif %}
+
     {% if not analysis %}
     {# ── No score yet ── #}
     <div class="card">

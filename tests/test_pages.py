@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import io
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+
+from app.core.musicxml import MAX_IMPORT_BYTES
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
 TWINKLE = FIXTURE_DIR / "twinkle_twinkle_little_star.musicxml"
@@ -51,6 +54,33 @@ def test_create_project_htmx_with_file(db_client: TestClient) -> None:
     assert resp.status_code == 303
     pid = int(resp.headers["location"].split("/")[-1])
     assert pid > 0
+
+
+def test_create_project_htmx_redirects_with_import_error(db_client: TestClient) -> None:
+    resp = db_client.post(
+        "/projects/create-htmx",
+        data={"title": "Broken Song", "source_type": "public_domain"},
+        files={"file": ("broken.musicxml", io.BytesIO(b"<not-valid-xml>"), "application/xml")},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 303
+    assert resp.headers["location"].endswith("?import_error=1")
+
+
+def test_create_project_htmx_rejects_oversized_file(db_client: TestClient) -> None:
+    resp = db_client.post(
+        "/projects/create-htmx",
+        data={"title": "Huge Song", "source_type": "public_domain"},
+        files={
+            "file": (
+                "huge.musicxml",
+                io.BytesIO(b"x" * (MAX_IMPORT_BYTES + 1)),
+                "application/xml",
+            )
+        },
+        follow_redirects=False,
+    )
+    assert resp.status_code == 413
 
 
 def test_create_project_htmx_optional_age(db_client: TestClient) -> None:
@@ -126,6 +156,18 @@ def test_analysis_page_shows_license_section(db_client: TestClient) -> None:
     resp = db_client.get(f"/projects/{pid}")
     assert "授權確認" in resp.text
     assert "確認授權" in resp.text
+
+
+def test_analysis_page_shows_import_error_banner(db_client: TestClient) -> None:
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Broken Import", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+
+    resp = db_client.get(f"/projects/{pid}?import_error=1")
+    assert resp.status_code == 200
+    assert "匯入失敗，請檢查檔案格式" in resp.text
 
 
 def test_analysis_page_shows_download_when_licensed(db_client: TestClient) -> None:

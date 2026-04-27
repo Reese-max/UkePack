@@ -10,10 +10,16 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse, Response
 from sqlmodel import Session, SQLModel
 
+from app.api.project_uploads import import_musicxml_into_project, save_upload_with_limit
+from app.arrangement.key_advisor import suggest_key
+from app.arrangement.level_classifier import classify
+from app.arrangement.strum_pattern import suggest_for_level
 from app.config import get_settings
 from app.core.db import get_session
+from app.models.pack_request import PackRequest
 from app.models.project import Project, ProjectCreate, ProjectRead
 from app.models.score import ChordEvent, Score
+from app.render.pdf import render_pdf
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
 
@@ -121,32 +127,21 @@ async def import_musicxml(
 
     settings = get_settings()
     save_dir = settings.data_dir / "projects" / str(project_id)
-    save_dir.mkdir(parents=True, exist_ok=True)
     save_path = save_dir / f"original{suffix}"
+    relative_path = str(save_path.relative_to(settings.data_dir))
 
-    content = await file.read()
-    save_path.write_bytes(content)
-
-    from app.arrangement.key_advisor import suggest_key
-    from app.arrangement.level_classifier import classify
-    from app.core.musicxml import parse
+    await save_upload_with_limit(file, save_path)
 
     try:
-        score = parse(save_path)
-    except (ValueError, Exception) as exc:
+        score, key_rec, playability = import_musicxml_into_project(
+            project,
+            save_path,
+            relative_path=relative_path,
+        )
+    except Exception as exc:
         save_path.unlink(missing_ok=True)
         raise HTTPException(422, f"MusicXML parse failed: {exc}") from exc
 
-    key_rec = suggest_key(score)
-    playability = classify(score)
-
-    project.musicxml_path = str(save_path.relative_to(settings.data_dir))
-    project.score_json = score.model_dump_json()
-    project.original_key = score.key
-    project.bpm = score.bpm
-    project.target_key = key_rec.target_key
-    project.arrangement_level = playability.recommended_level
-    project.updated_at = _utc_now()
     session.add(project)
     session.commit()
 
@@ -178,11 +173,8 @@ async def import_midi(
 
     settings = get_settings()
     save_dir = settings.data_dir / "projects" / str(project_id)
-    save_dir.mkdir(parents=True, exist_ok=True)
     save_path = save_dir / f"original{suffix}"
-
-    content = await file.read()
-    save_path.write_bytes(content)
+    await save_upload_with_limit(file, save_path)
 
     project.midi_path = str(save_path.relative_to(settings.data_dir))
     project.updated_at = _utc_now()
@@ -216,9 +208,6 @@ def get_analysis(project_id: int, session: SessionDep) -> dict[str, Any]:
     project = _get_or_404(session, project_id)
     score = _load_score(project)
 
-    from app.arrangement.key_advisor import suggest_key
-    from app.arrangement.level_classifier import classify
-
     key_rec = suggest_key(score)
     playability = classify(score)
 
@@ -244,8 +233,6 @@ def arrange(project_id: int, body: ArrangeBody, session: SessionDep) -> dict[str
         raise HTTPException(400, "level must be 1, 2, or 3")
     project = _get_or_404(session, project_id)
     score = _load_score(project)
-
-    from app.arrangement.strum_pattern import suggest_for_level
 
     patterns = suggest_for_level(score, body.level)
     project.arrangement_level = body.level
@@ -286,12 +273,6 @@ def export_pdf(project_id: int, session: SessionDep) -> Response:
             detail="License not confirmed; POST /api/projects/{id}/license first",
         )
     score = _load_score(project)
-
-    from app.arrangement.key_advisor import suggest_key
-    from app.arrangement.level_classifier import classify
-    from app.arrangement.strum_pattern import suggest_for_level
-    from app.models.pack_request import PackRequest
-    from app.render.pdf import render_pdf
 
     pack = PackRequest(
         title=project.title,

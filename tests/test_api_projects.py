@@ -12,6 +12,8 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from app.core.musicxml import MAX_IMPORT_BYTES
+
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
 TWINKLE = FIXTURE_DIR / "twinkle_twinkle_little_star.musicxml"
 
@@ -138,6 +140,16 @@ def test_import_musicxml_invalid_xml(db_client: TestClient) -> None:
     assert resp.status_code == 422
 
 
+def test_import_musicxml_too_large_returns_413(db_client: TestClient) -> None:
+    pid = _create(db_client)
+    payload = io.BytesIO(b"x" * (MAX_IMPORT_BYTES + 1))
+    resp = db_client.post(
+        f"/api/projects/{pid}/import",
+        files={"file": ("huge.musicxml", payload, "application/xml")},
+    )
+    assert resp.status_code == 413
+
+
 # ── MIDI import ────────────────────────────────────────────────────────────
 
 
@@ -165,6 +177,16 @@ def test_import_midi_bad_extension(db_client: TestClient) -> None:
         files={"file": ("song.wav", io.BytesIO(b"riff"), "audio/wav")},
     )
     assert resp.status_code == 400
+
+
+def test_import_midi_too_large_returns_413(db_client: TestClient) -> None:
+    pid = _create(db_client)
+    payload = io.BytesIO(b"x" * (MAX_IMPORT_BYTES + 1))
+    resp = db_client.post(
+        f"/api/projects/{pid}/midi",
+        files={"file": ("song.mid", payload, "audio/midi")},
+    )
+    assert resp.status_code == 413
 
 
 # ── manual chords ──────────────────────────────────────────────────────────

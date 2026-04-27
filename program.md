@@ -217,6 +217,14 @@
 
 ---
 
+## 階段十六.5：analysis 難度切換一致性（reflect 第七輪新增，直接影響輸出）
+
+> 動機：`analysis.html` 的 Level tabs 只用 `GET /projects/{id}/strum-partial` 換片段，完全不會寫回 `Project.arrangement_level`；畫面可切到 Level 2，但 PDF 匯出仍可能吃舊值。更糟的是初始 active tab 讀的是 `analysis.playability.level`（推薦值），不是專案已保存值，首屏 badge 也沒把 level 傳進 partial。這是「看得到 / 存不到 / 匯出不一致」的小 bug，該先補。
+
+- [x] 37j. 把分析頁 Level tabs 改成 `POST /projects/{id}/strum-partial` 持久化 `arrangement_level`，初始 active tab 與刷法 badge 改讀專案保存值；補 page regressions，並同步更新 `openspec/specs/pages-routes.md`
+
+---
+
 ## 全域守則（每輪 AI 都要遵守）
 
 1. 動工前先讀 `MISSION.md` + `AGENTS.md`

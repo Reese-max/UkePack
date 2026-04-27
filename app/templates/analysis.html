@@ -181,18 +181,21 @@
             {% for lvl in [1, 2, 3] %}
             <button
                 type="button"
-                class="level-tab {% if lvl == analysis.playability.level %}active{% endif %}"
-                hx-get="/projects/{{ project.id }}/strum-partial?level={{ lvl }}"
+                class="level-tab {% if lvl == selected_level %}active{% endif %}"
+                hx-post="/projects/{{ project.id }}/strum-partial"
+                hx-vals='{"level": {{ lvl }}}'
                 hx-target="#strum-section"
                 hx-swap="innerHTML"
                 hx-indicator="#strum-spinner"
-                aria-selected="{% if lvl == analysis.playability.level %}true{% else %}false{% endif %}"
-                onclick="document.querySelectorAll('.level-tab').forEach(b=>b.classList.remove('active')); this.classList.add('active')"
+                aria-selected="{% if lvl == selected_level %}true{% else %}false{% endif %}"
+                onclick="document.querySelectorAll('.level-tab').forEach(b=>{b.classList.remove('active'); b.setAttribute('aria-selected', 'false');}); this.classList.add('active'); this.setAttribute('aria-selected', 'true')"
             >Level {{ lvl }}</button>
             {% endfor %}
         </div>
 
         <div id="strum-section" style="margin-top:1rem" aria-live="polite">
+            {% set strum_patterns = analysis.strum_patterns %}
+            {% set level = selected_level %}
             {% include "partials/strum_patterns.html" %}
         </div>
         <span id="strum-spinner" class="htmx-indicator" aria-label="載入中">⏳ 載入中…</span>

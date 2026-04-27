@@ -8,7 +8,7 @@
 
 ## 1. Overview
 
-Seven browser-facing HTML routes compose the HTMX-powered UI. All routes render Jinja2 templates; HTMX partials return fragments only. Children-first styling is applied globally via `base.html` (18 px font, 52 px buttons, high contrast).
+Seven browser-facing HTML paths compose the HTMX-powered UI. All routes render Jinja2 templates; HTMX partials return fragments only. Children-first styling is applied globally via `base.html` (18 px font, 52 px buttons, high contrast).
 
 ---
 
@@ -73,7 +73,7 @@ When score data exists, the template shows:
 
 **Query param**: `level` (int, default 1).  
 Returns `partials/strum_patterns.html` fragment — **not** a full HTML page.  
-Used by `analysis.html` level-switcher to swap strum content without full reload.
+Used for read-only fragment fetches and tests.
 
 Context:
 
@@ -86,7 +86,18 @@ Context:
 
 ---
 
-### 2.5 POST `/projects/{id}/confirm-license` — License gate (FR-015)
+### 2.5 POST `/projects/{id}/strum-partial` — Persist arrangement level from the analysis UI
+
+**Form field**: `level` (required, one of `1`, `2`, `3`).  
+Updates `Project.arrangement_level`, bumps `updated_at`, then returns the same
+`partials/strum_patterns.html` fragment for HTMX swap-in.
+
+The analysis page level tabs must call this route so the saved arrangement level
+matches the strum pattern preview and later PDF export.
+
+---
+
+### 2.6 POST `/projects/{id}/confirm-license` — License gate (FR-015)
 
 Sets `license_confirmed = true` on the project.  
 Redirects `303` → `/projects/{id}`.  
@@ -96,7 +107,7 @@ Redirects `303` → `/projects/{id}`.
 
 ---
 
-### 2.6 POST `/projects/{id}/generate-practice-audio` — Practice-audio generate action
+### 2.7 POST `/projects/{id}/generate-practice-audio` — Practice-audio generate action
 
 Requires an existing project.  
 If the project is not license-confirmed or generation fails, redirect `303` to
@@ -105,7 +116,7 @@ On success, redirect `303` back to `/projects/{id}`.
 
 ---
 
-### 2.7 GET `/projects/{id}/preview` — PDF preview
+### 2.8 GET `/projects/{id}/preview` — PDF preview
 
 Renders `preview.html` with an `<iframe>` pointing to `/api/projects/{id}/export.pdf`.  
 If the project has uploaded MIDI data, the page also shows practice-audio

@@ -39,6 +39,7 @@ _SOURCE_TYPE_OPTIONS = [
 ]
 
 _MUSICXML_EXTS = {".musicxml", ".xml", ".mxl"}
+_VALID_LEVELS = {1, 2, 3}
 
 
 # ── Page routes ────────────────────────────────────────────────────────────
@@ -124,6 +125,7 @@ def project_analysis_page(
         context={
             "project": project.model_dump(),
             "analysis": analysis,
+            "selected_level": project.arrangement_level,
             "import_error": request.query_params.get("import_error") == "1",
             "audio_error": request.query_params.get("audio_error") == "1",
             "practice_audio": _practice_audio_payload(project),
@@ -142,20 +144,26 @@ def strum_partial(
     project = session.get(Project, project_id)
     if project is None:
         raise HTTPException(404, "Project not found")
+    return _render_strum_partial(request, project, level)
 
-    score = _score_from_project(project)
-    patterns = suggest_for_level(score, level)
-    return _TEMPLATES.TemplateResponse(
-        request=request,
-        name="partials/strum_patterns.html",
-        context={
-            "strum_patterns": [
-                {"name": p.name, "notation": p.notation(), "description": p.description}
-                for p in patterns
-            ],
-            "level": level,
-        },
-    )
+
+@router.post("/projects/{project_id}/strum-partial", response_class=HTMLResponse)
+def persist_strum_partial(
+    request: Request,
+    project_id: int,
+    session: SessionDep,
+    level: int = Form(...),
+) -> HTMLResponse:
+    """Persist arrangement level, then return the matching strum fragment."""
+    project = session.get(Project, project_id)
+    if project is None:
+        raise HTTPException(404, "Project not found")
+    _validate_level(level)
+    project.arrangement_level = level
+    project.updated_at = datetime.now(UTC)
+    session.add(project)
+    session.commit()
+    return _render_strum_partial(request, project, level)
 
 
 @router.post("/projects/{project_id}/confirm-license")
@@ -245,6 +253,29 @@ def _build_analysis(project: Project) -> dict[str, Any] | None:
             for p in patterns
         ],
     }
+
+
+def _validate_level(level: int) -> None:
+    """Reject levels outside the supported arrangement range."""
+    if level not in _VALID_LEVELS:
+        raise HTTPException(400, "level must be 1, 2, or 3")
+
+
+def _render_strum_partial(request: Request, project: Project, level: int) -> HTMLResponse:
+    """Render the strum partial for a validated arrangement level."""
+    _validate_level(level)
+    patterns = suggest_for_level(_score_from_project(project), level)
+    return _TEMPLATES.TemplateResponse(
+        request=request,
+        name="partials/strum_patterns.html",
+        context={
+            "strum_patterns": [
+                {"name": p.name, "notation": p.notation(), "description": p.description}
+                for p in patterns
+            ],
+            "level": level,
+        },
+    )
 
 
 def _practice_audio_payload(project: Project) -> dict[str, Any] | None:

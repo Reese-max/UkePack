@@ -130,6 +130,7 @@ def test_analysis_page_with_import(db_client: TestClient) -> None:
     assert "分析結果" in resp.text
     assert "Level" in resp.text
     assert "刷法建議" in resp.text
+    assert 'hx-post="/projects/' in resp.text
 
 
 def test_analysis_page_with_chords(db_client: TestClient) -> None:
@@ -262,9 +263,54 @@ def test_strum_partial_level_2(db_client: TestClient) -> None:
     assert "Level 2" in resp.text
 
 
+def test_analysis_page_uses_saved_arrangement_level(db_client: TestClient) -> None:
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Saved Level Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    db_client.post(f"/api/projects/{pid}/chords", json={"text": "C | G | Am | F"})
+    db_client.post(f"/api/projects/{pid}/arrange", json={"level": 2})
+
+    resp = db_client.get(f"/projects/{pid}")
+
+    assert resp.status_code == 200
+    assert 'class="level-tab active"' in resp.text
+    assert "Level 2</span>" in resp.text
+
+
+def test_strum_partial_post_persists_level(db_client: TestClient) -> None:
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Persist Level Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    db_client.post(f"/api/projects/{pid}/chords", json={"text": "C | G | Am | F"})
+
+    resp = db_client.post(f"/projects/{pid}/strum-partial", data={"level": "3"})
+
+    assert resp.status_code == 200
+    assert "Level 3" in resp.text
+    project = db_client.get(f"/api/projects/{pid}").json()
+    assert project["arrangement_level"] == 3
+
+
 def test_strum_partial_not_found(db_client: TestClient) -> None:
     resp = db_client.get("/projects/99999/strum-partial?level=1")
     assert resp.status_code == 404
+
+
+def test_strum_partial_post_invalid_level(db_client: TestClient) -> None:
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Bad Level Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    db_client.post(f"/api/projects/{pid}/chords", json={"text": "C | G | Am | F"})
+
+    resp = db_client.post(f"/projects/{pid}/strum-partial", data={"level": "5"})
+
+    assert resp.status_code == 400
 
 
 def test_score_from_project_falls_back_to_chords_text() -> None:

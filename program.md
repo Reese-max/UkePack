@@ -200,7 +200,7 @@
 
 > 動機：`openspec/specs/` 已 11 條全部 accepted，但 `openspec/changes/` 連續 5 輪零提案、只有 `archive/`。spec 一律先寫程式後文件化，違反 spec-driven 工作流的本意。P2-02（慢速練習音檔）規模剛好——一個新模組（mido + mp3）+ 輸出契約（.mid / .mp3 / metadata），用它走一次完整 change → accepted → code 流程，做後續 P2-03/P2-04 範本。
 
-- [ ] 37d. 動 P2-02 前先寫 `openspec/changes/2026-04-XX-slow-practice-mp3/proposal.md`（problem / proposed change / impact / out of scope），accepted 後才開始實作；spec ↔ code 同步在同一 PR 內
+- [x] 37d. 動 P2-02 前先寫 `openspec/changes/2026-04-27-slow-practice-mp3/proposal.md`（problem / proposed change / impact / out of scope），accepted 後才開始實作；spec 已補，後續照 change → accepted → code 走
 
 ## 階段十六：BACKLOG 衛生（reflect 第六輪新增，5 分鐘活）
 

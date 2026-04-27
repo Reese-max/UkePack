@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}老師審稿 — {{ project.title }} — UkePack AI{% endblock %}
+
+{% block content %}
+<div>
+    <a class="back-link" href="/projects/{{ project.id }}">← 回分析頁</a>
+
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; flex-wrap:wrap; margin-bottom:1.5rem">
+        <div>
+            <h1 class="page-title" style="margin-bottom:0.25rem">🧑‍🏫 老師審稿模式</h1>
+            <p class="page-subtitle" style="max-width:48rem">
+                可調整和弦、刷法、TAB 提示與練習說明；也能標記太難、一鍵降級、比較與復原。
+            </p>
+        </div>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap">
+            <a class="btn btn-ghost btn-sm" href="/projects/{{ project.id }}">回分析頁</a>
+            {% if project.license_confirmed %}
+            <a class="btn btn-primary btn-sm" href="/projects/{{ project.id }}/preview">預覽 PDF</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if saved %}
+    <div class="alert alert-info" style="margin-bottom:1rem">✅ 老師審稿已儲存。</div>
+    {% endif %}
+    {% if downgraded %}
+    <div class="alert alert-warning" style="margin-bottom:1rem">⚠️ 已標記「太難」，並自動降一級。</div>
+    {% endif %}
+    {% if restored %}
+    <div class="alert alert-info" style="margin-bottom:1rem">↺ 已恢復成系統原始建議。</div>
+    {% endif %}
+    {% if template_saved %}
+    <div class="alert alert-info" style="margin-bottom:1rem">💾 已儲存老師模板。</div>
+    {% endif %}
+    {% if template_applied %}
+    <div class="alert alert-info" style="margin-bottom:1rem">🪄 已套用老師模板。</div>
+    {% endif %}
+
+    <div class="card">
+        <p class="section-title">目前狀態</p>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem">
+            <span class="badge badge-orange">Level {{ review.current.arrangement_level }}</span>
+            {% if review.too_hard %}
+            <span class="badge badge-muted">已標記太難</span>
+            {% else %}
+            <span class="badge badge-green">可直接輸出</span>
+            {% endif %}
+        </div>
+
+        {% if review.compare %}
+        <div class="data-grid" aria-label="審稿差異">
+            {% for row in review.compare %}
+            <div class="data-cell">
+                <small>{{ row.label }}</small>
+                <div style="font-size:0.9rem; color:var(--muted); margin-top:0.35rem">原始：{{ row.original }}</div>
+                <strong style="display:block; margin-top:0.35rem">現在：{{ row.current }}</strong>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">目前與系統原始建議相同。</div>
+        {% endif %}
+    </div>
+
+    <form method="POST" action="/projects/{{ project.id }}/review/save" class="card">
+        <p class="section-title">編輯審稿內容</p>
+
+        <div class="field">
+            <label for="arrangement-level">難度等級</label>
+            <select id="arrangement-level" name="arrangement_level">
+                {% for level in [1, 2, 3] %}
+                <option value="{{ level }}" {% if review.current.arrangement_level == level %}selected{% endif %}>Level {{ level }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label for="chords-text">和弦內容</label>
+            <textarea id="chords-text" name="chords_text" rows="10">{{ review.current.chords_text }}</textarea>
+            <small style="color:var(--muted)">每小節用 <code>|</code> 分隔；同小節多個和弦可用 <code>/</code> 分隔；段落標題可寫 <code>Verse:</code> / <code>Chorus:</code>。</small>
+        </div>
+
+        <div class="field">
+            <label for="strum-name">刷法名稱</label>
+            <input id="strum-name" name="strum_name" value="{{ review.current.strum_name }}">
+        </div>
+
+        <div class="field">
+            <label for="strum-notation">刷法箭頭</label>
+            <input id="strum-notation" name="strum_notation" value="{{ review.current.strum_notation }}">
+        </div>
+
+        <div class="field">
+            <label for="strum-description">刷法說明</label>
+            <input id="strum-description" name="strum_description" value="{{ review.current.strum_description }}">
+        </div>
+
+        <div class="field">
+            <label for="tab-notes">TAB 提示</label>
+            <textarea id="tab-notes" name="tab_notes" rows="4">{{ review.current.tab_notes }}</textarea>
+        </div>
+
+        <div class="field">
+            <label for="practice-notes">練習說明</label>
+            <textarea id="practice-notes" name="practice_notes" rows="5">{{ review.current.practice_notes }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">💾 儲存審稿</button>
+    </form>
+
+    <div style="display:grid; gap:1rem; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr))">
+        <div class="card">
+            <p class="section-title">快捷動作</p>
+            <form method="POST" action="/projects/{{ project.id }}/review/downgrade" style="margin-bottom:0.75rem">
+                <button type="submit" class="btn btn-primary">⚠️ 標記太難並降級</button>
+            </form>
+            <form method="POST" action="/projects/{{ project.id }}/review/restore">
+                <button type="submit" class="btn btn-ghost">↺ 比較後恢復原始建議</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <p class="section-title">儲存模板</p>
+            <p style="margin:0 0 0.75rem; color:var(--muted); font-size:0.95rem">
+                先儲存審稿，再把目前版本存成老師模板。
+            </p>
+            <form method="POST" action="/projects/{{ project.id }}/review/save-template">
+                <div class="field">
+                    <label for="template-name">模板名稱</label>
+                    <input id="template-name" name="template_name" placeholder="例如：一年級慢版">
+                </div>
+                <button type="submit" class="btn btn-primary">💾 儲存成模板</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="section-title">已存模板</p>
+        {% if review.templates %}
+        <div class="data-grid" aria-label="老師模板">
+            {% for template in review.templates %}
+            <div class="data-cell">
+                <small>{{ template.saved_at }}</small>
+                <strong>{{ template.name }}</strong>
+                <div style="margin-top:0.5rem; color:var(--muted); font-size:0.9rem">
+                    Level {{ template.draft.arrangement_level }}｜{{ template.draft.strum_name }}
+                </div>
+                <form method="POST" action="/projects/{{ project.id }}/review/apply-template" style="margin-top:0.75rem">
+                    <input type="hidden" name="template_name" value="{{ template.name }}">
+                    <button type="submit" class="btn btn-ghost btn-sm">套用模板</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">尚未儲存任何老師模板。</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

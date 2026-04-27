@@ -12,10 +12,13 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from app.api.projects import export as export_module
 from app.api.projects._shared import load_score
 from app.config import get_settings
 from app.core.musicxml import MAX_IMPORT_BYTES
+from app.models.pack_request import PackRequest
 from app.models.project import Project
+from app.models.teacher_review import TeacherReviewDraft
 from tests.helpers import build_test_midi_bytes
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
@@ -388,6 +391,112 @@ def test_export_pdf_private_research_warning(db_client: TestClient) -> None:
     assert _pdf_has_text(resp.content, "Private study only")
 
 
+def test_teacher_review_lifecycle(db_client: TestClient) -> None:
+    pid = _create(db_client)
+    _add_chords(db_client, pid)
+    db_client.post(f"/api/projects/{pid}/arrange", json={"level": 2})
+
+    save_resp = db_client.post(
+        f"/api/projects/{pid}/review",
+        json={
+            "arrangement_level": 2,
+            "chords_text": "Verse:\nC / G | Am\nChorus:\nF | G",
+            "strum_name": "Teacher Slow",
+            "strum_notation": "D D U",
+            "strum_description": "Slow first, then speed up",
+            "tab_notes": "Play the first string only.",
+            "practice_notes": "Practice four bars a day.",
+        },
+    )
+
+    assert save_resp.status_code == 200, save_resp.text
+    payload = save_resp.json()
+    assert payload["current"]["strum_name"] == "Teacher Slow"
+    assert payload["compare"]
+
+    template_resp = db_client.post(
+        f"/api/projects/{pid}/review/template",
+        json={"name": "一年級慢版"},
+    )
+    assert template_resp.status_code == 200
+    assert template_resp.json()["templates"][0]["name"] == "一年級慢版"
+
+    downgrade_resp = db_client.post(f"/api/projects/{pid}/review/downgrade")
+    assert downgrade_resp.status_code == 200
+    assert downgrade_resp.json()["too_hard"] is True
+    assert downgrade_resp.json()["current"]["arrangement_level"] == 1
+
+    apply_resp = db_client.post(
+        f"/api/projects/{pid}/review/template/apply",
+        json={"name": "一年級慢版"},
+    )
+    assert apply_resp.status_code == 200
+    assert apply_resp.json()["current"]["strum_name"] == "Teacher Slow"
+    assert apply_resp.json()["current"]["arrangement_level"] == 2
+
+    restore_resp = db_client.post(f"/api/projects/{pid}/review/restore")
+    assert restore_resp.status_code == 200
+    assert restore_resp.json()["too_hard"] is False
+    assert restore_resp.json()["current"]["arrangement_level"] == 2
+
+
+def test_teacher_review_requires_score_data(db_client: TestClient) -> None:
+    pid = _create(db_client)
+    resp = db_client.get(f"/api/projects/{pid}/review")
+    assert resp.status_code == 422
+
+
+def test_teacher_review_apply_missing_template_returns_400(db_client: TestClient) -> None:
+    pid = _create(db_client)
+    _add_chords(db_client, pid)
+    resp = db_client.post(
+        f"/api/projects/{pid}/review/template/apply",
+        json={"name": "missing"},
+    )
+    assert resp.status_code == 400
+
+
+def test_export_pdf_uses_teacher_review_overrides(
+    db_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pid = _create(db_client)
+    _add_chords(db_client, pid)
+    db_client.post(f"/api/projects/{pid}/license", json={"confirmed": True})
+    db_client.post(
+        f"/api/projects/{pid}/review",
+        json={
+            "arrangement_level": 1,
+            "chords_text": "Verse:\nC | G\nChorus:\nAm | F",
+            "strum_name": "Teacher Slow",
+            "strum_notation": "D D U",
+            "strum_description": "Slow first, then speed up",
+            "tab_notes": "First string only.",
+            "practice_notes": "Practice first two lines.",
+        },
+    )
+
+    captured: dict[str, int | TeacherReviewDraft | None] = {}
+
+    def _fake_render(pack: PackRequest) -> bytes:
+        captured["review"] = pack.teacher_review
+        captured["level"] = pack.level
+        captured["measures"] = pack.score.measures
+        return b"%PDF-review"
+
+    monkeypatch.setattr(export_module, "render_pdf", _fake_render)
+    resp = db_client.get(f"/api/projects/{pid}/export.pdf")
+
+    assert resp.status_code == 200
+    assert resp.content == b"%PDF-review"
+    assert captured["level"] == 1
+    assert captured["measures"] == 4
+    review = captured["review"]
+    assert isinstance(review, TeacherReviewDraft)
+    assert review.strum_name == "Teacher Slow"
+    assert review.practice_notes == "Practice first two lines."
+
+
 # ── MusicXML export ────────────────────────────────────────────────────────
 
 
@@ -448,6 +557,16 @@ def test_load_score_falls_back_to_chord_text() -> None:
         ("post", "/api/projects/9999/chords", {"text": "C"}),
         ("get", "/api/projects/9999/analysis", None),
         ("post", "/api/projects/9999/arrange", {"level": 1}),
+        (
+            "post",
+            "/api/projects/9999/review",
+            {"arrangement_level": 1, "chords_text": "C", "strum_name": "x", "strum_notation": "↓"},
+        ),
+        ("get", "/api/projects/9999/review", None),
+        ("post", "/api/projects/9999/review/downgrade", None),
+        ("post", "/api/projects/9999/review/restore", None),
+        ("post", "/api/projects/9999/review/template", {"name": "kid"}),
+        ("post", "/api/projects/9999/review/template/apply", {"name": "kid"}),
         ("post", "/api/projects/9999/license", {"confirmed": True}),
         ("get", "/api/projects/9999/export.pdf", None),
         ("get", "/api/projects/9999/export.musicxml", None),

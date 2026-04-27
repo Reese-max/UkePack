@@ -12,6 +12,11 @@ from app.core.practice_audio import (
     get_practice_audio_file,
     load_practice_audio_manifest,
 )
+from app.core.teacher_review import (
+    has_teacher_review,
+    load_teacher_review,
+    review_score,
+)
 from app.models.pack_request import PackRequest
 from app.render.pdf import render_pdf
 
@@ -39,14 +44,18 @@ def export_pdf(project_id: int, session: SessionDep) -> Response:
     _require_license_confirmation(project.license_confirmed)
 
     score = load_score(project)
+    review = load_teacher_review(project, score) if has_teacher_review(project) else None
+    export_score = review_score(project, review, score) if review is not None else score
+    export_level = review.current.arrangement_level if review is not None else project.arrangement_level
     pack = PackRequest(
         title=project.title,
         source_type=project.source_type,
-        level=project.arrangement_level,
-        score=score,
-        key_recommendation=suggest_key(score),
-        strum_patterns=suggest_for_level(score, project.arrangement_level),
-        playability=classify(score),
+        level=export_level,
+        score=export_score,
+        key_recommendation=suggest_key(export_score),
+        strum_patterns=suggest_for_level(export_score, export_level),
+        playability=classify(export_score),
+        teacher_review=review.current if review is not None else None,
     )
     return Response(
         content=render_pdf(pack),

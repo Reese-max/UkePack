@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from app.arrangement.level_classifier import PlayabilityResult
 from app.arrangement.strum_pattern import StrumPattern
 from app.models.score import KeyRecommendation, Score
+from app.models.teacher_review import TeacherReviewDraft
 
 
 @dataclass
@@ -20,3 +21,4 @@ class PackRequest:
     key_recommendation: KeyRecommendation | None = None
     strum_patterns: list[StrumPattern] = field(default_factory=list)
     playability: PlayabilityResult | None = None
+    teacher_review: TeacherReviewDraft | None = None

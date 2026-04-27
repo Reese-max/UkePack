@@ -12,6 +12,7 @@ def test_homepage_renders_message_and_ctas(client: TestClient) -> None:
     for label in ("建立練習包", "匯入 MusicXML", "看範例", "老師專區"):
         assert label in response.text
     assert 'href="/samples/public_domain/twinkle.musicxml"' in response.text
+    assert "老師審稿模式" in response.text
 
 
 def test_public_sample_route_serves_twinkle_fixture(client: TestClient) -> None:

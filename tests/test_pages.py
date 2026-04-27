@@ -131,6 +131,7 @@ def test_analysis_page_with_import(db_client: TestClient) -> None:
     assert "Level" in resp.text
     assert "刷法建議" in resp.text
     assert 'hx-post="/projects/' in resp.text
+    assert f'href="/projects/{pid}/review"' in resp.text
 
 
 def test_analysis_page_with_chords(db_client: TestClient) -> None:
@@ -389,6 +390,7 @@ def test_preview_page_licensed(db_client: TestClient) -> None:
     assert resp.status_code == 200
     assert "iframe" in resp.text
     assert "export.pdf" in resp.text
+    assert f'href="/projects/{pid}/review"' in resp.text
 
 
 def test_preview_page_shows_practice_audio_action_with_midi(db_client: TestClient) -> None:
@@ -423,6 +425,53 @@ def test_preview_page_private_research_label(db_client: TestClient) -> None:
 
 def test_preview_page_not_found(db_client: TestClient) -> None:
     resp = db_client.get("/projects/99999/preview")
+    assert resp.status_code == 404
+
+
+def test_teacher_review_page_renders_editor(db_client: TestClient) -> None:
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Review Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    db_client.post(f"/api/projects/{pid}/chords", json={"text": "Verse:\nC | G\nChorus:\nAm | F"})
+
+    resp = db_client.get(f"/projects/{pid}/review")
+
+    assert resp.status_code == 200
+    assert "老師審稿模式" in resp.text
+    assert 'name="chords_text"' in resp.text
+    assert "目前與系統原始建議相同" in resp.text
+
+
+def test_teacher_review_page_save_redirects(db_client: TestClient) -> None:
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Review Save Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    db_client.post(f"/api/projects/{pid}/chords", json={"text": "C | G | Am | F"})
+
+    resp = db_client.post(
+        f"/projects/{pid}/review/save",
+        data={
+            "arrangement_level": "2",
+            "chords_text": "Verse:\nC | G\nChorus:\nAm | F",
+            "strum_name": "老師慢刷",
+            "strum_notation": "↓ ↓ ↑",
+            "strum_description": "先慢練再加速",
+            "tab_notes": "副歌只彈第一弦。",
+            "practice_notes": "每天 5 分鐘。",
+        },
+        follow_redirects=False,
+    )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == f"/projects/{pid}/review?saved=1"
+
+
+def test_teacher_review_page_not_found(db_client: TestClient) -> None:
+    resp = db_client.get("/projects/99999/review")
     assert resp.status_code == 404
 
 

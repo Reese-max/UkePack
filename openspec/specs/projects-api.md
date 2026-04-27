@@ -2,13 +2,13 @@
 
 **Status**: Accepted  
 **Scope**: `app/api/projects/*`  
-**Implements**: FR-001 – FR-015 plus Beta practice-audio export (BACKLOG P1-01 – P1-10, P2-02)
+**Implements**: FR-001 – FR-015 plus Beta practice-audio export and teacher review mode (BACKLOG P1-01 – P1-10, P2-02, P2-03)
 
 ---
 
 ## 1. Overview
 
-Twelve REST endpoints expose the UkePack pipeline over HTTP. All endpoints are prefixed `/api/projects` and tagged `projects`.
+REST endpoints expose the UkePack pipeline over HTTP. All endpoints are prefixed `/api/projects` and tagged `projects`.
 
 ---
 
@@ -215,6 +215,63 @@ Sets `license_confirmed = true` on the project.
 ```json
 { "project_id": 1, "license_confirmed": true }
 ```
+
+---
+
+### 2.13 GET `/api/projects/{id}/review` — Read teacher review state (FR-013)
+
+Requires score data. Returns persisted review manifest or a default draft derived from
+the current project score plus arrangement level.
+
+---
+
+### 2.14 POST `/api/projects/{id}/review` — Save teacher review edits (FR-013)
+
+**Request body**:
+
+```json
+{
+  "arrangement_level": 2,
+  "chords_text": "Verse:\nC | G\nChorus:\nAm | F",
+  "strum_name": "老師慢刷",
+  "strum_notation": "↓ ↓ ↑",
+  "strum_description": "先慢練再加速",
+  "tab_notes": "副歌先彈第一弦",
+  "practice_notes": "每天 5 分鐘，只練前四小節"
+}
+```
+
+Validates the chord text, updates `Project.arrangement_level`, and persists a review
+manifest under the project data directory.
+
+---
+
+### 2.15 POST `/api/projects/{id}/review/downgrade` — Mark too hard
+
+Requires score data. Lowers the active level by one step (minimum Level 1), sets
+`too_hard = true`, and refreshes the default strum suggestion for the downgraded level.
+
+---
+
+### 2.16 POST `/api/projects/{id}/review/restore` — Restore original suggestion
+
+Requires score data. Replaces the current review draft with the original
+system-generated suggestion.
+
+---
+
+### 2.17 POST `/api/projects/{id}/review/template` — Save review template
+
+**Request body**: `{ "name": "一年級慢版" }`  
+Stores the current review draft as a named template inside the project review manifest.
+
+---
+
+### 2.18 POST `/api/projects/{id}/review/template/apply` — Apply review template
+
+**Request body**: `{ "name": "一年級慢版" }`  
+Loads the named template, replaces the current draft, and updates the project's
+saved arrangement level.
 
 ---
 

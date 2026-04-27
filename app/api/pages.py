@@ -20,6 +20,7 @@ from app.config import get_settings
 from app.core.chord_sheet import parse_chord_sheet
 from app.core.db import get_session
 from app.core.practice_audio import generate_practice_audio, load_practice_audio_manifest
+from app.core.teacher_review import has_teacher_review
 from app.models.project import Project, ProjectCreate
 from app.models.score import Score
 
@@ -129,6 +130,7 @@ def project_analysis_page(
             "import_error": request.query_params.get("import_error") == "1",
             "audio_error": request.query_params.get("audio_error") == "1",
             "practice_audio": _practice_audio_payload(project),
+            "review_saved": has_teacher_review(project),
         },
     )
 
@@ -211,6 +213,8 @@ def project_preview_page(
         context={
             "project": project.model_dump(),
             "practice_audio": _practice_audio_payload(project),
+            "review_available": bool(project.score_json or project.chords_text),
+            "review_saved": has_teacher_review(project),
         },
     )
 

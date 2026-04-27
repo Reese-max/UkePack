@@ -33,9 +33,9 @@ def _homepage_cards() -> list[dict[str, str]]:
             "href": "/samples/public_domain/twinkle.musicxml",
         },
         {
-            "title": "老師專區（即將推出）",
-            "description": "先看目前專案 API 與授權流程；老師審稿 UI 下一步接上。",
-            "href": "/docs",
+            "title": "老師專區",
+            "description": "建立專案後，可在分析頁進入老師審稿模式，調整和弦、刷法與練習說明。",
+            "href": "/new",
         },
     ]
 
@@ -74,9 +74,11 @@ def create_app() -> FastAPI:
 
     from app.api.pages import router as pages_router
     from app.api.projects import router as projects_router
+    from app.api.review_pages import router as review_pages_router
 
     application.include_router(projects_router)
     application.include_router(pages_router)
+    application.include_router(review_pages_router)
 
     return application
 

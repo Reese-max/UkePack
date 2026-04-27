@@ -54,7 +54,24 @@ def render_page1(c: rl_canvas.Canvas, req: PackRequest) -> None:
     c.drawString(_MARGIN, y, "  ".join(unique) if unique else "（無和弦資料）")
     y -= 34
 
-    if req.strum_patterns:
+    if req.teacher_review and req.teacher_review.strum_notation:
+        section(c, "建議刷法", y)
+        y -= 22
+        strum_line = f"{req.teacher_review.strum_name}：{req.teacher_review.strum_notation}"
+        c.setFont("Helvetica-Bold" if strum_line.isascii() else _ZH, 12)
+        c.setFillColor(colors.black)
+        c.drawString(_MARGIN, y, strum_line)
+        y -= 20
+        if req.teacher_review.strum_description:
+            c.setFont(
+                "Helvetica" if req.teacher_review.strum_description.isascii() else _ZH,
+                11,
+            )
+            c.setFillColor(colors.HexColor("#555555"))
+            c.drawString(_MARGIN, y, req.teacher_review.strum_description[:72])
+            y -= 20
+        y -= 8
+    elif req.strum_patterns:
         section(c, "建議刷法", y)
         y -= 22
         for sp in req.strum_patterns[:2]:
@@ -78,6 +95,19 @@ def render_page1(c: rl_canvas.Canvas, req: PackRequest) -> None:
             f"{req.playability.playability_score} / 100  —  {req.playability.label}",
         )
         y -= 30
+
+    if req.teacher_review and req.teacher_review.practice_notes:
+        section(c, "老師練習說明", y)
+        y -= 22
+        for note in req.teacher_review.practice_notes.splitlines()[:3]:
+            line = note.strip()
+            if not line:
+                continue
+            c.setFont("Helvetica" if line.isascii() else _ZH, 11)
+            c.setFillColor(colors.HexColor("#333333"))
+            c.drawString(_MARGIN, y, line[:78])
+            y -= 18
+        y -= 8
 
     goals = _LEVEL_GOALS.get(req.level, _LEVEL_GOALS[1])
     box_h = float(18 + len(goals) * 22)

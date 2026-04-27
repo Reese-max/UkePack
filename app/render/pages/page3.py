@@ -27,6 +27,10 @@ def render_page3(c: rl_canvas.Canvas, req: PackRequest) -> None:
         y = _section_summary(c, req.score.sections, y)
         y -= 16
 
+    if req.teacher_review and req.teacher_review.tab_notes:
+        y = _tab_notes(c, req.teacher_review.tab_notes, y)
+        y -= 16
+
     if not req.score.chords:
         c.setFont(_ZH, 14)
         c.setFillColor(colors.HexColor("#888888"))
@@ -35,6 +39,28 @@ def render_page3(c: rl_canvas.Canvas, req: PackRequest) -> None:
         _chord_progression(c, req.score.chords, y)
 
     footer(c, req, 3)
+
+
+def _tab_notes(c: rl_canvas.Canvas, notes: str, y_start: float) -> float:
+    """Draw teacher-authored TAB hints above the chord grid."""
+    c.setFont(_ZH, 12)
+    c.setFillColor(colors.HexColor("#666666"))
+    c.drawString(_MARGIN, y_start, "老師 TAB 提示")
+    y = y_start - 18
+    c.setFillColor(colors.HexColor("#FFF8DC"))
+    c.setStrokeColor(colors.HexColor("#CCCCCC"))
+    box_height = 18.0 * max(2, min(4, len([line for line in notes.splitlines() if line.strip()])))
+    c.roundRect(_MARGIN, y - box_height, _CONTENT_W, box_height, 4, fill=1, stroke=1)
+    text_y = y - 14
+    for line in notes.splitlines()[:4]:
+        content = line.strip()
+        if not content:
+            continue
+        c.setFont(_ZH, 11)
+        c.setFillColor(colors.HexColor("#444444"))
+        c.drawString(_MARGIN + 10, text_y, content[:78])
+        text_y -= 16
+    return y - box_height
 
 
 def _section_summary(

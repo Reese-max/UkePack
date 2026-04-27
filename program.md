@@ -225,6 +225,14 @@
 
 ---
 
+## 階段十七：老師審稿模式（P2-03 / FR-013）
+
+> 動機：目前 analysis/preview 到 PDF 之間沒有「老師最後一哩」：無法改和弦、刷法、TAB 提示或練習說明；也沒有「太難 → 一鍵降級」、「比較與復原」、「儲存模板」。這會讓 Beta 仍停在系統自動建議，遇到 AI 轉譜不準或超出孩子能力時，老師沒有可落地的校稿入口。
+
+- [x] 37k. 建 `app/core/teacher_review.py` + `app/models/teacher_review.py` sidecar manifest（避免 SQLite migration），補 `app/api/projects/review.py` + `app/api/review_pages.py` + `templates/review.html`，讓老師可編輯和弦/刷法/TAB/練習說明、標記太難一鍵降級、比較/復原、儲存/套用模板；analysis/preview 加入口，PDF export 吃 review override，並同步 `openspec/specs/teacher-review.md`、`projects-api.md`、`pages-routes.md` 與 API/page regressions
+
+---
+
 ## 全域守則（每輪 AI 都要遵守）
 
 1. 動工前先讀 `MISSION.md` + `AGENTS.md`

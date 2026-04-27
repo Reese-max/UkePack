@@ -27,6 +27,9 @@
         </div>
 
         <div style="display:flex; gap:0.5rem; flex-wrap:wrap">
+            {% if analysis %}
+            <a class="btn btn-ghost btn-sm" href="/projects/{{ project.id }}/review">🧑‍🏫 老師審稿</a>
+            {% endif %}
             {% if project.license_confirmed %}
             <a class="btn btn-primary btn-sm" href="/projects/{{ project.id }}/preview">🎼 預覽 PDF</a>
             <a class="btn btn-ghost btn-sm" href="/api/projects/{{ project.id }}/export.pdf">⬇ 下載 PDF</a>
@@ -37,6 +40,12 @@
     {% if import_error %}
     <div class="alert alert-danger" role="alert" style="margin-bottom:1rem">
         匯入失敗，請檢查檔案格式
+    </div>
+    {% endif %}
+
+    {% if review_saved %}
+    <div class="alert alert-info" role="alert" style="margin-bottom:1rem">
+        已儲存老師審稿內容；後續 PDF 預覽與下載會套用這些調整。
     </div>
     {% endif %}
 

@@ -40,21 +40,27 @@ def render_page4(c: rl_canvas.Canvas, req: PackRequest) -> None:
         y -= 18
     y -= 10
 
-    section(c, "常見問題", y)
+    note_title = "老師練習說明" if req.teacher_review and req.teacher_review.practice_notes else "常見問題"
+    section(c, note_title, y)
     y -= 22
     box_h = 70.0
     c.setFillColor(colors.HexColor("#FFF8DC"))
     c.setStrokeColor(colors.HexColor("#CCCCCC"))
     c.roundRect(_MARGIN, y - box_h, _CONTENT_W, box_h, 4, fill=1, stroke=1)
     ny = y - 16
-    for note in [
-        "・換和弦時先看下一個和弦",
-        "・右手不要停，即使換和弦也保持節奏",
-        "・速度慢才能彈正確，正確後再加快",
-    ]:
+    notes = (
+        [line.strip() for line in req.teacher_review.practice_notes.splitlines() if line.strip()][:3]
+        if req.teacher_review and req.teacher_review.practice_notes
+        else [
+            "・換和弦時先看下一個和弦",
+            "・右手不要停，即使換和弦也保持節奏",
+            "・速度慢才能彈正確，正確後再加快",
+        ]
+    )
+    for note in notes:
         c.setFont(_ZH, 11)
         c.setFillColor(colors.HexColor("#444444"))
-        c.drawString(_MARGIN + 10, ny, note)
+        c.drawString(_MARGIN + 10, ny, note[:76])
         ny -= 20
     y -= box_h + 16
 

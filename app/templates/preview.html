@@ -50,14 +50,22 @@
             {% else %}
             <span class="badge badge-green">✅ 公版授權</span>
             {% endif %}
+            {% if review_saved %}
+            <span class="badge badge-orange">🧑‍🏫 已套用老師審稿</span>
+            {% endif %}
         </div>
-        <a
-            class="btn btn-primary btn-sm"
-            href="/api/projects/{{ project.id }}/export.pdf"
-            download="{{ project.title }}.pdf"
-        >
-            ⬇ 下載 PDF
-        </a>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap">
+            {% if review_available %}
+            <a class="btn btn-ghost btn-sm" href="/projects/{{ project.id }}/review">🧑‍🏫 老師審稿</a>
+            {% endif %}
+            <a
+                class="btn btn-primary btn-sm"
+                href="/api/projects/{{ project.id }}/export.pdf"
+                download="{{ project.title }}.pdf"
+            >
+                ⬇ 下載 PDF
+            </a>
+        </div>
     </div>
 
     {% if project.midi_path %}

@@ -12,8 +12,9 @@ from app.arrangement.strum_pattern import suggest_for_level
 from app.core.musicxml import parse
 from app.models.pack_request import PackRequest
 from app.models.score import ChordEvent, Score
-from app.render import pdf as pdf_module
+from app.render import _layout as layout_module
 from app.render.chord_diagram import generate_svg, get_fingering
+from app.render.pages import page3 as page3_module
 from app.render.pdf import render_pdf
 
 _FIXTURE_DIR = Path(__file__).parent / "fixtures"
@@ -122,9 +123,9 @@ class TestRenderPdf:
     ) -> None:
         buffer = io.BytesIO()
         canvas = rl_canvas.Canvas(buffer)
-        monkeypatch.setattr(pdf_module, "_HAS_SVGLIB", False)
+        monkeypatch.setattr(layout_module, "_HAS_SVGLIB", False)
 
-        pdf_module._chord_box(canvas, "C", 20.0, 20.0, 115.0, 150.0)
+        layout_module.chord_box(canvas, "C", 20.0, 20.0, 115.0, 150.0)
         canvas.save()
 
         assert buffer.getvalue()[:4] == b"%PDF"
@@ -138,10 +139,10 @@ class TestRenderPdf:
 
         buffer = io.BytesIO()
         canvas = rl_canvas.Canvas(buffer)
-        monkeypatch.setattr(pdf_module, "_HAS_SVGLIB", True)
-        monkeypatch.setattr(pdf_module, "svg2rlg", lambda path: EmptyDrawing(), raising=False)
+        monkeypatch.setattr(layout_module, "_HAS_SVGLIB", True)
+        monkeypatch.setattr(layout_module, "svg2rlg", lambda path: EmptyDrawing(), raising=False)
 
-        pdf_module._chord_box(canvas, "G", 20.0, 20.0, 115.0, 150.0)
+        layout_module.chord_box(canvas, "G", 20.0, 20.0, 115.0, 150.0)
         canvas.save()
 
         assert buffer.getvalue()[:4] == b"%PDF"
@@ -154,7 +155,7 @@ class TestRenderPdf:
             for index in range(32)
         ]
 
-        pdf_module._chord_progression(canvas, chords, y_start=110.0)
+        page3_module._chord_progression(canvas, chords, y_start=110.0)
         canvas.save()
 
         assert buffer.getvalue()[:4] == b"%PDF"
@@ -174,4 +175,4 @@ class TestRenderPdf:
 
         monkeypatch.setattr("app.arrangement.chord_simplify.simplify", _boom)
 
-        assert pdf_module._unique_chords(score) == ["???"]
+        assert layout_module.unique_chords(score) == ["???"]

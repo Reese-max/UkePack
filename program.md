@@ -159,10 +159,10 @@
 
 > 動機：`pdf.py` 423 行單檔連續 3 輪反思未動，Phase 2 P2-01 段落辨識 / P2-03 老師審稿還會擴，現在不拆未來貴 2x。`core/db.py` ResourceWarning 連測試都跑出大量 unclosed sqlite connection 警告。Phase 1 新增 9 endpoint + 6 page route 零 OpenSpec 契約，spec-driven 又一次「先寫程式再補規格」漂移。`engineering-log.md` + `results.log` 雙事實源連續 4 輪未統一。
 
-- [ ] 36u. 拆 `app/render/pdf.py` 為 `app/render/pages/{page1,page2,page3,page4}.py`（每檔 < 120 行）+ `app/render/_layout.py`（`_section / _divider / _footer / _chord_box / _practice_table` 共用 helper）；`render_pdf` 變 dispatcher，import path 對外不變
-- [ ] 36v. 修 `app/core/db.py` session ResourceWarning：確認 `get_session` context manager / `dispose()` 路徑被測試覆蓋；pytest 跑出的 `ResourceWarning: unclosed database` 應全消；db.py coverage ≥ 95%
-- [ ] 36w. 補 API layer OpenSpec：`openspec/specs/projects-api.md`（9 endpoints：FR-001~FR-015 input/output schema + status code）+ `openspec/specs/pages-routes.md`（6 routes：HTMX 互動契約、redirect 規則、license gate 行為）
-- [ ] 36x. 收口雙事實源：本輪起新規定 — `engineering-log.md` 只留 reflection + 重大 incident（含換策略）、每輪 sprint 實作 metadata 只寫 `results.log`；不回頭改舊 entries；在 `AGENTS.md` 或 `program.md` 全域守則加一條備忘
+- [x] 36u. 拆 `app/render/pdf.py` 為 `app/render/pages/{page1,page2,page3,page4}.py`（每檔 < 120 行）+ `app/render/_layout.py`（`section / divider / footer / chord_box / practice_table` 共用 helper）；`render_pdf` 變 dispatcher，import path 對外不變
+- [x] 36v. 修 `app/core/db.py` session ResourceWarning：確認 `get_session` context manager / `dispose()` 路徑被測試覆蓋；pytest 跑出的 `ResourceWarning: unclosed database` 應全消；db.py coverage ≥ 95%
+- [x] 36w. 補 API layer OpenSpec：`openspec/specs/projects-api.md`（9 endpoints：FR-001~FR-015 input/output schema + status code）+ `openspec/specs/pages-routes.md`（6 routes：HTMX 互動契約、redirect 規則、license gate 行為）
+- [x] 36x. 收口雙事實源：本輪起新規定 — `engineering-log.md` 只留 reflection + 重大 incident（含換策略）、每輪 sprint 實作 metadata 只寫 `results.log`；不回頭改舊 entries；在 `program.md` 全域守則加一條備忘（守則 8）
 - [ ] 36y. git commit `refactor: pdf split + db cleanup + api specs + log consolidation`
 
 ---
@@ -176,3 +176,4 @@
 5. 一個 PR / 一輪 = 一個邏輯改動，不要混亂提交
 6. 不要碰 PRD.md / MISSION.md / AGENTS.md（read-only）
 7. 不要建 `frontend/` / `node_modules/` / 任何 `.ts` 檔（AGENTS.md §1 hard rule）
+8. **雙事實源規定**（36x，本輪起執行）：`engineering-log.md` 只記 reflection + 重大 incident（換策略、根因分析）；每輪 sprint 的實作 metadata（決策 / PASS/FAIL / 做了什麼）只寫 `results.log`。不回頭改舊 entries。

@@ -165,6 +165,8 @@
 - [x] 36x. 收口雙事實源：本輪起新規定 — `engineering-log.md` 只留 reflection + 重大 incident（含換策略）、每輪 sprint 實作 metadata 只寫 `results.log`；不回頭改舊 entries；在 `program.md` 全域守則加一條備忘（守則 8）
 - [ ] 36y. git commit `refactor: pdf split + db cleanup + api specs + log consolidation`
 
+- [x] 36y. git commit `refactor: pdf split + db cleanup + api specs + log consolidation`
+
 ---
 
 ## 全域守則（每輪 AI 都要遵守）

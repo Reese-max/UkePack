@@ -2,10 +2,42 @@
 
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from app.config import get_settings
+
+_TEMPLATES = Jinja2Templates(directory=str(Path(__file__).resolve().parent / "templates"))
+_PUBLIC_SAMPLES_DIR = Path(__file__).resolve().parent.parent / "samples" / "public_domain"
+
+
+def _homepage_cards() -> list[dict[str, str]]:
+    return [
+        {
+            "title": "建立練習包",
+            "description": "先建立歌曲專案，再走分析、轉 Key、輸出 PDF 流程。",
+            "href": "/docs#/default/create_project_api_projects_post",
+        },
+        {
+            "title": "匯入 MusicXML",
+            "description": "直接看匯入 API 說明，立刻把 MusicXML 丟進專案。",
+            "href": "/docs#/default/import_musicxml_api_projects__project_id__import_post",
+        },
+        {
+            "title": "看範例",
+            "description": "下載公版小星星 MusicXML，直接試整條 demo pipeline。",
+            "href": "/samples/public_domain/twinkle.musicxml",
+        },
+        {
+            "title": "老師專區（即將推出）",
+            "description": "先看目前專案 API 與授權流程；老師審稿 UI 下一步接上。",
+            "href": "/docs",
+        },
+    ]
 
 
 @asynccontextmanager
@@ -22,6 +54,19 @@ def create_app() -> FastAPI:
     application = FastAPI(
         title="UkePack AI", debug=settings.debug, lifespan=_lifespan
     )
+    application.mount(
+        "/samples/public_domain",
+        StaticFiles(directory=str(_PUBLIC_SAMPLES_DIR)),
+        name="public-samples",
+    )
+
+    @application.get("/", response_class=HTMLResponse)
+    def home(request: Request) -> HTMLResponse:
+        return _TEMPLATES.TemplateResponse(
+            request=request,
+            name="index.html",
+            context={"cta_cards": _homepage_cards()},
+        )
 
     @application.get("/health")
     def health() -> dict[str, str]:

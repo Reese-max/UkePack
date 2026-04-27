@@ -52,7 +52,6 @@
 - [x] P1-10 授權聲明流程（必勾才可進輸出，FR-015）
 
 ### Web UI（HTMX，不要 React）
-- [ ] P1-11 `templates/index.html` 首頁（PRD §14.1 主訊息 + 4 CTA）
 - [ ] P1-12 `templates/new_project.html` 建立專案表單
 - [ ] P1-13 `templates/analysis.html` 分析結果頁（HTMX 換 Key 即時更新）
 - [ ] P1-14 `templates/preview.html` PDF 預覽 iframe
@@ -97,3 +96,4 @@
 - [x] P0-12d 補匯入與 key advisor 邊界測試（`.mxl`、metadata 缺失、空 chords、unsupported mode）
 - [x] P0-12e 建立 OpenSpec 契約：MusicXML import / chord simplify / key advisor
 - [x] P0-10 補到 30 首 fixture，計算成功率，寫 `tests/fixtures/REPORT.md`
+- [x] P1-11 `templates/index.html` 首頁（PRD §14.1 主訊息 + 4 CTA）

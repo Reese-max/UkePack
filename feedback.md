@@ -1,87 +1,94 @@
-# UkePack Teacher Feedback Form
+# UkePack 老師試用問卷
 
-**Trial date**: ___________________  
-**Teacher name / ID**: ___________________  
-**Song tested**: ___________________  
-**Arrangement level**: ___________________
-
----
-
-## 5-Question Feedback Checklist
-
-### Q1 — Difficulty grading accuracy
-The Level 1 / 2 / 3 label matched the actual difficulty I expected for my students.
-
-- [ ] Strongly agree
-- [ ] Agree
-- [ ] Neutral
-- [ ] Disagree
-- [ ] Strongly disagree
-
-**Comments**:
+**試用日期**：___________________  
+**老師姓名／代號**：___________________  
+**測試曲目**：___________________  
+**使用難度等級**：___________________
 
 ---
 
-### Q2 — Font size & readability
-The font size (chord names, lyrics, section headings) was comfortable to read in a classroom or one-on-one lesson.
+## 5 題反饋清單
 
-- [ ] Strongly agree
-- [ ] Agree
-- [ ] Neutral
-- [ ] Disagree
-- [ ] Strongly disagree
+> 每題選一個選項，並在「補充說明」填寫具體情況（可省略）。
 
-**Comments**:
+### Q1 — 難度分級準確度
 
----
+系統給出的 Level 1 / 2 / 3 標示，符合我對學生實際難度的預期。
 
-### Q3 — Chord diagram clarity
-The GCEA chord diagrams (finger positions, open strings) were clear enough that a beginner student could read them without extra explanation.
+- [ ] 非常同意
+- [ ] 同意
+- [ ] 普通
+- [ ] 不同意
+- [ ] 非常不同意
 
-- [ ] Strongly agree
-- [ ] Agree
-- [ ] Neutral
-- [ ] Disagree
-- [ ] Strongly disagree
-
-**Comments**:
+**補充說明**：
 
 ---
 
-### Q4 — Strum pattern appropriateness
-The suggested strum pattern(s) matched the style and tempo of the song.
+### Q2 — 字體大小與可讀性
 
-- [ ] Strongly agree
-- [ ] Agree
-- [ ] Neutral
-- [ ] Disagree
-- [ ] Strongly disagree
+PDF 中的字體大小（和弦名稱、段落標題、練習說明）在教室上課或一對一課時看得清楚。
 
-**Comments**:
+- [ ] 非常同意
+- [ ] 同意
+- [ ] 普通
+- [ ] 不同意
+- [ ] 非常不同意
 
----
-
-### Q5 — Overall usability
-I would use this PDF pack in an actual ukulele lesson without modifications.
-
-- [ ] Strongly agree
-- [ ] Agree
-- [ ] Neutral
-- [ ] Disagree
-- [ ] Strongly disagree
-
-**Comments**:
+**補充說明**：
 
 ---
 
-## Open-ended
+### Q3 — 和弦圖清晰度
 
-**What one thing would you change first?**
+GCEA 和弦圖（手指位置、空弦、把位格數）夠清楚，初學學生不需要老師額外說明就能看懂。
+
+- [ ] 非常同意
+- [ ] 同意
+- [ ] 普通
+- [ ] 不同意
+- [ ] 非常不同意
+
+**補充說明**：
 
 ---
 
-**Any other observations?**
+### Q4 — 刷法建議合理度
+
+系統建議的刷法符合這首歌的風格與速度，我可以直接拿來教。
+
+- [ ] 非常同意
+- [ ] 同意
+- [ ] 普通
+- [ ] 不同意
+- [ ] 非常不同意
+
+**補充說明**：
 
 ---
 
-*Thank you for your time. Your feedback directly shapes Phase 2 priorities.*
+### Q5 — 整體可用性
+
+這份 PDF 練習包我可以直接用在實際的烏克麗麗課程，不需要再自行修改。
+
+- [ ] 非常同意
+- [ ] 同意
+- [ ] 普通
+- [ ] 不同意
+- [ ] 非常不同意
+
+**補充說明**：
+
+---
+
+## 開放式問題
+
+**如果只能改一件事，您會優先改什麼？**
+
+---
+
+**其他觀察或建議？**
+
+---
+
+*感謝您撥出時間試用！您的回饋將直接影響 UkePack 下一版的開發優先順序。*

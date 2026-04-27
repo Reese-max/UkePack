@@ -30,7 +30,26 @@
 
 ---
 
-### Invitation email template
+### Invitation email template（繁體中文版）
+
+```
+主旨：小忙幫個手 — 烏克麗麗教學工具試用 5 分鐘問卷
+
+[老師名字] 老師好，
+
+我在開發一個叫 UkePack 的工具，可以把樂譜自動轉成適合初學者的烏克麗麗練習包 PDF，方便直接在課堂上使用。
+
+您願意花大約 20 分鐘，用一首您在教的歌試用看看，並回答 5 題簡短問卷嗎？您的回饋會直接決定下一版要改哪些地方。
+
+我可以安排線上示範（Zoom / Google Meet）或錄一段試用影片寄給您——看您方便哪種形式。
+
+這週方便的時間：[填入您的空檔]
+
+謝謝！
+[您的名字]
+```
+
+### Invitation email template (English)
 
 ```
 Subject: Quick favour — 5-min feedback on a ukulele teaching tool

@@ -27,7 +27,9 @@ def get_engine() -> Any:  # returns sqlalchemy.engine.Engine
 
 def reset_engine() -> None:
     """Discard the cached engine (call in tests before overriding get_session)."""
-    _cache.clear()
+    engine = _cache.pop("engine", None)
+    if engine is not None:
+        engine.dispose()
 
 
 def create_tables() -> None:

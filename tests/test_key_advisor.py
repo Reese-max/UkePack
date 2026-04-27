@@ -1,3 +1,5 @@
+import pytest
+
 from app.arrangement import suggest_key
 from app.models import ChordEvent, Score
 
@@ -55,6 +57,11 @@ def test_suggest_key_falls_back_to_c_major_for_unsupported_modes() -> None:
     assert recommendation.semitone_shift == -2
     assert recommendation.friendly_chords == ["C", "G", "Am", "F"]
     assert "falls back to C major" in recommendation.reason
+
+
+def test_suggest_key_raises_for_unsupported_key_format() -> None:
+    with pytest.raises(ValueError, match="Unsupported key format: CMajor"):
+        suggest_key(_build_score("CMajor", ["C", "G", "Am", "F"]))
 
 
 def _build_score(key_name: str, chords: list[str]) -> Score:

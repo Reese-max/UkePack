@@ -1,15 +1,18 @@
 """Tests for PDF rendering pipeline (program.md tasks 26-30)."""
 
+import io
 from pathlib import Path
 
 import pytest
+from reportlab.pdfgen import canvas as rl_canvas
 
 from app.arrangement.key_advisor import suggest_key
 from app.arrangement.level_classifier import classify
 from app.arrangement.strum_pattern import suggest_for_level
 from app.core.musicxml import parse
 from app.models.pack_request import PackRequest
-from app.models.score import Score
+from app.models.score import ChordEvent, Score
+from app.render import pdf as pdf_module
 from app.render.chord_diagram import generate_svg, get_fingering
 from app.render.pdf import render_pdf
 
@@ -113,3 +116,62 @@ class TestRenderPdf:
         pdf_bytes = render_pdf(req)
         assert pdf_bytes[:4] == b"%PDF"
         assert len(pdf_bytes) > 500
+
+    def test_chord_box_falls_back_when_svglib_missing(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        buffer = io.BytesIO()
+        canvas = rl_canvas.Canvas(buffer)
+        monkeypatch.setattr(pdf_module, "_HAS_SVGLIB", False)
+
+        pdf_module._chord_box(canvas, "C", 20.0, 20.0, 115.0, 150.0)
+        canvas.save()
+
+        assert buffer.getvalue()[:4] == b"%PDF"
+
+    def test_chord_box_falls_back_when_svg_drawing_is_invalid(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        class EmptyDrawing:
+            width = 0
+            height = 120
+
+        buffer = io.BytesIO()
+        canvas = rl_canvas.Canvas(buffer)
+        monkeypatch.setattr(pdf_module, "_HAS_SVGLIB", True)
+        monkeypatch.setattr(pdf_module, "svg2rlg", lambda path: EmptyDrawing(), raising=False)
+
+        pdf_module._chord_box(canvas, "G", 20.0, 20.0, 115.0, 150.0)
+        canvas.save()
+
+        assert buffer.getvalue()[:4] == b"%PDF"
+
+    def test_chord_progression_stops_at_page_bottom(self) -> None:
+        buffer = io.BytesIO()
+        canvas = rl_canvas.Canvas(buffer)
+        chords = [
+            ChordEvent(symbol="C", measure=index + 1, beat=1.0)
+            for index in range(32)
+        ]
+
+        pdf_module._chord_progression(canvas, chords, y_start=110.0)
+        canvas.save()
+
+        assert buffer.getvalue()[:4] == b"%PDF"
+
+    def test_unique_chords_preserves_raw_symbol_when_simplify_fails(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        score = Score(
+            title="Fallback",
+            key="C major",
+            measures=1,
+            chords=[ChordEvent(symbol="???", measure=1, beat=1.0)],
+        )
+
+        def _boom(symbol: str) -> str:
+            raise ValueError(symbol)
+
+        monkeypatch.setattr("app.arrangement.chord_simplify.simplify", _boom)
+
+        assert pdf_module._unique_chords(score) == ["???"]

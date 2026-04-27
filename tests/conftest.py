@@ -5,19 +5,24 @@ from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine
 
-from app.core.db import get_session
+from app.core.db import get_session, reset_engine
 from app.main import app
 
 
 @pytest.fixture
 def client() -> Iterator[TestClient]:
-    with TestClient(app) as test_client:
-        yield test_client
+    reset_engine()
+    try:
+        with TestClient(app) as test_client:
+            yield test_client
+    finally:
+        reset_engine()
 
 
 @pytest.fixture
 def db_client() -> Iterator[TestClient]:
     """TestClient backed by an in-memory SQLite DB (StaticPool = shared connection)."""
+    reset_engine()
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -30,6 +35,10 @@ def db_client() -> Iterator[TestClient]:
             yield session
 
     app.dependency_overrides[get_session] = _override
-    with TestClient(app) as test_client:
-        yield test_client
-    app.dependency_overrides.clear()
+    try:
+        with TestClient(app) as test_client:
+            yield test_client
+    finally:
+        app.dependency_overrides.clear()
+        engine.dispose()
+        reset_engine()

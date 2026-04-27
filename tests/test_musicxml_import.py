@@ -223,6 +223,44 @@ def test_parse_falls_back_to_filename_when_metadata_missing(tmp_path: Path) -> N
     assert score.melody[0].pitch == "G4"
 
 
+def test_parse_rejects_url_style_paths() -> None:
+    with pytest.raises(ValueError, match="Network fetch blocked"):
+        parse(Path("http://example.com/score.musicxml"))
+
+
+def test_parse_rejects_https_url_style_paths() -> None:
+    with pytest.raises(ValueError, match="Network fetch blocked"):
+        parse(Path("https://evil.com/bomb.mxl"))
+
+
+def test_parse_rejects_files_exceeding_size_limit(tmp_path: Path) -> None:
+    from app.core.musicxml import MAX_IMPORT_BYTES
+
+    oversized = tmp_path / "oversized.musicxml"
+    oversized.write_bytes(b"x" * (MAX_IMPORT_BYTES + 1))
+
+    with pytest.raises(ValueError, match="exceeds maximum import size"):
+        parse(oversized)
+
+
+def test_parse_rejects_mxl_with_oversized_zip_member(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import zipfile as _zipfile
+
+    import app.core.musicxml as _musicxml
+
+    # Patch limit to 100 bytes so a tiny file triggers the guard without disk overhead
+    monkeypatch.setattr(_musicxml, "_MAX_MXL_MEMBER_BYTES", 100)
+
+    bomb_path = tmp_path / "bomb.mxl"
+    with _zipfile.ZipFile(bomb_path, "w") as zf:
+        zf.writestr("score.xml", b"X" * 200)  # 200 bytes > patched 100-byte limit
+
+    with pytest.raises(ValueError, match="exceeds limit"):
+        parse(bomb_path)
+
+
 @pytest.mark.parametrize("fixture_path", CORPUS_FIXTURE_PARAMS)
 def test_parse_fixture_corpus(fixture_path: Path) -> None:
     score = parse(fixture_path)

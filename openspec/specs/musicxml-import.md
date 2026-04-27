@@ -46,6 +46,19 @@ The parser returns `app.models.score.Score` with these populated fields:
 4. Never emit `harmony.ChordSymbol` objects into the melody list.
 5. Preserve pickup measure `0`; coerce missing measure numbers to `0`.
 
+### Security constraints
+
+1. **Network-fetch blocking**: A `Path` argument whose string representation starts
+   with `http://`, `https://`, `ftp://`, or `ftps://` raises `ValueError`
+   immediately, before any filesystem or `music21` call.
+2. **File-size cap**: Any file whose `stat().st_size` exceeds `MAX_IMPORT_BYTES`
+   (10 MB) raises `ValueError` before parsing begins.
+3. **Zip-bomb protection**: For `.mxl` inputs, every ZIP member's declared
+   uncompressed `file_size` is checked against `_MAX_MXL_MEMBER_BYTES` (50 MB).
+   Any member that exceeds this limit raises `ValueError` before decompression.
+4. The URL-path check runs before `path.exists()` so a network-fetch cannot
+   masquerade as a missing-file error.
+
 ### Empty or partial data
 
 1. Missing tempo or time signature is valid and returns `None`.
@@ -66,8 +79,7 @@ The parser returns `app.models.score.Score` with these populated fields:
 ## Out of Scope
 
 1. MIDI import.
-2. File-size limits, zip-bomb protection, or network-fetch blocking.
-3. Preserving raw source files for download or version replacement workflows.
+2. Preserving raw source files for download or version replacement workflows.
 
 ## References
 

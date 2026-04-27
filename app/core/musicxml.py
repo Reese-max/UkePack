@@ -1,5 +1,6 @@
 """MusicXML parsing helpers built on top of music21."""
 
+import zipfile
 from pathlib import Path
 from typing import Any
 
@@ -10,13 +11,23 @@ from app.models import ChordEvent, MelodyNote, Score
 SUPPORTED_EXTENSIONS = {".musicxml", ".mxl", ".xml"}
 _PLACEHOLDER_TITLES = {"Music21 Fragment"}
 
+MAX_IMPORT_BYTES = 10 * 1024 * 1024  # 10 MB hard cap for raw file upload
+_MAX_MXL_MEMBER_BYTES = 50 * 1024 * 1024  # 50 MB per decompressed zip member
+# Single-slash prefix covers Windows Path normalization: https:// → https:/
+_URL_SCHEME_PREFIXES = ("http:/", "https:/", "ftp:/", "ftps:/")
+
 
 def parse(path: Path) -> Score:
     """Parse a MusicXML file into the normalized score model."""
+    # URL check must come before path.exists() to prevent network fetch via music21
+    _reject_url_path(path)
     if not path.exists():
         raise FileNotFoundError(path)
     if path.suffix.lower() not in SUPPORTED_EXTENSIONS:
         raise ValueError(f"Unsupported score format: {path.suffix}")
+    _check_file_size(path)
+    if path.suffix.lower() == ".mxl":
+        _check_mxl_zip(path)
 
     parsed_score = converter.parse(str(path))
     melody_part = _get_melody_part(parsed_score)
@@ -29,6 +40,35 @@ def parse(path: Path) -> Score:
         chords=_extract_chords(parsed_score),
         melody=_extract_melody(melody_part),
     )
+
+
+def _reject_url_path(path: Path) -> None:
+    """Block network-fetch paths before music21 can attempt a remote load."""
+    # Normalize backslashes so Windows path munging (https:// → https:\) is transparent
+    normalized = str(path).replace("\\", "/").lower()
+    for prefix in _URL_SCHEME_PREFIXES:
+        if normalized.startswith(prefix):
+            raise ValueError(f"Network fetch blocked: {path!r}")
+
+
+def _check_file_size(path: Path) -> None:
+    """Reject files that exceed the import byte cap."""
+    size = path.stat().st_size
+    if size > MAX_IMPORT_BYTES:
+        raise ValueError(
+            f"File size {size} bytes exceeds maximum import size of {MAX_IMPORT_BYTES} bytes"
+        )
+
+
+def _check_mxl_zip(path: Path) -> None:
+    """Reject zip members whose uncompressed size would exceed the per-member cap."""
+    with zipfile.ZipFile(path) as zf:
+        for info in zf.infolist():
+            if info.file_size > _MAX_MXL_MEMBER_BYTES:
+                raise ValueError(
+                    f"MXL archive member {info.filename!r} uncompressed size "
+                    f"{info.file_size} bytes exceeds limit of {_MAX_MXL_MEMBER_BYTES} bytes"
+                )
 
 
 def _get_melody_part(parsed_score: Any) -> Any:

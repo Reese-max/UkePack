@@ -8,6 +8,8 @@ import pytest
 
 from app.core.discord_pack import create_discord_practice_pack
 from app.core.musicxml import MAX_IMPORT_BYTES
+from app.models.pack_request import PackRequest
+from app.models.score import Score
 
 _FIXTURE_PATH = Path(__file__).parent / "fixtures" / "twinkle_twinkle_little_star.musicxml"
 
@@ -52,11 +54,83 @@ def test_create_discord_practice_pack_rejects_missing_license_confirmation() -> 
         )
 
 
+def test_create_discord_practice_pack_rejects_invalid_level() -> None:
+    with pytest.raises(ValueError, match="level must be 1, 2, or 3"):
+        create_discord_practice_pack(
+            filename="twinkle.musicxml",
+            content=_FIXTURE_PATH.read_bytes(),
+            source_type="public_domain",
+            level=4,
+            confirm_license=True,
+        )
+
+
 def test_create_discord_practice_pack_rejects_bad_extension() -> None:
     with pytest.raises(ValueError, match="Unsupported file type"):
         create_discord_practice_pack(
             filename="twinkle.pdf",
             content=_FIXTURE_PATH.read_bytes(),
+            source_type="public_domain",
+            level=1,
+            confirm_license=True,
+        )
+
+
+def test_create_discord_practice_pack_wraps_unexpected_parse_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fail_parse(_: Path) -> Score:
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr("app.core.discord_pack.parse", fail_parse)
+
+    with pytest.raises(RuntimeError, match="MusicXML parse failed: boom"):
+        create_discord_practice_pack(
+            filename="twinkle.musicxml",
+            content=_FIXTURE_PATH.read_bytes(),
+            source_type="public_domain",
+            level=1,
+            confirm_license=True,
+        )
+
+
+def test_create_discord_practice_pack_uses_safe_default_title_when_input_is_blank(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "app.core.discord_pack.parse",
+        lambda _: Score(title=" ", key="C major", measures=1),
+    )
+    monkeypatch.setattr("app.core.discord_pack.render_pdf", lambda _: b"%PDF-1.4")
+
+    result = create_discord_practice_pack(
+        filename="___.musicxml",
+        content=b"<score/>",
+        source_type="public_domain",
+        level=1,
+        confirm_license=True,
+    )
+
+    assert result.title == "UkePack Song"
+    assert result.filename == "UkePack_Song.pdf"
+
+
+def test_create_discord_practice_pack_rejects_missing_pack_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    score = Score(title="", key="C major", measures=1)
+
+    monkeypatch.setattr("app.core.discord_pack.parse", lambda _: score)
+    monkeypatch.setattr(
+        "app.core.discord_pack.build_pack_request",
+        lambda **_: PackRequest(title="Broken Pack", score=score),
+    )
+    monkeypatch.setattr("app.core.discord_pack.render_pdf", lambda _: b"%PDF-1.4")
+
+    with pytest.raises(RuntimeError, match="Practice-pack metadata was not generated"):
+        create_discord_practice_pack(
+            filename="twinkle.musicxml",
+            content=b"<score/>",
             source_type="public_domain",
             level=1,
             confirm_license=True,

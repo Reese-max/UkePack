@@ -1,5 +1,7 @@
 """Tests for the playability level classifier (PRD §10.4)."""
 
+import pytest
+
 from app.arrangement.level_classifier import (
     PlayabilityResult,
     _derive_label,
@@ -69,6 +71,9 @@ class TestPitchToMidi:
 
     def test_empty_string(self) -> None:
         assert _pitch_to_midi("") is None
+
+    def test_non_standard_accidental_string(self) -> None:
+        assert _pitch_to_midi("Cbb4") is None
 
 
 class TestDeriveLevel:
@@ -155,10 +160,18 @@ class TestClassify:
         score = _make_score(chords=[])
         assert classify(score).factors["chord_change_freq"] == 100.0
 
-    def test_fast_bpm_lowers_bpm_score(self) -> None:
-        fast = _make_score(bpm=200)
-        slow = _make_score(bpm=80)
-        assert classify(fast).factors["bpm"] < classify(slow).factors["bpm"]
+    def test_chord_simplify_failure_falls_back_to_raw_symbol(self) -> None:
+        score = _make_score(chords=[ChordEvent(symbol="   ", measure=1, beat=1.0)])
+        result = classify(score)
+        assert result.factors["chord_difficulty"] == 55.0
+        assert result.factors["layout_readability"] == 100.0
+
+    @pytest.mark.parametrize(
+        ("bpm", "expected"),
+        [(59, 70.0), (100, 80.0), (150, 55.0), (161, 25.0)],
+    )
+    def test_bpm_brackets(self, bpm: int, expected: float) -> None:
+        assert classify(_make_score(bpm=bpm)).factors["bpm"] == expected
 
     def test_none_bpm_uses_neutral_score(self) -> None:
         score = _make_score(bpm=None)
@@ -182,6 +195,37 @@ class TestClassify:
         assert (
             classify(high_melody).factors["melody_position"]
             < classify(low_melody).factors["melody_position"]
+        )
+
+    def test_upper_comfort_melody_range_scores_seventy(self) -> None:
+        score = _make_score(
+            melody=[
+                MelodyNote(pitch="C5", measure=1, beat=1.0, quarter_length=1.0),
+                MelodyNote(pitch="E5", measure=2, beat=1.0, quarter_length=1.0),
+            ]
+        )
+        assert classify(score).factors["melody_position"] == 70.0
+
+    def test_non_standard_melody_pitches_use_neutral_position_score(self) -> None:
+        score = _make_score(
+            melody=[MelodyNote(pitch="Cbb4", measure=1, beat=1.0, quarter_length=1.0)]
+        )
+        assert classify(score).factors["melody_position"] == 80.0
+
+    @pytest.mark.parametrize(
+        ("chord_count", "measures", "expected"),
+        [(12, 4, 55.0), (21, 4, 30.0)],
+    )
+    def test_chord_change_frequency_brackets(
+        self, chord_count: int, measures: int, expected: float
+    ) -> None:
+        chords = [
+            ChordEvent(symbol="C", measure=(index % measures) + 1, beat=1.0)
+            for index in range(chord_count)
+        ]
+        assert (
+            classify(_make_score(measures=measures, chords=chords)).factors["chord_change_freq"]
+            == expected
         )
 
     def test_many_chords_lower_layout_score(self) -> None:

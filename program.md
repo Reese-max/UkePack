@@ -83,7 +83,7 @@
 - [x] 36a. 加 `tests/test_demo_pipeline.py`：跑 `app.demo.run(twinkle.musicxml, level=1, out=tmp)`，斷言 elapsed < 5.0s + PDF bytes > 0 + PDF magic header (`%PDF-`) 正確；把 `app/demo.py` 從 0% 拉到 ≥ 60%
 - [x] 36b. 把 `PackRequest` 從 `app/render/pdf.py` 搬到 `app/models/pack_request.py`，`pdf.py` 改 `from app.models.pack_request import PackRequest`，`demo.py` 同步更新；跑 pytest/ruff/mypy 全綠
 - [x] 36c. 補 `level_classifier` 邊界測試（`chord_simplify` 失敗 fallback / BPM<60 / BPM>160 / avg_midi 72–76 / `_pitch_to_midi` 對非標準 pitch 字串）；coverage ≥ 95%
-- [ ] 36d. 落地 5 條 OpenSpec 契約：`openspec/specs/level-classifier.md`、`strum-pattern.md`、`pdf-render.md`、`chord-diagram.md`、`cli-pipeline.md`，補齊階段四/五/六遺漏
+- [x] 36d. 落地 5 條 OpenSpec 契約：`openspec/specs/level-classifier.md`、`strum-pattern.md`、`pdf-render.md`、`chord-diagram.md`、`cli-pipeline.md`，補齊階段四/五/六遺漏
 - [ ] 36e. git commit `test+refactor: demo regression + decouple PackRequest + arrangement/render specs`
 
 ## 階段六.6：Phase 1 動工前安全護欄（reflect 2026-04-27 第三輪新增，與六.5 可並行）

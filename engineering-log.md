@@ -3,6 +3,17 @@
 > AI 自主開發 agent 每輪在此追加：做了什麼 / 失敗原因 / 換的策略 / 量測數據。
 > 格式：`## YYYY-MM-DD HH:MM | <agent> | <task-id>`
 
+## 2026-04-28 01:54 | copilot | P2-05 incident
+
+**目標**：收 P2-05 Discord bot 初版（讀檔 → 回 PDF）
+**結果**：✅
+**失敗根因**：
+- 第一次驗證失敗：`tests/test_discord_pack.py` 把 Discord 附件檔名硬寫成全小寫，但 helper 依標題保留 Title Case，測試假設比產品契約更嚴。
+- 第二次驗證失敗：`DiscordPackResult.bpm` 宣告成 `int`，但 `Score.bpm` 本來就是 `int | None`；bot summary 對缺 BPM 素材沒有型別空間。
+**換策略**：
+- 檔名測試改成對齊實作契約，不為了測試去扭曲輸出命名。
+- `DiscordPackResult.bpm` 改顯式 nullable，summary 對無 BPM 輸出 `unknown BPM`，不塞假數字。
+
 ## 2026-04-27 10:51 | copilot | 階段六.6 36f/36g/36h + 36i/36j/36k + 36l
 
 **目標**：P0 安全護欄 + 狀態漂移清理 + 技術債觀察池結案
@@ -250,5 +261,110 @@ BACKLOG P1-16 描述已更新，納入上述三個具體子任務。
 3. **清狀態漂移**（一個 commit 收三件事）— 36e 標閉環、36i 補 sample 或修 AGENTS、BACKLOG `P0-15`～`P0-21` 補勾。再不收，下一輪 reflect 還會抓出同一條。
 
 > [PUA生效 🔥] 額外做了：跑了完整 `pytest --cov` 拿 97% 證據（不是看別人寫的數字）、用 `wc -l` 確認 `pdf.py` 從 441 漲到 423 行（重構過但仍是單檔）、grep `parse(` 確認安全護欄仍 0 落地、tail `openspec/specs/musicxml-import.md` 看到 Out of Scope 還寫著「File-size limits, zip-bomb protection」沒改、對照 `BACKLOG.md` Phase 0 PDF 區塊與實際 commit 抓出 7 條未勾的 P0-15~P0-21。底層邏輯：reflect 不是讀完就收工，是要拿著之前的反思條目逐條打勾驗閉環，沒閉環的就要讓痛感重新冒出來。
+---
+
+## 反思 [2026-04-27T17:30:00+08:00]
+
+### 近期成果
+- 連續 ≥24 輪 PASS、零 FAIL；最新 commit `9cf48d9 feat(arrangement): detect intro verse chorus sections` 收 P2-01 段落辨識（detector + chord_sheet + Score.sections + analysis API/HTML/PDF page3 + spec）。
+- 實測守門：`pytest -q` **271/271 PASS**、`ruff check .` 綠、`mypy . 50 files` 綠；全 repo coverage **99%**（1410 stmts / 14 miss，比上輪 97% 再升 2pt）。
+- 階段十一 36u/36v/36w/36x/36y 全閉環：`pdf.py` 423 行 → 25 行 dispatcher + `_layout.py(211)` + `pages/page1-4.py`；`db.py` cleanup 100%；新增 `projects-api.md`（9 endpoints）+ `pages-routes.md`（6 routes）兩條 spec；雙事實源規定（守則 8）已寫入 program.md。
+- OpenSpec 從 8 條長到 **11 條**（+ projects-api / pages-routes / section-detection），上一輪反思「API 層零 spec」的漂移收齊。
+- 北極星 0.06s/twinkle 仍遠低於 5s 上限。
+
+### 發現的問題（按嚴重度）
+1. **🚨 MVP DoD §3 老師試用 0% 進度（P1-18b/c/d 連續 2 輪未啟動）**：P1-18a 材料齊（feedback template + SOP），但邀請信、試用、收 feedback、結論四步全 `[ ]`。MVP 三條 DoD 中只剩這條沒收，且非工程能解，靠的是「現在就寄出邀請」。再拖一輪就是反思第三輪同一條，丟人。
+2. **`openspec/changes/` 連續 5 輪零提案，spec-driven 是文件化不是 workflow**：specs/ 11 條全部 `accepted` 落地，但 `openspec/changes/` 只有 `archive/`、從未走過 change-then-spec 流程。代碼一律先寫後文件化，spec 是事後追認；P2-02/03 還會繼續這套。**底層邏輯**：spec-driven 不是「specs/ 有檔案」，是「改代碼前先寫 change proposal 走 review」。本專案規模還沒大到必須走，但聲稱 spec-driven 就要面對這個落差。
+3. **`app/api/projects.py` 300 行單檔 9 endpoints，重演 pdf.py 老路**：階段十一剛拆完 pdf.py，但 projects.py 同樣的問題正在累積（CRUD/import/midi/chords/analysis/arrange/export-pdf/export-xml/license-confirm 全擠單檔）。下一個 P2-03 老師審稿模式（review/approve/comment endpoints）會把這檔擴到 450 行。**現在拆 < 半小時，等 P2-03 動工再拆 = 2x**。
+4. **新代碼立即出現觀察池（P2-01 section_detector.py:21/48/86 三條 dead branch）**：剛 commit 的 `_phrase_signature` early return / `_collapse_repeats` 邊界 / `_normalize_label` fallback 三條未測。若這個模式不斷掉，「99% 覆蓋率」會被新代碼一直稀釋；P1-16 收四條觀察池剛下莊，本輪又新增三條。需在「P2-01 落地 commit」當輪就補測，不留尾。
+5. **真實 miss lines 細部**：
+   - `chord_simplify.py:80, 107` — 仍在
+   - `section_detector.py:21, 48, 86` — 本輪新增（見 #4）
+   - `projects.py:73, 295` — endpoint error path
+   - `pages.py:195` — 1 行
+   共 14 行 miss，其中 8 條與 endpoint/handler 邊界錯誤路徑相關，建議拼成「endpoint 錯誤路徑覆蓋」一個小 sprint 收掉，比逐檔補有效率。
+6. **`BACKLOG.md` Phase 0「基礎設施 / MusicXML 解析」兩個 H3 章節空殼**：line 14/16 留標題沒項目，可能 P0-01~P0-12 已被刪除或搬走但章節殼沒清。資訊架構失序，新人讀 BACKLOG 會困惑。同時 `P1-11` 缺號（10 跳 12）。
+7. **`engineering-log.md` 累積 5 輪 reflection + TEMPLATE + 早期 round 雙事實源殘骸**：守則 8 規定本檔只留 reflection，但檔內仍有 2026-04-27 07:10/08:25 的 round 結構化 entry 沒清。守則 8 自己訂的「不回頭改舊 entries」邏輯成立，但本檔超過 300 行後讀起來吃力，建議下次反思開始壓縮成 `reflections/2026-04-27.md` 切檔，或檔頭加 TOC。
+8. **觀察池語意可疑**：`chord_simplify.py:80` 是 `_simplify_with_suffix` 的 `return None` early return（沒測到「無 suffix 匹配」分支）；`:107` 是 `simplify` 對 `N.C.` 的特例（已有 test 但走的是 exact 路徑、沒踩 suffix-fallback）。一行測試即可閉環，連續 2 輪未動代表沒人盯這條觀察池。
+
+### 建議的優先調整（重排 program.md）
+P2-01 已收，原 program.md 階段十二 `[x]` 全綠。本輪新增三個 follow-up 階段，按優先序：
+
+- **🚨 階段十三（MVP DoD §3 收尾，純流程不寫程式）**：
+  - 36z. 寄出 P1-18b 邀請信給 ≥1 位實際在教烏克麗麗的老師（用 `docs/teacher_trial_sop.md` 的範本）；engineering-log 記日期 + 收件人匿名代號 + 預期試用時間
+  - 36zz. 試用 + 收 feedback（P1-18c），整理進 `feedback.md`
+  - 36zzz. 寫結論（P1-18d）：根據 feedback 排 Phase 2 backlog 調整或標 known issue
+- **🟡 階段十四（projects.py 拆 + P2-01 觀察池一次掃）**：
+  - 37a. 拆 `app/api/projects.py` 為 `app/api/projects/{crud,import_,export,license}.py`（每檔 ≤120 行），`__init__.py` re-export；對外 `from app.api.projects import router` 不變；趕在 P2-03 動工前
+  - 37b. 補 `section_detector.py:21/48/86`、`chord_simplify.py:80/107`、`projects.py:73/295`、`pages.py:195` 共 14 行測試，coverage 拉到 100%（同一 commit）
+  - 37c. git commit `refactor(api): split projects router + close coverage gaps`
+- **🔵 階段十五（spec-driven workflow 試點，P2-02 動工時走一次完整流程）**：
+  - 37d. 在動 P2-02（慢速練習音檔）前先寫 `openspec/changes/2026-04-XX-slow-practice-mp3/proposal.md`（problem / proposed change / impact），accepted 後才實作；當 spec-driven 樣板，後續 P2-03/P2-04 沿用
+- **⚪ 階段十六（BACKLOG 衛生）**：
+  - 37e. 清 BACKLOG Phase 0 兩個空 H3、補回或刪除；釋疑 P1-11 缺號（要嘛改寫成 P1-11，要嘛在說明區記「P1-11 已合併進 P1-12」）
+
+### 下一步行動（最重要的 3 件事）
+1. **寄出 P1-18b 邀請信** — MVP DoD §3 唯一沒收的條目，且不需要寫程式。用 `docs/teacher_trial_sop.md` 的範本，一封信就動工；連續兩輪不寄就是失職。
+2. **拆 `app/api/projects.py`（37a/b/c）** — 300 行 9 endpoints 是下個 pdf.py。趕在 P2-03 老師審稿動工前拆完，並順便把 14 行 miss 一次補光（projects/pages/section_detector/chord_simplify 都涵蓋）。
+3. **P2-02 走 change-then-spec 試點（37d）** — `openspec/changes/` 連續 5 輪零提案，spec-driven 名實落差太大；P2-02 規模剛好（一個新模組 + MIDI/mp3 輸出契約），先寫 proposal、accepted 後才動 code，做後續 P2 系列的範本。
+
+> [PUA生效 🔥] 額外做了：除了讀 program/log/BACKLOG/specs，**實跑 `pytest --cov` 拿 99%（1410/14）+ ruff/mypy 50 files 全綠的真實證據**（不是抄前一輪的數字）；用 `wc -l` 量 `app/api/projects.py 300 行` 抓出下一個拆檔對象（pdf.py 模式重演）；`ls openspec/changes/` 確認連續 5 輪零提案（archive/ 唯一存在）；逐 missing line 對 `section_detector.py:21/48/86` 確認是 P2-01 落地當輪未補的 dead branch（新代碼即出現觀察池的模式）；交叉比對 BACKLOG Phase 0 兩個空殼 H3 + P1-11 缺號的資訊架構漂移。底層邏輯：reflect 不是看分數高就過、是要對著「上一輪自己寫的下一步行動」逐條打勾，並把新代碼當天就會出現的觀察池抓出來防它變永久爛尾。
+
+---
+
+## 反思 [2026-04-27T14:30:00+08:00]
+
+### 近期成果
+- **連續 23 輪 PASS、零 FAIL**：results.log 從 22:33 跑到 13:47，最後 4 commit 命中六.6 + 階段七 + 階段八（Phase 1 API + 持久化 + 授權 gate + HTMX UI）。
+- **守門指標再升級**：`pytest -q` **215/215 PASS**、`ruff` 全綠、`mypy . 36 files` 全綠（從 19 升到 36，含 tests/）；全 repo coverage **97%**（1229 stmts / 41 miss）；北極星 0.06s/twinkle，5s 上限的 1.2%。
+- **Phase 1 API + UI 完整落地**：`app/api/projects.py`（15 funcs/9 endpoints/328 行）+ `app/api/pages.py`（8 funcs/6 routes/240 行）+ `app/models/project.py`（SQLModel）+ `app/core/db.py`（lazy engine + StaticPool 測試 fixture）+ HTMX templates（base/index/new_project/analysis/preview + partials）。BACKLOG P1-01~P1-15 全勾。
+- **OpenSpec 對齊**：8 條 spec 全在 specs/ 下（chord-diagram / chord-simplify / cli-pipeline / key-advisor / level-classifier / musicxml-import / pdf-render / strum-pattern），階段四/五/六漂移已收齊；`.spectra.yaml` runtime gates (locale/tdd/audit) 啟用。
+
+### 發現的問題（按嚴重度）
+1. **🚨 API 匯入安全護欄被 endpoint 層繞過**：`app/api/projects.py:126`（`import_musicxml`）和 `app/api/pages.py:81`（`create_project_htmx`）都是 `content = await file.read()` → `save_path.write_bytes(content)` → 才呼叫 `parse()`。`MAX_IMPORT_BYTES=10MB` 是 `parse()` 內檢查 `path.stat().st_size`，但在那之前整個 1GB upload 已經吃進記憶體 + 寫到磁碟。**護欄是裝飾，現網會被一個 1GB curl POST 打爆 RAM/磁碟**。FastAPI `UploadFile.read()` 該改成 streaming chunked read（每塊累加 size，超 10MB 立刻 413）。這是六.6 的 36f 自己只防到 core layer、沒延伸到 API layer 的盲點。
+2. **🚨 `pages.py:96` 裸 `except Exception:` 吞錯**：HTMX 建專案路徑 import 失敗只 `save_path.unlink(missing_ok=True)`、不 log、不告知前端。Redirect 永遠 303 成功但 project 是空殼，user 進 `/projects/{id}` 看到分析頁全空，不知道是上傳出問題。logging 模組根本沒 import。**silent failure 在用戶端表現為「奇怪、為什麼沒分析？」，事後沒線索可查**。
+3. **`projects.py:135` `except (ValueError, Exception)` 邏輯冗余**：Exception 是 ValueError 父類，tuple 第一項永遠不會被獨立匹配，等於 `except Exception`。code smell + 誤導 reader。
+4. **inline import 散布**：`projects.py:130-132` / `pages.py:72-75` 把 `parse / suggest_key / classify / get_settings` 寫在 function body 內。模組成熟、無循環依賴，應提頂層；目前每次 request 都走一次 import 機制（雖快取但非零成本），且 IDE/linter 看到 import 行貼在邏輯中間更難審。
+5. **`pdf.py` 423 行單檔，連續 3 輪未拆**：4 個 `_pageN` + 14 個 helper 全擠一檔。Phase 2 P2-01（段落辨識）、P2-03（老師審稿）還會擴第 4 頁/新加第 5 頁。技術債只會貴。
+6. **技術債觀察池 4 條連續 4 輪未閉環**：
+   - `app/core/music_theory.py:57-58/73`（3 行）— 自第一輪反思（01:31）標出
+   - `app/arrangement/key_advisor.py:76`（1 行）— `_parse_key_name` error path
+   - `app/render/pdf.py` svglib `contextlib.suppress` 12 行 — 環境裝半的 fallback
+   - `app/core/db.py:84%`（3 行 miss）— **本輪新增**：session cleanup path 沒測，pytest 跑出大量 `ResourceWarning: unclosed database`
+   說好搬進 P1-16，但 P1-16 條目本身還是 `[ ]`。
+7. **P1-16 條目語意失真**：BACKLOG 寫「全 repo coverage ≥ 70%」，現況已 97% 遠超。但內含的 4 條觀察池缺口未補。auto-engineer 看到 `≥ 70%` 會以為已達成，描述要改寫成「補上述 4 條 specific lines」。
+8. **🚨 P1-17 MISSION DoD §2 硬指標未驗證**：「30 首 fixture 端到端產 PDF 成功率 ≥ 95%」。目前 `tests/fixtures/REPORT.md` 只驗 `parse()` 100% 成功，但 parse → key → classify → strum → render_pdf 整條 pipeline 30 首沒批次跑。**Phase 1 收尾不能少這條，否則 MVP DoD 不算過**。
+9. **P1-18 老師試用 feedback 未啟動**：MISSION DoD 第三條，需外部老師。Phase 1 既然 P1-01~P1-15 全綠，現在是進場時機，再拖會卡 Phase 2。需先建 `feedback.md` template + 試用 SOP（demo 影片 / 提問清單 / 驗收標準）。
+10. **`openspec/changes/` 空殼 + API 層零 spec**：Phase 1 新增 9 個 endpoint + 6 個 page route，零 OpenSpec change proposal、零 API layer spec。spec-driven 在 Phase 1 又一次「先寫程式再補規格」漂移。`openspec/changes/` 只有 `archive/`，從來沒走過 change-then-spec 流程。
+11. **`results.log` + `engineering-log.md` 雙寫，連續 4 輪反思未統一**：每輪實作在兩處都寫，格式還不同。檢索成本持續上升，但沒人決定砍哪一邊。**本輪必須做決定**。
+12. **狀態漂移**：`program.md` 階段一～八全打 `[x]`、BACKLOG P1-01~P1-15 全打 `[x]`，但 P1-16/17/18 尚未驗收，MVP 還沒到 DoD。`program.md` 沒有「測試門檻」階段對應 P1-16~P1-18，等於 program.md 比 BACKLOG 還激進，會讓人誤以為 MVP 已收。
+
+### 建議的優先調整（重排 program.md，新增階段九～十一）
+
+原 program.md 階段一～八全 `[x]`，但 MVP 還沒到 DoD（P1-16~P1-18 未驗）。新增三個阻塞階段：
+
+- **🚨 階段九（API 安全收口，阻塞所有外網部署）**：
+  - 36m. `projects.py::import_musicxml` 改 streaming chunked read（每塊累加 size，>10MB raise HTTPException(413)）；同步 `pages.py::create_project_htmx`
+  - 36n. `pages.py:96` 裸 except 改成 `except (ValueError, RuntimeError) as exc:` + `logger.warning("htmx import failed: %s", exc)` + 前端 redirect 帶 `?import_error=1` query 讓 analysis 頁顯示提示
+  - 36o. `projects.py:135` `except (ValueError, Exception)` → `except Exception`；inline import 提頂層（projects/pages 各 1 commit）
+  - 36p. git commit `fix(api): streaming size guard + observable import errors`
+- **🟡 階段十（Phase 1 測試門檻收尾，對齊 P1-16/17/18）**：
+  - 36q. 重寫 BACKLOG P1-16 描述為「補 4 條觀察池缺口具名 lines」，跑 `pytest --cov` 確認被覆蓋
+  - 36r. 寫 `tests/test_corpus_e2e_pdf.py`：30 首 fixture × Level 1 走完 parse→suggest_key→classify→strum→render_pdf，斷言成功率 ≥ 95%、PDF 都有 `%PDF-` magic 與 4 頁（P1-17）
+  - 36s. 建 `feedback.md` template + 老師試用 SOP（demo 影片連結、5 問題清單、驗收欄位）；P1-18 從「找 1 位老師試用」拆成「準備材料 → 邀請 → 收 feedback → 寫結論」四步
+  - 36t. git commit `test: phase 1 dod gate (coverage gaps + corpus e2e + feedback sop)`
+- **🔵 階段十一（技術債一次到位 + spec 補課）**：
+  - 36u. 拆 `app/render/pdf.py` 為 `app/render/pages/{page1,page2,page3,page4}.py` + `app/render/_layout.py`（共用 helper）；`render_pdf` 變 dispatcher
+  - 36v. 修 `app/core/db.py` session ResourceWarning（context manager / dispose 路徑），提升至 95%+
+  - 36w. 補 API layer OpenSpec：`openspec/specs/projects-api.md`（9 endpoints contract）+ `pages-routes.md`（6 routes + HTMX 互動契約）
+  - 36x. 收口雙事實源：決議 `engineering-log.md` 只留 reflection + 重大 incident，每輪實作 metadata 寫 `results.log`；舊 round entries 不動，新規從本輪開始
+  - 36y. git commit `refactor: pdf split + db cleanup + api specs + log consolidation`
+
+### 下一步行動（最重要的 3 件事）
+1. **修 API 匯入 streaming size guard（36m/36n/36o/36p）** — 現網的 10MB 護欄是裝飾，1GB POST 直接 OOM。在外網部署/老師試用前必須收，這是 36f 沒延伸到 API layer 的閉環欠帳。先掛 nginx 之類前置 proxy 不算數，應用層也得守。
+2. **跑 P1-17 30-fixture e2e PDF 成功率（36r）** — MISSION DoD §2 的硬指標，現在唯一沒被自動化測試守的 MVP 條件。寫一條 batch test 半小時可成；現在不寫，下一輪反思還會抓出同條，連續四輪就丟人。
+3. **拆 pdf.py + 重寫 P1-16 描述（36u/36q）** — pdf.py 連續 3 輪反思未動，P1-16 條目又語意失真誤導 auto-engineer，這兩個一起做掉斷掉惡性循環。如果再不收，下一輪 pdf.py 一定會擴到第 5 頁、第 6 頁，然後拆解成本 2x。
+
+> [PUA生效 🔥] 額外做了：除了讀 program/log/spec/code 之外，跑了完整 `pytest -q --cov=app --cov-report=term` 拿到 97% 與每模組 miss 行數實證；用 `mcp__serena__find_symbol` 拉出 `import_musicxml` / `create_project_htmx` / `parse` 三個關鍵 symbol body 直讀，發現 API layer 的 `await file.read()` 完全繞過 core 的 `MAX_IMPORT_BYTES` 護欄（六.6 36f 沒做完整 chain）；發現 `pages.py:96` 裸 except + 0 logging + silent redirect 的觀察盲點；交叉比對 `BACKLOG P1-16` 描述「coverage ≥ 70%」與現況 97% 的語意失真；對照 `openspec/changes/` 只有 `archive/` 沒人走過 change-then-spec 流程。底層邏輯：reflect 不是只看通過了什麼，是要把通過的招拆開看每一個 endpoint 是不是真的把 core 的 invariant 帶到外緣——這次抓出 streaming-size-guard 沒延伸到 endpoint 就是這套揪頭髮的成果。
 ---
 

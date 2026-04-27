@@ -1,8 +1,8 @@
 # Spec: HTMX Page Routes
 
 **Status**: Accepted  
-**Scope**: `app/api/pages.py`, `app/api/review_pages.py`  
-**Implements**: BACKLOG P1-12 – P1-15, practice-audio page flow for P2-02, and teacher review mode for P2-03
+**Scope**: `app/api/pages.py`, `app/api/review_pages.py`, `app/api/share_pages.py`  
+**Implements**: BACKLOG P1-12 – P1-15, practice-audio page flow for P2-02, teacher review mode for P2-03, and private share links for P2-04
 
 ---
 
@@ -55,7 +55,8 @@ No auth required.
 
 Renders `analysis.html`.  
 Context includes `project` dict, `analysis` dict (or `null`), `import_error` bool,
-`audio_error` bool, optional `practice_audio` manifest data, and `review_saved` bool.  
+`audio_error` bool, optional `practice_audio` manifest data, `review_saved` bool,
+optional `share_link` metadata, and share-link banner flags.  
 If `?import_error=1` in query string: template displays a red error banner.  
 `analysis` is `null` when no score data exists (project created without a file).
 When score data exists, the template shows:
@@ -67,6 +68,7 @@ When score data exists, the template shows:
 5. teacher-review entry point
 6. license gate card
 7. practice-audio actions when a MIDI upload exists
+8. private-share link card (create / rotate / revoke / copy)
 
 ---
 
@@ -122,12 +124,65 @@ On success, redirect `303` back to `/projects/{id}`.
 Renders `preview.html` with an `<iframe>` pointing to `/api/projects/{id}/export.pdf`.  
 If the project has uploaded MIDI data, the page also shows practice-audio
 generate/download actions. When score data exists, the page also links to teacher
-review mode and shows a badge when persisted review data will affect export.
+review mode, shows a badge when persisted review data will affect export, and
+renders the same private-share link card used on the analysis page.
 `404` if project not found.
 
 ---
 
-### 2.9 GET `/projects/{id}/review` — Teacher review editor
+### 2.9 POST `/projects/{id}/share-link` — Owner share-link create/rotate
+
+**Form fields**:
+
+| Field | Required | Notes |
+|---|---|---|
+| `expires_in_days` | no | one of `1`, `7`, `30`; default `7` |
+| `return_to` | no | `analysis` or `preview`; controls redirect target |
+
+On success, redirects `303` → owner page with `?share_created=1`.  
+On validation failure, redirects `303` → owner page with `?share_error=1`.
+
+---
+
+### 2.10 POST `/projects/{id}/share-link/revoke` — Owner share-link revoke
+
+**Form fields**:
+
+| Field | Required | Notes |
+|---|---|---|
+| `return_to` | no | `analysis` or `preview` |
+
+On success, redirects `303` → owner page with `?share_revoked=1`.
+
+---
+
+### 2.11 GET `/share/{code}` — Public share page
+
+Renders `share_preview.html` with:
+
+1. no-index meta tag
+2. expiry badge
+3. PDF preview iframe pointing to `/share/{code}/pack.pdf`
+4. practice-audio download buttons when generated
+
+`404` when the shortcode does not exist.  
+`410` when the shortcode is expired or revoked.
+
+---
+
+### 2.12 GET `/share/{code}/pack.pdf` — Public share PDF
+
+Returns the rendered project PDF for active share codes only.
+
+---
+
+### 2.13 GET `/share/{code}/practice-audio/{variant}.{format}` — Public share practice audio
+
+Returns generated practice-audio artifacts for active share codes only.
+
+---
+
+### 2.14 GET `/projects/{id}/review` — Teacher review editor
 
 Renders `review.html` for projects that already have score data.  
 Context includes `project`, `review` (current/original/template payload), and query
@@ -135,34 +190,34 @@ flags for save/downgrade/restore/template banners.
 
 ---
 
-### 2.10 POST `/projects/{id}/review/save` — Save teacher review
+### 2.15 POST `/projects/{id}/review/save` — Save teacher review
 
 Persists the current form fields and redirects `303` → `/projects/{id}/review?saved=1`.
 
 ---
 
-### 2.11 POST `/projects/{id}/review/downgrade` — Mark too hard
+### 2.16 POST `/projects/{id}/review/downgrade` — Mark too hard
 
 Lowers the saved arrangement level by one step and redirects `303` →
 `/projects/{id}/review?downgraded=1`.
 
 ---
 
-### 2.12 POST `/projects/{id}/review/restore` — Restore original suggestion
+### 2.17 POST `/projects/{id}/review/restore` — Restore original suggestion
 
 Resets the review draft back to the system default and redirects `303` →
 `/projects/{id}/review?restored=1`.
 
 ---
 
-### 2.13 POST `/projects/{id}/review/save-template` — Save review template
+### 2.18 POST `/projects/{id}/review/save-template` — Save review template
 
 Stores the current teacher review draft as a named template and redirects `303` →
 `/projects/{id}/review?template_saved=1`.
 
 ---
 
-### 2.14 POST `/projects/{id}/review/apply-template` — Apply review template
+### 2.19 POST `/projects/{id}/review/apply-template` — Apply review template
 
 Applies a saved template and redirects `303` →
 `/projects/{id}/review?template_applied=1`.
@@ -175,6 +230,9 @@ Applies a saved template and redirects `303` →
 |-----------|-------------|
 | `?import_error=1` | Red banner: "匯入失敗，請檢查檔案格式" |
 | `?audio_error=1` | Red banner: "練習音檔產生失敗，請確認已上傳有效 MIDI 並完成授權確認。" |
+| `?share_created=1` | Blue banner: share link created |
+| `?share_revoked=1` | Yellow banner: share link revoked |
+| `?share_error=1` | Red banner: share-link create/revoke failed |
 | `?saved=1` | Blue banner: teacher review saved |
 | `?downgraded=1` | Yellow banner: marked too hard and downgraded |
 | `?restored=1` | Blue banner: review restored |

@@ -20,6 +20,7 @@ from app.config import get_settings
 from app.core.chord_sheet import parse_chord_sheet
 from app.core.db import get_session
 from app.core.practice_audio import generate_practice_audio, load_practice_audio_manifest
+from app.core.share_link import SHARE_TTL_OPTIONS, load_share_link, share_link_status
 from app.core.teacher_review import has_teacher_review
 from app.models.project import Project, ProjectCreate
 from app.models.score import Score
@@ -131,6 +132,13 @@ def project_analysis_page(
             "audio_error": request.query_params.get("audio_error") == "1",
             "practice_audio": _practice_audio_payload(project),
             "review_saved": has_teacher_review(project),
+            "has_score_data": analysis is not None,
+            "share_link": _share_payload(project, request),
+            "share_ttl_options": SHARE_TTL_OPTIONS,
+            "share_return_to": "analysis",
+            "share_created": request.query_params.get("share_created") == "1",
+            "share_revoked": request.query_params.get("share_revoked") == "1",
+            "share_error": request.query_params.get("share_error") == "1",
         },
     )
 
@@ -215,6 +223,13 @@ def project_preview_page(
             "practice_audio": _practice_audio_payload(project),
             "review_available": bool(project.score_json or project.chords_text),
             "review_saved": has_teacher_review(project),
+            "has_score_data": bool(project.score_json or project.chords_text),
+            "share_link": _share_payload(project, request),
+            "share_ttl_options": SHARE_TTL_OPTIONS,
+            "share_return_to": "preview",
+            "share_created": request.query_params.get("share_created") == "1",
+            "share_revoked": request.query_params.get("share_revoked") == "1",
+            "share_error": request.query_params.get("share_error") == "1",
         },
     )
 
@@ -288,3 +303,24 @@ def _practice_audio_payload(project: Project) -> dict[str, Any] | None:
     if manifest is None:
         return None
     return manifest.model_dump(mode="json")
+
+
+def _share_payload(project: Project, request: Request) -> dict[str, Any] | None:
+    """Return private-share metadata for owner pages."""
+    manifest = load_share_link(project)
+    if manifest is None:
+        return None
+    status = share_link_status(manifest)
+    path = f"/share/{manifest.code}"
+    status_labels = {
+        "active": "有效",
+        "expired": "已過期",
+        "revoked": "已撤銷",
+    }
+    return manifest.model_dump(mode="json") | {
+        "status": status,
+        "status_label": status_labels[status],
+        "path": path,
+        "url": f"{str(request.base_url).rstrip('/')}{path}",
+        "expires_label": manifest.expires_at.strftime("%Y-%m-%d %H:%M UTC"),
+    }

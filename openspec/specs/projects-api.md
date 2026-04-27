@@ -2,7 +2,7 @@
 
 **Status**: Accepted  
 **Scope**: `app/api/projects/*`  
-**Implements**: FR-001 – FR-015 plus Beta practice-audio export and teacher review mode (BACKLOG P1-01 – P1-10, P2-02, P2-03)
+**Implements**: FR-001 – FR-015 plus Beta practice-audio export, teacher review mode, and expiring private share links (BACKLOG P1-01 – P1-10, P2-02, P2-03, P2-04)
 
 ---
 
@@ -218,14 +218,61 @@ Sets `license_confirmed = true` on the project.
 
 ---
 
-### 2.13 GET `/api/projects/{id}/review` — Read teacher review state (FR-013)
+### 2.13 GET `/api/projects/{id}/share-link` — Read private-share link metadata
+
+Returns the project's current share-link manifest, including `status`, `share_path`,
+and `share_url`. `404` if no link has been created yet.
+
+---
+
+### 2.14 POST `/api/projects/{id}/share-link` — Create or rotate a private-share link
+
+**Request body**: `{ "expires_in_days": 7 }`  
+Allowed expiry values: `1`, `7`, `30`.
+
+Requires:
+
+1. `license_confirmed = true`
+2. score data to exist
+3. `source_type != private_research`
+
+**Response** `200 OK`:
+
+```json
+{
+  "project_id": 1,
+  "code": "8H4Q7K2M",
+  "created_at": "2026-04-27T23:10:00Z",
+  "expires_at": "2026-05-04T23:10:00Z",
+  "revoked_at": null,
+  "status": "active",
+  "share_path": "/share/8H4Q7K2M",
+  "share_url": "http://localhost:8000/share/8H4Q7K2M"
+}
+```
+
+**Error codes**:
+- `400` — invalid expiry preset
+- `403` — license not confirmed / private research project
+- `422` — no score data
+
+---
+
+### 2.15 DELETE `/api/projects/{id}/share-link` — Revoke the active private-share link
+
+Marks the current share code as revoked.  
+Returns the revoked manifest with `status = "revoked"`.
+
+---
+
+### 2.16 GET `/api/projects/{id}/review` — Read teacher review state (FR-013)
 
 Requires score data. Returns persisted review manifest or a default draft derived from
 the current project score plus arrangement level.
 
 ---
 
-### 2.14 POST `/api/projects/{id}/review` — Save teacher review edits (FR-013)
+### 2.17 POST `/api/projects/{id}/review` — Save teacher review edits (FR-013)
 
 **Request body**:
 
@@ -246,28 +293,28 @@ manifest under the project data directory.
 
 ---
 
-### 2.15 POST `/api/projects/{id}/review/downgrade` — Mark too hard
+### 2.18 POST `/api/projects/{id}/review/downgrade` — Mark too hard
 
 Requires score data. Lowers the active level by one step (minimum Level 1), sets
 `too_hard = true`, and refreshes the default strum suggestion for the downgraded level.
 
 ---
 
-### 2.16 POST `/api/projects/{id}/review/restore` — Restore original suggestion
+### 2.19 POST `/api/projects/{id}/review/restore` — Restore original suggestion
 
 Requires score data. Replaces the current review draft with the original
 system-generated suggestion.
 
 ---
 
-### 2.17 POST `/api/projects/{id}/review/template` — Save review template
+### 2.20 POST `/api/projects/{id}/review/template` — Save review template
 
 **Request body**: `{ "name": "一年級慢版" }`  
 Stores the current review draft as a named template inside the project review manifest.
 
 ---
 
-### 2.18 POST `/api/projects/{id}/review/template/apply` — Apply review template
+### 2.21 POST `/api/projects/{id}/review/template/apply` — Apply review template
 
 **Request body**: `{ "name": "一年級慢版" }`  
 Loads the named template, replaces the current draft, and updates the project's
@@ -279,11 +326,12 @@ saved arrangement level.
 
 | Code | Meaning |
 |------|---------|
-| `400` | Bad request (wrong file type, `confirmed: false`) |
-| `403` | License not confirmed |
+| `400` | Bad request (wrong file type, `confirmed: false`, invalid share expiry) |
+| `403` | License not confirmed / share disallowed for the project |
 | `404` | Project not found |
 | `413` | File too large (> 10 MB) |
 | `422` | No score data / parse failure / missing MIDI |
+| `410` | Share link expired or revoked |
 | `503` | Practice-audio rendering dependency failed |
 
 ---
@@ -295,6 +343,8 @@ Uploaded files written to `DATA_DIR/projects/{id}/original{ext}`.
 `score_json` holds a serialised `Score` pydantic model.  
 Generated practice-audio assets and `manifest.json` are written to
 `DATA_DIR/projects/{id}/practice_audio/`.
+Current share-link metadata lives at `DATA_DIR/projects/{id}/share_link.json`,
+with shortcode lookup manifests mirrored under `DATA_DIR/share_links/{code}.json`.
 
 ---
 
@@ -303,4 +353,3 @@ Generated practice-audio assets and `manifest.json` are written to
 - Full MIDI parsing and chord extraction
 - Alternate soundfonts or browser-streamed audio previews
 - Collaborative editing / multi-user access
-- Expiring share links

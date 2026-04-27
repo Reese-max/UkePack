@@ -54,6 +54,9 @@ GET    /api/projects/{id}/export.pdf     下載 PDF 練習包
 GET    /api/projects/{id}/export.musicxml 下載編輯版 MusicXML
 POST   /api/projects/{id}/practice-audio 產慢速練習音檔
 GET    /api/projects/{id}/export.practice-audio/{variant}.{format} 下載音檔
+POST   /api/projects/{id}/share-link     建立或輪替私人分享連結
+DELETE /api/projects/{id}/share-link     撤銷私人分享連結
+GET    /share/{code}                     開啟短碼分享頁
 ```
 
 完整 API 規格見 [`openspec/specs/projects-api.md`](./openspec/specs/projects-api.md)。
@@ -89,7 +92,7 @@ uv run pytest -q
 - [x] Phase 2 P2-01：段落自動辨識（Intro / Verse / Chorus）
 - [x] Phase 2 P2-02：慢速練習音檔（50BPM / 70% / 100%，MIDI + MP3）
 - [x] Phase 2 P2-03：老師審稿模式（編輯 / 比較 / 復原 / 模板）
-- [ ] Phase 2 P2-04：私人分享連結（短碼 + 過期）
+- [x] Phase 2 P2-04：私人分享連結（短碼 + 過期）
 - [ ] Phase 2 P2-05：Discord bot 初版
 - [ ] Phase 2 P2-06：可彈性分數視覺化
 - [ ] Phase 3：Public v1.0（Klangio API + 老師工作區 + 訂閱）
@@ -106,7 +109,7 @@ uv run pytest -q
 |------|------|
 | [PRD.md](./PRD.md) | 完整產品需求文件 v1.0 |
 | [BACKLOG.md](./BACKLOG.md) | 任務清單（依 Phase 排列） |
-| [openspec/specs/](./openspec/specs/) | 各模組 API / 行為規格（13 份） |
+| [openspec/specs/](./openspec/specs/) | 各模組 API / 行為規格（14 份） |
 | [docs/teacher_trial_sop.md](./docs/teacher_trial_sop.md) | 老師試用 SOP + 邀請信範本 |
 | [feedback.md](./feedback.md) | 老師試用回饋問卷 |
 | [engineering-log.md](./engineering-log.md) | 技術決策 + 重大 incident 記錄 |

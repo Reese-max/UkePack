@@ -233,6 +233,16 @@
 
 ---
 
+## 階段十七.5：私人分享連結（P2-04）
+
+> 動機：老師審稿完成後，還缺最後一段「把練習包安全地丟給家長/學生」。PRD 14.5 已寫輸出頁要能複製分享連結，但 repo 仍只有 project-id 路由、沒有短碼、沒有過期、沒有 noindex。這輪用 sidecar manifest 補一條可撤銷、可過期、可直接預覽 PDF 的私有分享流。
+
+- [x] 37l. 建 `app/models/share_link.py` + `app/core/share_link.py`：8 碼短碼、1/7/30 天過期、project-scoped current manifest + global shortcode lookup manifest；限制 `license_confirmed=true`、有 score data、且 `source_type != private_research`
+- [x] 37m. 補 `app/api/projects/share.py` + `app/api/share_pages.py` + `templates/share_preview.html` / `partials/share_card.html`：owner 端建立/撤銷、分析頁/預覽頁顯示可複製分享連結、public `/share/{code}` noindex 預覽頁、share-scoped PDF/音檔下載路由
+- [x] 37n. 補 `tests/test_share_links.py` + `openspec/specs/share-links.md`，同步更新 `projects-api.md` / `pages-routes.md` / `README.md` / `BACKLOG.md`
+
+---
+
 ## 全域守則（每輪 AI 都要遵守）
 
 1. 動工前先讀 `MISSION.md` + `AGENTS.md`

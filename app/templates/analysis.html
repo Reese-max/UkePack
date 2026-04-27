@@ -30,6 +30,9 @@
             {% if analysis %}
             <a class="btn btn-ghost btn-sm" href="/projects/{{ project.id }}/review">🧑‍🏫 老師審稿</a>
             {% endif %}
+            {% if share_link and share_link.status == "active" %}
+            <a class="btn btn-ghost btn-sm" href="{{ share_link.path }}" target="_blank" rel="noopener noreferrer">🔗 分享頁</a>
+            {% endif %}
             {% if project.license_confirmed %}
             <a class="btn btn-primary btn-sm" href="/projects/{{ project.id }}/preview">🎼 預覽 PDF</a>
             <a class="btn btn-ghost btn-sm" href="/api/projects/{{ project.id }}/export.pdf">⬇ 下載 PDF</a>
@@ -107,6 +110,8 @@
     </div>
     {% else %}
     {# ── Analysis result ── #}
+    {% include "partials/share_card.html" %}
+
     <div class="card">
         <p class="section-title">📊 分析結果</p>
         <div class="data-grid">

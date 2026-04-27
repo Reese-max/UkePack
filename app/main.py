@@ -75,10 +75,12 @@ def create_app() -> FastAPI:
     from app.api.pages import router as pages_router
     from app.api.projects import router as projects_router
     from app.api.review_pages import router as review_pages_router
+    from app.api.share_pages import router as share_pages_router
 
     application.include_router(projects_router)
     application.include_router(pages_router)
     application.include_router(review_pages_router)
+    application.include_router(share_pages_router)
 
     return application
 

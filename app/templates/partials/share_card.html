@@ -1,0 +1,98 @@
+<div class="card">
+    <p class="section-title">🔗 私人分享連結</p>
+    <p style="margin:0 0 0.75rem; color:var(--muted); font-size:0.95rem">
+        用短碼分享 PDF 預覽與已生成的練習音檔。分享頁不進搜尋引擎，過期後自動失效。
+    </p>
+
+    {% if share_created %}
+    <div class="alert alert-info" role="alert" style="margin-bottom:1rem">
+        已建立新的分享連結。
+    </div>
+    {% endif %}
+    {% if share_revoked %}
+    <div class="alert alert-warning" role="alert" style="margin-bottom:1rem">
+        已撤銷分享連結；舊連結現在會失效。
+    </div>
+    {% endif %}
+    {% if share_error %}
+    <div class="alert alert-danger" role="alert" style="margin-bottom:1rem">
+        分享連結建立失敗，請先完成授權確認並準備好可匯出的練習包。
+    </div>
+    {% endif %}
+
+    {% if not has_score_data %}
+    <div class="alert alert-warning" role="alert">
+        先匯入曲譜或輸入和弦，才能建立分享連結。
+    </div>
+    {% elif project.source_type == 'private_research' %}
+    <div class="alert alert-warning" role="alert">
+        私人研究專案只能自用，不能建立分享連結。
+    </div>
+    {% elif not project.license_confirmed %}
+    <div class="alert alert-warning" role="alert">
+        先完成授權確認，才能建立分享連結。
+    </div>
+    {% else %}
+        {% if share_link and share_link.status == "active" %}
+        <div class="field" style="margin-bottom:0.75rem">
+            <label for="share-url-{{ project.id }}">複製分享連結</label>
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap">
+                <input
+                    type="text"
+                    id="share-url-{{ project.id }}"
+                    value="{{ share_link.url }}"
+                    readonly
+                    style="flex:1; min-width:240px"
+                >
+                <button
+                    type="button"
+                    class="btn btn-ghost btn-sm"
+                    data-share-url="{{ share_link.url }}"
+                    onclick="navigator.clipboard.writeText(this.dataset.shareUrl); this.textContent='已複製';"
+                >
+                    複製
+                </button>
+            </div>
+        </div>
+        <p style="margin:0 0 0.75rem; color:var(--muted); font-size:0.95rem">
+            短碼：<strong>{{ share_link.code }}</strong>｜到期：{{ share_link.expires_label }}
+        </p>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem">
+            <a class="btn btn-ghost btn-sm" href="{{ share_link.path }}" target="_blank" rel="noopener noreferrer">
+                打開分享頁
+            </a>
+            <form method="POST" action="/projects/{{ project.id }}/share-link/revoke">
+                <input type="hidden" name="return_to" value="{{ share_return_to }}">
+                <button type="submit" class="btn btn-ghost btn-sm">撤銷連結</button>
+            </form>
+        </div>
+        {% elif share_link and share_link.status == "expired" %}
+        <div class="alert alert-warning" role="alert" style="margin-bottom:1rem">
+            上一個分享連結已過期（{{ share_link.expires_label }}）。
+        </div>
+        {% elif share_link and share_link.status == "revoked" %}
+        <div class="alert alert-warning" role="alert" style="margin-bottom:1rem">
+            上一個分享連結已撤銷。重新建立即可取得新短碼。
+        </div>
+        {% endif %}
+
+        <form
+            method="POST"
+            action="/projects/{{ project.id }}/share-link"
+            style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:flex-end"
+        >
+            <input type="hidden" name="return_to" value="{{ share_return_to }}">
+            <div class="field" style="margin:0; min-width:180px">
+                <label for="share-expiry-{{ project.id }}">過期時間</label>
+                <select id="share-expiry-{{ project.id }}" name="expires_in_days">
+                    {% for days, label in share_ttl_options %}
+                    <option value="{{ days }}" {% if days == 7 %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">
+                {% if share_link and share_link.status == "active" %}♻ 重新產生短碼{% else %}🔗 建立分享連結{% endif %}
+            </button>
+        </form>
+    {% endif %}
+</div>

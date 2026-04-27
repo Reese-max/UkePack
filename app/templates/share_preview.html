@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}分享頁 — {{ project.title }} — UkePack AI{% endblock %}
+
+{% block head %}
+<meta name="robots" content="noindex, nofollow, noarchive">
+<style>
+    .preview-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .preview-iframe {
+        width: 100%;
+        height: min(80vh, 900px);
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        background: #fff;
+    }
+
+    @media (max-width: 560px) {
+        .preview-iframe { height: 60vh; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="preview-wrapper">
+    <div>
+        <h1 class="page-title">{{ project.title }}</h1>
+        <p class="page-subtitle">私人分享頁</p>
+    </div>
+
+    <div class="card" style="padding:1rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem">
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center">
+            {% if project.source_type == 'public_domain' %}
+            <span class="badge badge-green">✅ 公版授權</span>
+            {% else %}
+            <span class="badge badge-blue">Non-commercial practice use</span>
+            {% endif %}
+            <span class="badge badge-muted">短碼 {{ share_link.code }}</span>
+            <span class="badge badge-orange">到期 {{ share_link.expires_label }}</span>
+            {% if review_saved %}
+            <span class="badge badge-orange">🧑‍🏫 已套用老師審稿</span>
+            {% endif %}
+        </div>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap">
+            <a
+                class="btn btn-primary btn-sm"
+                href="/share/{{ share_link.code }}/pack.pdf"
+                download="{{ project.title }}.pdf"
+            >
+                ⬇ 下載 PDF
+            </a>
+        </div>
+    </div>
+
+    {% if practice_audio %}
+    <div class="card">
+        <p class="section-title">🎧 練習音檔</p>
+        <div style="display:flex; gap:0.75rem; flex-wrap:wrap">
+            {% for asset in practice_audio.variants %}
+            <a class="btn btn-ghost btn-sm" href="/share/{{ share_link.code }}/practice-audio/{{ asset.variant }}.mp3">
+                {{ asset.label }} MP3
+            </a>
+            <a class="btn btn-ghost btn-sm" href="/share/{{ share_link.code }}/practice-audio/{{ asset.variant }}.mid">
+                {{ asset.label }} MIDI
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <iframe
+        class="preview-iframe"
+        src="/share/{{ share_link.code }}/pack.pdf"
+        title="{{ project.title }} 分享頁 PDF 預覽"
+        aria-label="分享頁 PDF 預覽框"
+    ></iframe>
+
+    <div class="alert alert-info" style="font-size:0.9rem">
+        ℹ️ 此頁僅供持有連結者查看，且不會被搜尋引擎索引。
+    </div>
+</div>
+{% endblock %}

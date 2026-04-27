@@ -12,9 +12,9 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from app.api.projects import export as export_module
 from app.api.projects._shared import load_score
 from app.config import get_settings
+from app.core import project_pack as project_pack_module
 from app.core.musicxml import MAX_IMPORT_BYTES
 from app.models.pack_request import PackRequest
 from app.models.project import Project
@@ -484,7 +484,7 @@ def test_export_pdf_uses_teacher_review_overrides(
         captured["measures"] = pack.score.measures
         return b"%PDF-review"
 
-    monkeypatch.setattr(export_module, "render_pdf", _fake_render)
+    monkeypatch.setattr(project_pack_module, "render_pdf", _fake_render)
     resp = db_client.get(f"/api/projects/{pid}/export.pdf")
 
     assert resp.status_code == 200

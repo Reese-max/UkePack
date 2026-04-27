@@ -58,6 +58,9 @@
             {% if review_available %}
             <a class="btn btn-ghost btn-sm" href="/projects/{{ project.id }}/review">🧑‍🏫 老師審稿</a>
             {% endif %}
+            {% if share_link and share_link.status == "active" %}
+            <a class="btn btn-ghost btn-sm" href="{{ share_link.path }}" target="_blank" rel="noopener noreferrer">🔗 分享頁</a>
+            {% endif %}
             <a
                 class="btn btn-primary btn-sm"
                 href="/api/projects/{{ project.id }}/export.pdf"
@@ -86,6 +89,8 @@
         {% endif %}
     </div>
     {% endif %}
+
+    {% include "partials/share_card.html" %}
 
     <iframe
         class="preview-iframe"

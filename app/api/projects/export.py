@@ -3,30 +3,17 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse, Response
 
-from app.arrangement.key_advisor import suggest_key
-from app.arrangement.level_classifier import classify
-from app.arrangement.strum_pattern import suggest_for_level
 from app.config import get_settings
 from app.core.practice_audio import (
     generate_practice_audio,
     get_practice_audio_file,
     load_practice_audio_manifest,
 )
-from app.core.teacher_review import (
-    has_teacher_review,
-    load_teacher_review,
-    review_score,
-)
-from app.models.pack_request import PackRequest
-from app.render.pdf import render_pdf
+from app.core.project_pack import pdf_filename, render_project_pdf
 
 from ._shared import SessionDep, get_project_or_404, load_score
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
-
-
-def _pdf_filename(title: str) -> str:
-    return title[:50].replace(" ", "_") + ".pdf"
 
 
 def _require_license_confirmation(license_confirmed: bool) -> None:
@@ -42,25 +29,11 @@ def export_pdf(project_id: int, session: SessionDep) -> Response:
     """Download a practice-pack PDF after license confirmation."""
     project = get_project_or_404(session, project_id)
     _require_license_confirmation(project.license_confirmed)
-
-    score = load_score(project)
-    review = load_teacher_review(project, score) if has_teacher_review(project) else None
-    export_score = review_score(project, review, score) if review is not None else score
-    export_level = review.current.arrangement_level if review is not None else project.arrangement_level
-    pack = PackRequest(
-        title=project.title,
-        source_type=project.source_type,
-        level=export_level,
-        score=export_score,
-        key_recommendation=suggest_key(export_score),
-        strum_patterns=suggest_for_level(export_score, export_level),
-        playability=classify(export_score),
-        teacher_review=review.current if review is not None else None,
-    )
+    load_score(project)
     return Response(
-        content=render_pdf(pack),
+        content=render_project_pdf(project),
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{_pdf_filename(project.title)}"'},
+        headers={"Content-Disposition": f'attachment; filename="{pdf_filename(project.title)}"'},
     )
 
 

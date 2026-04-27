@@ -40,16 +40,16 @@
 ## Phase 1：MVP（4–6 週，Phase 0 全綠後啟動）
 
 ### Web API
-- [ ] P1-01 POST `/api/projects` 建專案（FR-001）
-- [ ] P1-02 POST `/api/projects/{id}/import` MusicXML 上傳（FR-002）
-- [ ] P1-03 POST `/api/projects/{id}/midi` MIDI 上傳（FR-003）
-- [ ] P1-04 POST `/api/projects/{id}/chords` 手動和弦輸入（FR-004）
-- [ ] P1-05 GET `/api/projects/{id}/analysis` Key/BPM/和弦/難度分數
-- [ ] P1-06 POST `/api/projects/{id}/arrange` 產生 Level 1/2/3
-- [ ] P1-07 GET `/api/projects/{id}/export.pdf` 下載 PDF
-- [ ] P1-08 GET `/api/projects/{id}/export.musicxml` 下載編輯版
-- [ ] P1-09 SQLite + SQLModel 建 `projects` table（FR-014 schema）
-- [ ] P1-10 授權聲明流程（必勾才可進輸出，FR-015）
+- [x] P1-01 POST `/api/projects` 建專案（FR-001）
+- [x] P1-02 POST `/api/projects/{id}/import` MusicXML 上傳（FR-002）
+- [x] P1-03 POST `/api/projects/{id}/midi` MIDI 上傳（FR-003）
+- [x] P1-04 POST `/api/projects/{id}/chords` 手動和弦輸入（FR-004）
+- [x] P1-05 GET `/api/projects/{id}/analysis` Key/BPM/和弦/難度分數
+- [x] P1-06 POST `/api/projects/{id}/arrange` 產生 Level 1/2/3
+- [x] P1-07 GET `/api/projects/{id}/export.pdf` 下載 PDF
+- [x] P1-08 GET `/api/projects/{id}/export.musicxml` 下載編輯版
+- [x] P1-09 SQLite + SQLModel 建 `projects` table（FR-014 schema）
+- [x] P1-10 授權聲明流程（必勾才可進輸出，FR-015）
 
 ### Web UI（HTMX，不要 React）
 - [ ] P1-11 `templates/index.html` 首頁（PRD §14.1 主訊息 + 4 CTA）

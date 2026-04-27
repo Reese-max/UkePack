@@ -180,6 +180,36 @@
 
 ---
 
+## 階段十三：MVP DoD §3 老師試用收尾（reflect 2026-04-27 第六輪新增，純流程阻塞 MVP 收官）
+
+> 動機：MVP 三條 DoD 中，§1（北極星 < 5s）+ §2（30 fixture 端到端 ≥ 95%）已自動化守門。§3「找 1 位老師試用 + 寫 feedback」連續 2 輪反思未動：P1-18a 材料齊（feedback.md template + docs/teacher_trial_sop.md），但 18b/c/d 全 `[ ]`。再拖一輪就是反思第三輪同一條，且這不是工程能解、靠的是「現在就寄」。
+
+- [ ] 36z. 寄出 P1-18b 邀請信給 ≥1 位實際在教烏克麗麗的老師（用 `docs/teacher_trial_sop.md` 的範本）；在 engineering-log 記日期 + 收件人匿名代號 + 預期試用時間
+- [ ] 36zz. P1-18c 跑試用 + 收 feedback，整理進 `feedback.md`
+- [ ] 36zzz. P1-18d 寫結論：根據 feedback 排 Phase 2 backlog 調整或標 known issue
+
+## 階段十四：projects.py 拆檔 + P2-01 觀察池一次清（reflect 第六輪新增，與階段十三可並行；阻塞 P2-03）
+
+> 動機：階段十一剛拆完 `pdf.py`（423 → 25 行 dispatcher），但 `app/api/projects.py` 同樣的問題正在累積——300 行 9 endpoints 全擠單檔。P2-03 老師審稿模式（review/approve/comment）動工會把它擴到 ≥ 450 行，現在拆 < 半小時，等動工再拆 = 2x。同時 P2-01 section_detector 落地當輪即出現 3 行 dead branch（21/48/86），加上 chord_simplify (80/107)、projects.py (73/295)、pages.py (195) 共 14 行 miss，拼成「endpoint/handler 邊界錯誤路徑覆蓋」一個小 sprint 一次掃。
+
+- [x] 37a. 拆 `app/api/projects.py` 為 `app/api/projects/{crud,import_,export,license}.py`（每檔 ≤ 120 行）+ `__init__.py` re-export；對外 `from app.api.projects import router` 不變；mypy/ruff/pytest 全綠才 commit
+- [x] 37b. 補 `section_detector.py:21/48/86`、`chord_simplify.py:80/107`、`projects.py:73/295`、`pages.py:195` 共 14 行測試，coverage 拉到 100%
+- [x] 37c. git commit `refactor(api): split projects router + close coverage gaps`
+
+## 階段十五：spec-driven workflow 試點（reflect 第六輪新增，與 P2-02 動工同綁）
+
+> 動機：`openspec/specs/` 已 11 條全部 accepted，但 `openspec/changes/` 連續 5 輪零提案、只有 `archive/`。spec 一律先寫程式後文件化，違反 spec-driven 工作流的本意。P2-02（慢速練習音檔）規模剛好——一個新模組（mido + mp3）+ 輸出契約（.mid / .mp3 / metadata），用它走一次完整 change → accepted → code 流程，做後續 P2-03/P2-04 範本。
+
+- [ ] 37d. 動 P2-02 前先寫 `openspec/changes/2026-04-XX-slow-practice-mp3/proposal.md`（problem / proposed change / impact / out of scope），accepted 後才開始實作；spec ↔ code 同步在同一 PR 內
+
+## 階段十六：BACKLOG 衛生（reflect 第六輪新增，5 分鐘活）
+
+> 動機：`BACKLOG.md` Phase 0 兩個 H3 章節（基礎設施 / MusicXML 解析）只剩標題沒項目，新人讀會困惑；`P1-11` 編號缺失（10 → 12 跳號）。資訊架構失序的小事，但留著就會被下一輪反思繼續抓。
+
+- [ ] 37e. 清 BACKLOG Phase 0 兩個空 H3 章節（補回 P0-01~P0-12 的歷史記錄到「已完成」區塊，或直接刪除標題）；釋疑 P1-11 缺號（合併進 P1-12 / 已刪 / 重新編號擇一），在 BACKLOG 開頭備註
+
+---
+
 ## 全域守則（每輪 AI 都要遵守）
 
 1. 動工前先讀 `MISSION.md` + `AGENTS.md`

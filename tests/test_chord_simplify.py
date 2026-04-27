@@ -43,6 +43,10 @@ def test_simplify_keeps_unknown_chords_when_no_rule_matches() -> None:
     assert simplify("Em") == "Em"
 
 
+def test_simplify_slash_chord_uses_recursive_suffix_fallback() -> None:
+    assert simplify("C9/E") == "C7"
+
+
 def test_simplify_rejects_empty_symbols() -> None:
     with pytest.raises(ValueError, match="cannot be empty"):
         simplify(" \t ")

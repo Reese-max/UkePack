@@ -7,7 +7,9 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from app.api.pages import _score_from_project
 from app.core.musicxml import MAX_IMPORT_BYTES
+from app.models.project import Project
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
 TWINKLE = FIXTURE_DIR / "twinkle_twinkle_little_star.musicxml"
@@ -221,6 +223,18 @@ def test_strum_partial_level_2(db_client: TestClient) -> None:
 def test_strum_partial_not_found(db_client: TestClient) -> None:
     resp = db_client.get("/projects/99999/strum-partial?level=1")
     assert resp.status_code == 404
+
+
+def test_score_from_project_falls_back_to_chords_text() -> None:
+    project = Project(
+        title="Manual Partial",
+        source_type="public_domain",
+        chords_text="C | G | Am | F",
+    )
+
+    score = _score_from_project(project)
+
+    assert [chord.symbol for chord in score.chords] == ["C", "G", "Am", "F"]
 
 
 # ── POST /projects/{id}/confirm-license ────────────────────────────────────

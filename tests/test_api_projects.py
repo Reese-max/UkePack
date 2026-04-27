@@ -12,7 +12,10 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from app.api.projects._shared import load_score
+from app.config import get_settings
 from app.core.musicxml import MAX_IMPORT_BYTES
+from app.models.project import Project
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
 TWINKLE = FIXTURE_DIR / "twinkle_twinkle_little_star.musicxml"
@@ -357,6 +360,35 @@ def test_export_musicxml_after_import(db_client: TestClient) -> None:
     resp = db_client.get(f"/api/projects/{pid}/export.musicxml")
     assert resp.status_code == 200
     assert b"<?xml" in resp.content or b"<score-partwise" in resp.content
+
+
+def test_export_musicxml_missing_file_on_disk_returns_404(db_client: TestClient) -> None:
+    pid = _create(db_client)
+    with TWINKLE.open("rb") as f:
+        db_client.post(
+            f"/api/projects/{pid}/import",
+            files={"file": ("twinkle.musicxml", f, "application/xml")},
+        )
+
+    project = db_client.get(f"/api/projects/{pid}").json()
+    exported_path = get_settings().data_dir / project["musicxml_path"]
+    exported_path.unlink()
+
+    resp = db_client.get(f"/api/projects/{pid}/export.musicxml")
+    assert resp.status_code == 404
+
+
+def test_load_score_falls_back_to_chord_text() -> None:
+    project = Project(
+        title="Manual Only",
+        source_type="public_domain",
+        chords_text="C | G | Am | F",
+    )
+
+    score = load_score(project)
+
+    assert [chord.symbol for chord in score.chords] == ["C", "G", "Am", "F"]
+    assert score.measures == 4
 
 
 # ── 404 propagation ────────────────────────────────────────────────────────

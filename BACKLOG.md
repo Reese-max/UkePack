@@ -75,7 +75,7 @@
 - [x] P2-02 慢速練習音檔（`app/core/practice_audio.py` 產 50 BPM / 70% / 100% 三種 variant，先寫 `.mid` 再 render `.mp3`，含 1 小節倒數 click、manifest persistence、API/UI download actions）
 - [x] P2-03 老師審稿模式（FR-013；file-backed review manifest + compare/restore/template flow + API/UI/PDF override 已落地）
 - [x] P2-04 私人分享連結（短碼 + 過期）
-- [ ] P2-05 Discord bot 初版（讀檔 → 回 PDF）
+- [x] P2-05 Discord bot 初版（讀檔 → 回 PDF）
 - [ ] P2-06 可彈性分數視覺化
 
 ---

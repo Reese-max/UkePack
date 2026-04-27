@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     data_dir: Path = Path("data")
     debug: bool = False
     sqlite_path: Path = Path("data/ukepack.db")
+    discord_bot_token: str | None = None
+    discord_bot_guild_id: int | None = None
 
     model_config = SettingsConfigDict(
         env_file=".env",

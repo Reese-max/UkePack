@@ -23,6 +23,9 @@ uv run python -m app.demo \
   --input samples/public_domain/twinkle.musicxml \
   --level 1 \
   --out /tmp/demo.pdf
+
+# 或跑 Discord bot（需設 DISCORD_BOT_TOKEN）
+uv run python -m app.discord_bot
 ```
 
 ## 功能一覽
@@ -38,6 +41,7 @@ uv run python -m app.demo \
 | **PDF 輸出** | 4 頁 A4：練習總覽、刷法說明、段落地圖、老師備註；含授權聲明 |
 | **慢速練習音檔** | 產 50 BPM / 70% / 100% 三種 MIDI+MP3 variant，含 1 小節 count-in |
 | **老師審稿模式** | 修改和弦 / 刷法 / 練習說明；比較 / 復原；儲存並套用模板 |
+| **Discord bot** | `/ukepack` 上傳 MusicXML，直接回傳 PDF 練習包 |
 | **Web UI** | HTMX 表單，兒童友善大字體（18px / 52px 按鈕） |
 | **REST API** | FastAPI，自動生成 `/docs` Swagger UI |
 
@@ -84,6 +88,8 @@ uv run pytest -q
 **ffmpeg**（practice audio MP3 轉檔）：`brew install ffmpeg` / `apt install ffmpeg` / [下載 Windows 版](https://ffmpeg.org/download.html)。
 若 ffmpeg 不在 PATH，`.mid` 仍可產出，`.mp3` 會跳過而不報錯。
 
+**Discord bot**：在 `.env` 設 `DISCORD_BOT_TOKEN`；可選 `DISCORD_BOT_GUILD_ID` 做 guild-scoped slash-command sync。啟動後用 `/ukepack score_file:<attachment> source_type:public_domain confirm_license:true level:1` 產 PDF。
+
 ## 目前狀態
 
 - [x] PRD v1.0 Draft
@@ -93,7 +99,7 @@ uv run pytest -q
 - [x] Phase 2 P2-02：慢速練習音檔（50BPM / 70% / 100%，MIDI + MP3）
 - [x] Phase 2 P2-03：老師審稿模式（編輯 / 比較 / 復原 / 模板）
 - [x] Phase 2 P2-04：私人分享連結（短碼 + 過期）
-- [ ] Phase 2 P2-05：Discord bot 初版
+- [x] Phase 2 P2-05：Discord bot 初版
 - [ ] Phase 2 P2-06：可彈性分數視覺化
 - [ ] Phase 3：Public v1.0（Klangio API + 老師工作區 + 訂閱）
 

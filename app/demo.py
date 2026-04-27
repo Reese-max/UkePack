@@ -7,6 +7,8 @@ import sys
 import time
 from pathlib import Path
 
+from app.core.practice_pack import SUPPORTED_SOURCE_TYPES, build_pack_request
+
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -25,14 +27,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--source-type",
         default="public_domain",
-        choices=[
-            "self_created",
-            "suno_free",
-            "suno_paid",
-            "public_domain",
-            "licensed",
-            "private_research",
-        ],
+        choices=list(SUPPORTED_SOURCE_TYPES),
         help="Source type for PRD §15.2 footer label; default public_domain",
     )
     return parser
@@ -40,28 +35,17 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def run(input_path: Path, level: int, out_path: Path, source_type: str) -> float:
     """Run the full pipeline and return elapsed seconds."""
-    from app.arrangement.key_advisor import suggest_key
-    from app.arrangement.level_classifier import classify
-    from app.arrangement.strum_pattern import suggest_for_level
     from app.core.musicxml import parse
-    from app.models.pack_request import PackRequest
     from app.render.pdf import render_pdf
 
     t0 = time.perf_counter()
 
     score = parse(input_path)
-    key_rec = suggest_key(score)
-    playability = classify(score)
-    strum_patterns = suggest_for_level(score, level)
-
-    request = PackRequest(
+    request = build_pack_request(
         title=score.title,
         source_type=source_type,
-        level=level,
         score=score,
-        key_recommendation=key_rec,
-        strum_patterns=strum_patterns,
-        playability=playability,
+        level=level,
     )
     pdf_bytes = render_pdf(request)
 

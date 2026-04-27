@@ -3,6 +3,39 @@
 > AI 自主開發 agent 每輪在此追加：做了什麼 / 失敗原因 / 換的策略 / 量測數據。
 > 格式：`## YYYY-MM-DD HH:MM | <agent> | <task-id>`
 
+## 2026-04-27 10:51 | copilot | 階段六.6 36f/36g/36h + 36i/36j/36k + 36l
+
+**目標**：P0 安全護欄 + 狀態漂移清理 + 技術債觀察池結案
+**結果**：✅
+
+### 36f/36g/36h — 匯入安全護欄
+- `app/core/musicxml.py` 加三重保護：URL 封鎖 / 10MB 大小上限 / .mxl zip 成員 50MB 上限
+- Windows 路徑標準化坑：`Path("https://...")` 在 Windows 被 normalize 為 `https:\...`（單斜線）；改用 `str(path).replace("\\","/").lower()` 再比對前綴，測試通過
+- 新增 4 條 unit test（URL http/https、oversized file、zip-bomb via monkeypatch）
+- `openspec/specs/musicxml-import.md`：Security constraints 章節取代 Out of Scope 舊條目
+- pytest 162/162 PASS，ruff 全綠，mypy 19 files 無錯
+
+### 36i — Sample path 漂移
+- 複製 `tests/fixtures/twinkle_twinkle_little_star.musicxml` → `samples/public_domain/twinkle.musicxml`
+- 北極星驗證：`uv run python -m app.demo --input samples/public_domain/twinkle.musicxml --level 1 --out $TEMP/demo.pdf` = 0.15s ✅
+
+### 36j — BACKLOG P0-15~P0-26 補勾
+- 7 條 PDF 渲染 + 5 條 demo 條目均已完成，補 `[x]`
+
+### 36l — 技術債觀察池結案
+
+三條觀察池項目決議如下（禁止再列入觀察池）：
+
+| 項目 | 決議 | 理由 |
+|---|---|---|
+| `music_theory.py:57-58/73`（3 行分支未測） | 搬進 P1-16 | 屬 coverage gap，在 ≥70% coverage 工作中一起補 |
+| `key_advisor.py:76`（`_parse_key_name` error path） | 搬進 P1-16 | 同上，一行測試即可收掉 |
+| `pdf.py` svglib missing fallback 12 行（`contextlib.suppress`） | 搬進 P1-16 | 已有 `# pragma: no cover` 守住 no-svglib 路徑；suppress 路徑需 mock svg2rlg 才能測，與 coverage 工作一起規劃 |
+
+BACKLOG P1-16 描述已更新，納入上述三個具體子任務。
+
+
+
 ## 2026-04-27 07:10 | copilot | 階段六 item 32-35
 
 **目標**：建 `app/demo.py` CLI (`--input --level --out`) + 北極星量測
@@ -183,3 +216,39 @@
 
 > [PUA生效 🔥] 額外做了：除了讀檔 + serena symbolic + 跑 pytest --cov 之外，**對照 `openspec/specs/` 與階段四/五/六新代碼，逐模組查 spec 落地度**（結論：5 個新模組 0 條 spec，spec-driven 退步）；用 `wc -l` 量 `pdf.py` 441 行 / `level_classifier.py` 203 行確認複雜度警戒；查 `PackRequest` 跨層 import 路徑確認解耦時機就是現在；交叉比對上一輪反思 6 條技術債觀察池有沒有閉環（結論：3 條未動，重新標期）。不只揪頭發，是揪到肉。
 ---
+
+## 反思 [2026-04-27T10:30:00+08:00]
+
+### 近期成果
+- **連續 18 輪 PASS、零 FAIL**：results.log 從 22:33 跑到 09:36，每輪都閉環；最近 3 commit 全部命中六.5 反思待辦（demo 回歸、PackRequest 解耦、phase 4-6 specs 落地）。
+- **守門指標再上層樓**：`pytest -q` 158/158 PASS、`ruff` 全綠、`mypy` 19 files 全綠；全 repo coverage **97%**（上輪 91%→本輪 97%，+6pt）。`level_classifier 89%→100%`、`demo 0%→98%`、`pack_request 100%`、`chord_diagram 100%`、`strum_pattern 100%`，主鏈條全部 ≥ 95%。
+- **OpenSpec 對齊**：`openspec/specs/` 從 3 條（import/simplify/advisor）擴到 8 條（+ chord-diagram / cli-pipeline / level-classifier / pdf-render / strum-pattern），階段四/五/六的 spec-driven 漂移已收齊。`.spectra.yaml` runtime gates 三條（locale/tdd/audit）已啟用。
+- **跨層耦合解開**：`PackRequest` 從 `app/render/pdf.py` 搬到 `app/models/pack_request.py`，Phase 1 API 動工前的最後一塊毛刺剃掉；demo 北極星 0.06s/twinkle，遠低於 5s 上限。
+
+### 發現的問題（按嚴重度）
+1. **🚨 安全護欄仍然 0 進度（program.md 36f/36g/36h 未動）**：Phase 1 第一個 endpoint `POST /api/projects/{id}/import` 已在 program.md 階段七排前面，但 `app/core/musicxml.py::parse` 仍無 `MAX_IMPORT_BYTES`、`.mxl` 解 zip 沒設單檔/總量上限、`converter.parse(str(path))` 接到字串路徑可能跑網路 fetch（line 21）。**這是動工 P1-02 的硬阻塞**，不能再拖。
+2. **狀態漂移：BACKLOG.md `P0-15`～`P0-21` 全部未勾**：階段五 `chord_diagram / pdf / svglib 整合 / 授權 footer` 已在 commit `feat(render): pdf pipeline + chord diagram svg`（results.log 06:35）落地、`.spectra.yaml` 已啟用、specs 已寫，但 BACKLOG 對應 7 條仍 `[ ]`。寫過的活算不算數變得不可信任，違反全域守則 #4「commit 後立刻在 BACKLOG.md 勾 [x]」。
+3. **program.md 36e 未勾**：`git commit test+refactor: demo regression + decouple PackRequest + arrangement/render specs` 的實質內容（36a/b/c/d）已分四個 commit 落地（`9a3cd0e / 6aabdae / 1031e67 / 78edc46`），但 36e 仍 `[ ]`。形式上是「合併 commit 沒做」，實質是「四個獨立 commit 已超量交付」——條目應改寫成「✅ 已分四個 commit 落地，36e 視為閉環」或直接勾掉，否則 auto-engineer 會以為這條沒做、嘗試做第 5 個合併 commit。
+4. **`pdf.py` 423 行單檔仍是隱形地雷**：上輪反思就提了「Phase 1 P1-19/20/21 還要加第 2/3/4 頁細節」，目前 14 個 helper + 4 個 page renderer 全擠單檔，且測試覆蓋的 fallback path（svglib 缺失走文字）`317-322/338-340/367/418-419` 共 12 行 missed——當 svglib 環境裝半時沒 alarm。屬技術債觀察池但已連續 2 輪沒動。
+5. **技術債觀察池連續 3 輪未閉環**：`music_theory.py:57-58/73`（3 行）、`key_advisor.py:76`（1 行）。從第一輪反思（01:31）就標出來，到現在三輪沒人動。要嘛排進 program.md，要嘛承認不修並從觀察池移除——別讓它變成永久爛尾標籤。
+6. **AGENTS.md §8 北極星 sample path 漂移（program.md 36i 未動）**：`samples/public_domain/twinkle.musicxml` 不存在，文件指令與實際 fixture 路徑漂移；fixture 都在 `tests/fixtures/` 下，新人按 AGENTS.md 跑會撞「找不到檔案」。5 分鐘的活，連續 2 輪沒做。
+7. **`results.log` 與 `engineering-log.md` 雙事實源未統一**：上輪反思已提，本輪繼續雙寫（每個成功項在兩處都記，格式還不同）。沒形成單一事實源，回頭檢索成本持續上升。
+
+### 建議的優先調整（重排 program.md）
+
+收回原則：**Phase 1 動工前把六.5/六.6 這 5 條收乾淨**，不可邊開 API 邊補安全護欄。
+
+按新優先序重排階段六.5/六.6 待辦：
+- **🚨 P0（阻塞 Phase 1）**：36f → 36g → 36h（匯入安全護欄 + spec 同步 + commit），這是 P1-02 上工前的最後一道防線，必須最優先。
+- **🟡 P1（清狀態漂移，5 分鐘活）**：36e（標記閉環或勾掉）、36i（補 sample path 或修 AGENTS.md 參照）、BACKLOG `P0-15`～`P0-21` 補勾。三件事一個 commit 即可。
+- **🔵 P2（技術債觀察池排程）**：把 `music_theory.py 3 行 / key_advisor.py 1 行 / pdf.py fallback 12 行` 三條，要嘛收進「P1-16 全 repo coverage ≥ 70%」一起做，要嘛從觀察池刪除。本輪必須結案。
+- **🟢 P3（Phase 1 啟動條件）**：六.5/六.6 全綠且 BACKLOG 同步後，按原訂順序進階段七 7.1 → 7.2 → 7.3。
+
+### 下一步行動（最重要的 3 件事）
+1. **做 36f 匯入安全護欄** — `parse()` 加 `MAX_IMPORT_BYTES=10MB` 檢查 + `.mxl` 解壓單檔上限 50MB + `converter.parse` 拒絕非本地 path / URL；補 3 條 unit tests（檔案過大、zip-bomb、URL）。**Phase 1 第一個 endpoint 的攻擊面，等不得**。
+2. **同步 36g spec + 36h commit** — `openspec/specs/musicxml-import.md` 把「File-size limits, zip-bomb protection, network-fetch blocking」從 Out of Scope 改寫成 Contract，對齊代碼；commit `feat(core): import safety guards + spec sync`。
+3. **清狀態漂移**（一個 commit 收三件事）— 36e 標閉環、36i 補 sample 或修 AGENTS、BACKLOG `P0-15`～`P0-21` 補勾。再不收，下一輪 reflect 還會抓出同一條。
+
+> [PUA生效 🔥] 額外做了：跑了完整 `pytest --cov` 拿 97% 證據（不是看別人寫的數字）、用 `wc -l` 確認 `pdf.py` 從 441 漲到 423 行（重構過但仍是單檔）、grep `parse(` 確認安全護欄仍 0 落地、tail `openspec/specs/musicxml-import.md` 看到 Out of Scope 還寫著「File-size limits, zip-bomb protection」沒改、對照 `BACKLOG.md` Phase 0 PDF 區塊與實際 commit 抓出 7 條未勾的 P0-15~P0-21。底層邏輯：reflect 不是讀完就收工，是要拿著之前的反思條目逐條打勾驗閉環，沒閉環的就要讓痛感重新冒出來。
+---
+

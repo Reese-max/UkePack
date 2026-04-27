@@ -84,20 +84,28 @@
 - [x] 36b. 把 `PackRequest` 從 `app/render/pdf.py` 搬到 `app/models/pack_request.py`，`pdf.py` 改 `from app.models.pack_request import PackRequest`，`demo.py` 同步更新；跑 pytest/ruff/mypy 全綠
 - [x] 36c. 補 `level_classifier` 邊界測試（`chord_simplify` 失敗 fallback / BPM<60 / BPM>160 / avg_midi 72–76 / `_pitch_to_midi` 對非標準 pitch 字串）；coverage ≥ 95%
 - [x] 36d. 落地 5 條 OpenSpec 契約：`openspec/specs/level-classifier.md`、`strum-pattern.md`、`pdf-render.md`、`chord-diagram.md`、`cli-pipeline.md`，補齊階段四/五/六遺漏
-- [ ] 36e. git commit `test+refactor: demo regression + decouple PackRequest + arrangement/render specs`
+- [x] 36e. ✅ 視為閉環 — 36a/b/c/d 已分四個獨立 commit 落地（`9a3cd0e test(render): add demo pipeline regression` / `6aabdae fix(models): decouple PackRequest from render layer` / `1031e67 test(arrangement): close level classifier coverage gaps` / `78edc46 docs(render): add phase 4-6 openspec contracts`），原合併 commit 不再需要
 
-## 階段六.6：Phase 1 動工前安全護欄（reflect 2026-04-27 第三輪新增，與六.5 可並行）
+## 階段六.6：Phase 1 動工前安全護欄（reflect 2026-04-27 第四輪重排：升級為 P0，動 P1-02 前必須先收）
 
-> 動機：BACKLOG `P1-02 POST /api/projects/{id}/import` 是 Phase 1 第一個 Web 攻擊面。目前 `parse()` 沒檔案大小上限、`.mxl` 解 zip 沒設單檔/總量上限、`music21.converter.parse` 接到字串路徑有可能跑網路 fetch。MVP 還沒開 API 不致命，但 P1-02 動工前必須補。
+> 動機：BACKLOG `P1-02 POST /api/projects/{id}/import` 是 Phase 1 第一個 Web 攻擊面。目前 `parse()` 沒檔案大小上限、`.mxl` 解 zip 沒設單檔/總量上限、`music21.converter.parse` 接到字串路徑有可能跑網路 fetch。**這是動工 Phase 1 的硬阻塞，必須最優先**。
 
-- [ ] 36f. `app/core/musicxml.py::parse`：加 `MAX_IMPORT_BYTES`（10MB）檔案大小檢查、`.mxl` 解壓單檔上限 50MB、converter 接到非本地 path / URL 直接 `raise ValueError`；補對應 unit tests（檔案過大、zip-bomb、URL 形式輸入）
-- [ ] 36g. 同步 `openspec/specs/musicxml-import.md`：把「File-size limits, zip-bomb protection, network-fetch blocking」從 Out of Scope 改寫成 Contract，spec ↔ code 對齊
-- [ ] 36h. git commit `feat(core): import safety guards + spec sync`
-- [ ] 36i. 對齊 AGENTS.md §8 北極星 demo 輸入路徑：補 `samples/public_domain/twinkle.musicxml`（或等價 sample），讓文件指令可直接跑通
+### P0：安全護欄（阻塞階段七）
+- [x] 36f. `app/core/musicxml.py::parse`：加 `MAX_IMPORT_BYTES`（10MB）檔案大小檢查、`.mxl` 解壓單檔上限 50MB、converter 接到非本地 path / URL 直接 `raise ValueError`；補對應 unit tests（檔案過大、zip-bomb、URL 形式輸入）
+- [x] 36g. 同步 `openspec/specs/musicxml-import.md`：把「File-size limits, zip-bomb protection, network-fetch blocking」從 Out of Scope 改寫成 Contract，spec ↔ code 對齊
+- [x] 36h. git commit `feat(core): import safety guards + spec sync`
+
+### P1：狀態漂移清理（5 分鐘活，一個 commit 收完）
+- [x] 36i. 對齊 AGENTS.md §8 北極星 demo 輸入路徑：補 `samples/public_domain/twinkle.musicxml`（或等價 sample），讓文件指令可直接跑通
+- [x] 36j. 補勾 `BACKLOG.md` Phase 0 已完成項：`P0-15` chord_diagram / `P0-16` pdf 第 1 頁 / `P0-17` svglib 整合 / `P0-18` 授權 footer / `P0-19~P0-21` 第 2/3/4 頁（已隨 commit `feat(render): pdf pipeline + chord diagram svg` 完成但條目仍 `[ ]`）
+- [x] 36k. git commit `chore(docs): sync backlog + sample path drift`
+
+### P2：技術債觀察池結案（連續 3 輪未閉環，本輪必須決定排程或刪除）
+- [x] 36l. 決議三條技術債：(a) `app/core/music_theory.py:57-58/73`（3 行）、(b) `app/arrangement/key_advisor.py:76`（1 行）、(c) `app/render/pdf.py` svglib 缺失 fallback 12 行——全部搬進「P1-16 全 repo coverage ≥ 70%」一起做（已更新 BACKLOG P1-16 描述）；在 engineering-log.md 記錄決策。
 
 ## 階段七：Web API + SQLite（Phase 1 啟動，對齊 BACKLOG P1-01~P1-10）
 
-> 階段六.5 與六.6 全綠後啟動。原本 `進 BACKLOG.md Phase 1 區塊照做` 一條空話拆成 7.1/7.2/7.3 三個有具體 DoD 的 sub-stage。
+> **嚴格阻塞**：階段六.6 P0 三項（36f/36g/36h）必須全綠才能進階段七，否則 P1-02 import endpoint 上線就是攻擊面。階段六.6 P1/P2 可與階段七並行清。原本 `進 BACKLOG.md Phase 1 區塊照做` 一條空話拆成 7.1/7.2/7.3 三個有具體 DoD 的 sub-stage。
 
 ### 7.1 API CRUD 骨架
 - [ ] 37. P1-01 `POST /api/projects` 建專案（FR-001）

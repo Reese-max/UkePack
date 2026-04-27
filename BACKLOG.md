@@ -16,24 +16,24 @@
 ### MusicXML 解析
 
 ### 烏克麗麗化引擎（核心）
-- [ ] P0-13 `app/arrangement/level_classifier.py` — 難度分級（PRD §10.4 評分公式）
-- [ ] P0-14 `app/arrangement/strum_pattern.py` — 5 種刷法（PRD §9.10 表）
+- [x] P0-13 `app/arrangement/level_classifier.py` — 難度分級（PRD §10.4 評分公式）
+- [x] P0-14 `app/arrangement/strum_pattern.py` — 5 種刷法（PRD §9.10 表）
 
 ### PDF 渲染
-- [ ] P0-15 `app/render/chord_diagram.py` — GCEA 和弦圖 SVG generator
-- [ ] P0-16 `app/render/pdf.py` — A4 PDF 第 1 頁練習總覽（reportlab）
-- [ ] P0-17 PDF 嵌入和弦圖 SVG（svglib 轉 reportlab Drawing）
-- [ ] P0-18 PDF 加授權聲明區塊（依 source_type 切版，PRD §15.2）
-- [ ] P0-19 PDF 第 2 頁刷法箭頭 + 換和弦練習
-- [ ] P0-20 PDF 第 3 頁段落和弦 + 副歌 TAB 區
-- [ ] P0-21 PDF 第 4 頁老師備註模板
+- [x] P0-15 `app/render/chord_diagram.py` — GCEA 和弦圖 SVG generator
+- [x] P0-16 `app/render/pdf.py` — A4 PDF 第 1 頁練習總覽（reportlab）
+- [x] P0-17 PDF 嵌入和弦圖 SVG（svglib 轉 reportlab Drawing）
+- [x] P0-18 PDF 加授權聲明區塊（依 source_type 切版，PRD §15.2）
+- [x] P0-19 PDF 第 2 頁刷法箭頭 + 換和弦練習
+- [x] P0-20 PDF 第 3 頁段落和弦 + 副歌 TAB 區
+- [x] P0-21 PDF 第 4 頁老師備註模板
 
 ### 端到端 demo
-- [ ] P0-22 `app/demo.py` — CLI 入口：`uv run python -m app.demo --input X.musicxml --level 1 --out Y.pdf`
-- [ ] P0-23 跑通小星星 → C 大調 Level 1 PDF，PDF 可開
-- [ ] P0-24 跑通生日歌 → 同上
-- [ ] P0-25 跑通 Jingle Bells → 同上
-- [ ] P0-26 量測北極星：「匯入到 PDF」< 5 秒（單機）
+- [x] P0-22 `app/demo.py` — CLI 入口：`uv run python -m app.demo --input X.musicxml --level 1 --out Y.pdf`
+- [x] P0-23 跑通小星星 → C 大調 Level 1 PDF，PDF 可開
+- [x] P0-24 跑通生日歌 → 同上
+- [x] P0-25 跑通 Jingle Bells → 同上
+- [x] P0-26 量測北極星：「匯入到 PDF」< 5 秒（單機）
 
 ---
 
@@ -59,7 +59,7 @@
 - [ ] P1-15 兒童版面樣式（大字體、大和弦圖）
 
 ### 測試門檻
-- [ ] P1-16 全 repo coverage ≥ 70%
+- [ ] P1-16 全 repo coverage ≥ 70%（含：music_theory.py lines 57-58/73 分支、key_advisor.py `_parse_key_name` error path、pdf.py svglib suppress path via mock）
 - [ ] P1-17 30 首 fixture 端到端產 PDF 成功率 ≥ 95%
 - [ ] P1-18 找 1 位老師試用 + 寫 `feedback.md`
 

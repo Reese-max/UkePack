@@ -202,6 +202,15 @@
 
 - [x] 37d. 動 P2-02 前先寫 `openspec/changes/2026-04-27-slow-practice-mp3/proposal.md`（problem / proposed change / impact / out of scope），accepted 後才開始實作；spec 已補，後續照 change → accepted → code 走
 
+## 階段十五.5：P2-02 慢速練習音檔落地（依 37d proposal 實作）
+
+> 動機：proposal 已立，但 repo 只有 MIDI upload，沒有 count-in、沒有 slow variants、沒有 MP3、沒有 artifact metadata，analysis/preview 也無法下載。這輪一次把 Beta `FR-011` 收成可用功能，避免提案又漂成紙上談兵。
+
+- [x] 37f. 建 `app/core/practice_audio.py` + `app/models/practice_audio.py`：從 `Project.midi_path` 產 3 個 deterministic variant（`50bpm` / `70percent` / `fullspeed`），每個先寫 `.mid`、加 1 小節 count-in click，再用本地 `ffmpeg` 轉 `.mp3`；artifact metadata 存 `data/projects/{id}/practice_audio/manifest.json`
+- [x] 37g. 串 API/UI/spec：加 `POST/GET /api/projects/{id}/practice-audio` 與 `GET /api/projects/{id}/export.practice-audio/{variant}.{format}`，新增 `/projects/{id}/generate-practice-audio` page action，`analysis.html` / `preview.html` 顯示下載按鈕；補 `openspec/specs/practice-audio.md`，同步更新 `projects-api.md` / `pages-routes.md`
+- [x] 37h. 補 `tests/test_practice_audio.py` + API/page regressions，確認 `pytest -q`、`ruff check .`、`mypy .`、以及 `python -m app.demo --input samples/public_domain/twinkle.musicxml --level 1 --out ...` 全綠
+- [x] 37i. git commit `feat(core): add practice audio exports`
+
 ## 階段十六：BACKLOG 衛生（reflect 第六輪新增，5 分鐘活）
 
 > 動機：`BACKLOG.md` Phase 0 兩個 H3 章節（基礎設施 / MusicXML 解析）只剩標題沒項目，新人讀會困惑；`P1-11` 編號缺失（10 → 12 跳號）。資訊架構失序的小事，但留著就會被下一輪反思繼續抓。

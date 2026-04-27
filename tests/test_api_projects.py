@@ -16,6 +16,7 @@ from app.api.projects._shared import load_score
 from app.config import get_settings
 from app.core.musicxml import MAX_IMPORT_BYTES
 from app.models.project import Project
+from tests.helpers import build_test_midi_bytes
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
 TWINKLE = FIXTURE_DIR / "twinkle_twinkle_little_star.musicxml"
@@ -157,17 +158,10 @@ def test_import_musicxml_too_large_returns_413(db_client: TestClient) -> None:
 
 
 def test_import_midi(db_client: TestClient) -> None:
-    import mido
-
     pid = _create(db_client)
-    mid = mido.MidiFile()
-    mid.tracks.append(mido.MidiTrack())
-    buf = io.BytesIO()
-    mid.save(file=buf)
-    buf.seek(0)
     resp = db_client.post(
         f"/api/projects/{pid}/midi",
-        files={"file": ("song.mid", buf, "audio/midi")},
+        files={"file": ("song.mid", io.BytesIO(build_test_midi_bytes()), "audio/midi")},
     )
     assert resp.status_code == 200
     assert "midi_path" in resp.json()
@@ -190,6 +184,58 @@ def test_import_midi_too_large_returns_413(db_client: TestClient) -> None:
         files={"file": ("song.mid", payload, "audio/midi")},
     )
     assert resp.status_code == 413
+
+
+def test_practice_audio_generation_requires_license(db_client: TestClient) -> None:
+    pid = _create(db_client)
+    db_client.post(
+        f"/api/projects/{pid}/midi",
+        files={"file": ("song.mid", io.BytesIO(build_test_midi_bytes()), "audio/midi")},
+    )
+
+    resp = db_client.post(f"/api/projects/{pid}/practice-audio")
+
+    assert resp.status_code == 403
+
+
+def test_practice_audio_generation_and_downloads(db_client: TestClient) -> None:
+    pid = _create(db_client)
+    db_client.post(
+        f"/api/projects/{pid}/midi",
+        files={"file": ("song.mid", io.BytesIO(build_test_midi_bytes()), "audio/midi")},
+    )
+    db_client.post(f"/api/projects/{pid}/license", json={"confirmed": True})
+
+    create_resp = db_client.post(f"/api/projects/{pid}/practice-audio")
+
+    assert create_resp.status_code == 200, create_resp.text
+    payload = create_resp.json()
+    assert [item["variant"] for item in payload["variants"]] == [
+        "50bpm",
+        "70percent",
+        "fullspeed",
+    ]
+    manifest_resp = db_client.get(f"/api/projects/{pid}/practice-audio")
+    assert manifest_resp.status_code == 200
+
+    mp3_resp = db_client.get(f"/api/projects/{pid}/export.practice-audio/50bpm.mp3")
+    assert mp3_resp.status_code == 200
+    assert mp3_resp.headers["content-type"].startswith("audio/mpeg")
+    assert len(mp3_resp.content) > 0
+
+    midi_resp = db_client.get(f"/api/projects/{pid}/export.practice-audio/fullspeed.mid")
+    assert midi_resp.status_code == 200
+    assert midi_resp.headers["content-type"].startswith("audio/midi")
+    assert midi_resp.content[:4] == b"MThd"
+
+
+def test_practice_audio_generation_requires_uploaded_midi(db_client: TestClient) -> None:
+    pid = _create(db_client)
+    db_client.post(f"/api/projects/{pid}/license", json={"confirmed": True})
+
+    resp = db_client.post(f"/api/projects/{pid}/practice-audio")
+
+    assert resp.status_code == 422
 
 
 # ── manual chords ──────────────────────────────────────────────────────────

@@ -1,14 +1,14 @@
 # Spec: Projects REST API
 
 **Status**: Accepted  
-**Scope**: `app/api/projects.py`  
-**Implements**: FR-001 – FR-015 (BACKLOG P1-01 – P1-10)
+**Scope**: `app/api/projects/*`  
+**Implements**: FR-001 – FR-015 plus Beta practice-audio export (BACKLOG P1-01 – P1-10, P2-02)
 
 ---
 
 ## 1. Overview
 
-Nine REST endpoints that expose the full UkePack pipeline over HTTP. All endpoints are prefixed `/api/projects` and tagged `projects`.
+Twelve REST endpoints expose the UkePack pipeline over HTTP. All endpoints are prefixed `/api/projects` and tagged `projects`.
 
 ---
 
@@ -151,7 +151,59 @@ Returns original uploaded MusicXML from disk.
 
 ---
 
-### 2.9 POST `/api/projects/{id}/license` — Confirm license gate (FR-015)
+### 2.9 POST `/api/projects/{id}/practice-audio` — Generate practice audio
+
+Requires `license_confirmed = true` and `midi_path` to exist.  
+Generates deterministic `50bpm`, `70percent`, and `fullspeed` practice variants,
+each with matching `.mid` and `.mp3` files plus a persisted `manifest.json`.
+
+**Response** `200 OK`:
+
+```json
+{
+  "source_midi_path": "projects/1/original.mid",
+  "generated_at": "2026-04-27T19:00:00Z",
+  "variants": [
+    {
+      "variant": "50bpm",
+      "label": "50 BPM",
+      "bpm": 50,
+      "speed_ratio": 0.5,
+      "count_in_bars": 1,
+      "click_enabled": true,
+      "midi_path": "projects/1/practice_audio/song_practice_50bpm.mid",
+      "mp3_path": "projects/1/practice_audio/song_practice_50bpm.mp3"
+    }
+  ]
+}
+```
+
+**Error codes**:
+- `403` — license not confirmed
+- `422` — MIDI missing
+- `503` — MP3 rendering failed / local transcoder unavailable
+
+---
+
+### 2.10 GET `/api/projects/{id}/practice-audio` — Read practice-audio manifest
+
+Requires `license_confirmed = true`.  
+Returns the persisted manifest without regenerating files.
+
+---
+
+### 2.11 GET `/api/projects/{id}/export.practice-audio/{variant}.{format}` — Download practice audio
+
+Requires `license_confirmed = true`.
+
+**Supported variants**: `50bpm`, `70percent`, `fullspeed`  
+**Supported formats**: `.mid`, `.mp3`
+
+Returns `404` when the manifest or requested artifact is missing.
+
+---
+
+### 2.12 POST `/api/projects/{id}/license` — Confirm license gate (FR-015)
 
 **Request body**: `{ "confirmed": true }`  
 → `400` if `confirmed` is `false`.
@@ -174,7 +226,8 @@ Sets `license_confirmed = true` on the project.
 | `403` | License not confirmed |
 | `404` | Project not found |
 | `413` | File too large (> 10 MB) |
-| `422` | No score data / parse failure |
+| `422` | No score data / parse failure / missing MIDI |
+| `503` | Practice-audio rendering dependency failed |
 
 ---
 
@@ -182,12 +235,15 @@ Sets `license_confirmed = true` on the project.
 
 All projects stored in SQLite via SQLModel (`Project` table).  
 Uploaded files written to `DATA_DIR/projects/{id}/original{ext}`.  
-`score_json` holds a serialised `Score` pydantic model.
+`score_json` holds a serialised `Score` pydantic model.  
+Generated practice-audio assets and `manifest.json` are written to
+`DATA_DIR/projects/{id}/practice_audio/`.
 
 ---
 
 ## 5. Out of Scope (Phase 2+)
 
 - Full MIDI parsing and chord extraction
+- Alternate soundfonts or browser-streamed audio previews
 - Collaborative editing / multi-user access
 - Expiring share links

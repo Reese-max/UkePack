@@ -40,6 +40,42 @@
     </div>
     {% endif %}
 
+    {% if project.midi_path %}
+    <div class="card">
+        <p class="section-title">🎧 練習音檔</p>
+        <p style="margin:0 0 0.75rem; color:var(--muted); font-size:0.95rem">
+            產生 50 BPM / 70% / 100% 三種速度，含 1 小節倒數 click track。
+        </p>
+        {% if audio_error %}
+        <div class="alert alert-danger" role="alert" style="margin-bottom:1rem">
+            練習音檔產生失敗，請確認已上傳有效 MIDI 並完成授權確認。
+        </div>
+        {% endif %}
+        {% if practice_audio %}
+        <div class="data-grid" aria-label="練習音檔列表">
+            {% for asset in practice_audio.variants %}
+            <div class="data-cell">
+                <small>{{ asset.label }}</small>
+                <strong>{{ asset.bpm }} BPM</strong>
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.75rem">
+                    <a class="btn btn-primary btn-sm" href="/api/projects/{{ project.id }}/export.practice-audio/{{ asset.variant }}.mp3">MP3</a>
+                    <a class="btn btn-ghost btn-sm" href="/api/projects/{{ project.id }}/export.practice-audio/{{ asset.variant }}.mid">MIDI</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% elif project.license_confirmed %}
+        <form method="POST" action="/projects/{{ project.id }}/generate-practice-audio">
+            <button type="submit" class="btn btn-primary">🎧 產生練習音檔</button>
+        </form>
+        {% else %}
+        <div class="alert alert-warning" role="alert">
+            先完成授權確認，才能產生練習音檔。
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
     {% if not analysis %}
     {# ── No score yet ── #}
     <div class="card">

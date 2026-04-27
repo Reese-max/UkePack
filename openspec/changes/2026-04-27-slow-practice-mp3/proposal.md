@@ -1,7 +1,7 @@
 ---
 id: 2026-04-27-slow-practice-mp3
 title: Slow Practice Audio Export
-status: proposed
+status: accepted
 created: 2026-04-27
 description: Define the spec-first Beta contract for exporting local slow-practice MIDI and MP3 assets from uploaded project MIDI.
 ---

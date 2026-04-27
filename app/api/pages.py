@@ -19,6 +19,7 @@ from app.arrangement.strum_pattern import suggest_for_level
 from app.config import get_settings
 from app.core.chord_sheet import parse_chord_sheet
 from app.core.db import get_session
+from app.core.practice_audio import generate_practice_audio, load_practice_audio_manifest
 from app.models.project import Project, ProjectCreate
 from app.models.score import Score
 
@@ -124,6 +125,8 @@ def project_analysis_page(
             "project": project.model_dump(),
             "analysis": analysis,
             "import_error": request.query_params.get("import_error") == "1",
+            "audio_error": request.query_params.get("audio_error") == "1",
+            "practice_audio": _practice_audio_payload(project),
         },
     )
 
@@ -168,6 +171,22 @@ def confirm_license_page(project_id: int, session: SessionDep) -> RedirectRespon
     return RedirectResponse(url=f"/projects/{project_id}", status_code=303)
 
 
+@router.post("/projects/{project_id}/generate-practice-audio")
+def generate_practice_audio_page(project_id: int, session: SessionDep) -> RedirectResponse:
+    """Generate practice audio, then redirect back to analysis page."""
+    project = session.get(Project, project_id)
+    if project is None:
+        raise HTTPException(404, "Project not found")
+    if not project.license_confirmed:
+        return RedirectResponse(url=f"/projects/{project_id}?audio_error=1", status_code=303)
+    try:
+        generate_practice_audio(project)
+    except (ValueError, RuntimeError) as exc:
+        logger.warning("practice audio generation failed: %s", exc, exc_info=True)
+        return RedirectResponse(url=f"/projects/{project_id}?audio_error=1", status_code=303)
+    return RedirectResponse(url=f"/projects/{project_id}", status_code=303)
+
+
 @router.get("/projects/{project_id}/preview", response_class=HTMLResponse)
 def project_preview_page(
     request: Request,
@@ -181,7 +200,10 @@ def project_preview_page(
     return _TEMPLATES.TemplateResponse(
         request=request,
         name="preview.html",
-        context={"project": project.model_dump()},
+        context={
+            "project": project.model_dump(),
+            "practice_audio": _practice_audio_payload(project),
+        },
     )
 
 
@@ -223,3 +245,11 @@ def _build_analysis(project: Project) -> dict[str, Any] | None:
             for p in patterns
         ],
     }
+
+
+def _practice_audio_payload(project: Project) -> dict[str, Any] | None:
+    """Return persisted practice-audio metadata for template rendering."""
+    manifest = load_practice_audio_manifest(project)
+    if manifest is None:
+        return None
+    return manifest.model_dump(mode="json")

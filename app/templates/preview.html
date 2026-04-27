@@ -60,6 +60,25 @@
         </a>
     </div>
 
+    {% if project.midi_path %}
+    <div class="card">
+        <p class="section-title">🎧 練習音檔</p>
+        {% if practice_audio %}
+        <div style="display:flex; gap:0.75rem; flex-wrap:wrap">
+            {% for asset in practice_audio.variants %}
+            <a class="btn btn-ghost btn-sm" href="/api/projects/{{ project.id }}/export.practice-audio/{{ asset.variant }}.mp3">
+                {{ asset.label }} MP3
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <form method="POST" action="/projects/{{ project.id }}/generate-practice-audio">
+            <button type="submit" class="btn btn-primary btn-sm">🎧 產生練習音檔</button>
+        </form>
+        {% endif %}
+    </div>
+    {% endif %}
+
     <iframe
         class="preview-iframe"
         src="/api/projects/{{ project.id }}/export.pdf"

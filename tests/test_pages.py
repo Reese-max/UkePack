@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import io
+import shutil
 from pathlib import Path
 
 from fastapi.testclient import TestClient
 
 from app.api.pages import _score_from_project
+from app.config import get_settings
 from app.core.musicxml import MAX_IMPORT_BYTES
 from app.models.project import Project
+from tests.helpers import build_test_midi_bytes
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
 TWINKLE = FIXTURE_DIR / "twinkle_twinkle_little_star.musicxml"
@@ -191,6 +194,45 @@ def test_analysis_page_shows_download_when_licensed(db_client: TestClient) -> No
     assert "export.pdf" in resp.text
 
 
+def test_analysis_page_shows_practice_audio_actions_with_midi(db_client: TestClient) -> None:
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Audio Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    db_client.post(
+        f"/api/projects/{pid}/midi",
+        files={"file": ("song.mid", io.BytesIO(build_test_midi_bytes()), "audio/midi")},
+    )
+    shutil.rmtree(get_settings().data_dir / "projects" / str(pid) / "practice_audio", ignore_errors=True)
+
+    resp = db_client.get(f"/projects/{pid}")
+
+    assert "練習音檔" in resp.text
+    assert "先完成授權確認" in resp.text
+
+
+def test_analysis_page_shows_practice_audio_downloads_after_generation(
+    db_client: TestClient,
+) -> None:
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Audio Song 2", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    db_client.post(
+        f"/api/projects/{pid}/midi",
+        files={"file": ("song.mid", io.BytesIO(build_test_midi_bytes()), "audio/midi")},
+    )
+    db_client.post(f"/api/projects/{pid}/license", json={"confirmed": True})
+    db_client.post(f"/projects/{pid}/generate-practice-audio", follow_redirects=False)
+
+    resp = db_client.get(f"/projects/{pid}")
+
+    assert "export.practice-audio/50bpm.mp3" in resp.text
+    assert "export.practice-audio/fullspeed.mid" in resp.text
+
+
 # ── GET /projects/{id}/strum-partial ───────────────────────────────────────
 
 
@@ -301,6 +343,24 @@ def test_preview_page_licensed(db_client: TestClient) -> None:
     assert resp.status_code == 200
     assert "iframe" in resp.text
     assert "export.pdf" in resp.text
+
+
+def test_preview_page_shows_practice_audio_action_with_midi(db_client: TestClient) -> None:
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Preview Audio", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    db_client.post(
+        f"/api/projects/{pid}/midi",
+        files={"file": ("song.mid", io.BytesIO(build_test_midi_bytes()), "audio/midi")},
+    )
+    db_client.post(f"/api/projects/{pid}/license", json={"confirmed": True})
+    shutil.rmtree(get_settings().data_dir / "projects" / str(pid) / "practice_audio", ignore_errors=True)
+
+    resp = db_client.get(f"/projects/{pid}/preview")
+
+    assert "產生練習音檔" in resp.text
 
 
 def test_preview_page_private_research_label(db_client: TestClient) -> None:

@@ -75,7 +75,7 @@
 ## Phase 2：Beta（6–10 週）
 
 - [x] P2-01 段落自動辨識（Intro/Verse/Chorus；MusicXML + 手動和弦 + API/UI/PDF 已串接）
-- [ ] P2-02 慢速練習音檔（mido + 50%/70%/100% 速度，輸出 MIDI 再轉 mp3）
+- [x] P2-02 慢速練習音檔（`app/core/practice_audio.py` 產 50 BPM / 70% / 100% 三種 variant，先寫 `.mid` 再 render `.mp3`，含 1 小節倒數 click、manifest persistence、API/UI download actions）
 - [ ] P2-03 老師審稿模式（FR-013）
 - [ ] P2-04 私人分享連結（短碼 + 過期）
 - [ ] P2-05 Discord bot 初版（讀檔 → 回 PDF）

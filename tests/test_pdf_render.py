@@ -11,7 +11,7 @@ from app.arrangement.level_classifier import classify
 from app.arrangement.strum_pattern import suggest_for_level
 from app.core.musicxml import parse
 from app.models.pack_request import PackRequest
-from app.models.score import ChordEvent, Score
+from app.models.score import ChordEvent, Score, ScoreSection
 from app.render import _layout as layout_module
 from app.render.chord_diagram import generate_svg, get_fingering
 from app.render.pages import page3 as page3_module
@@ -159,6 +159,34 @@ class TestRenderPdf:
         canvas.save()
 
         assert buffer.getvalue()[:4] == b"%PDF"
+
+    def test_render_page3_draws_section_summary_when_sections_exist(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        called: list[int] = []
+
+        def _spy(canvas: rl_canvas.Canvas, sections: list[ScoreSection], y_start: float) -> float:
+            called.append(len(sections))
+            return y_start
+
+        monkeypatch.setattr(page3_module, "_section_summary", _spy)
+        buffer = io.BytesIO()
+        canvas = rl_canvas.Canvas(buffer)
+        score = Score(
+            title="Sections",
+            key="C major",
+            measures=4,
+            chords=[ChordEvent(symbol="C", measure=1, beat=1.0)],
+            sections=[
+                ScoreSection(section="verse", start_measure=1, end_measure=2),
+                ScoreSection(section="chorus", start_measure=3, end_measure=4),
+            ],
+        )
+
+        page3_module.render_page3(canvas, PackRequest(title="Sections", score=score))
+        canvas.save()
+
+        assert called == [2]
 
     def test_unique_chords_preserves_raw_symbol_when_simplify_fails(
         self, monkeypatch: pytest.MonkeyPatch

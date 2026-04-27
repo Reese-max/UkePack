@@ -96,6 +96,29 @@
         </div>
     </div>
 
+    {% if analysis.sections %}
+    <div class="card">
+        <p class="section-title">🧭 段落結構</p>
+        <div class="data-grid" aria-label="段落結構">
+            {% for section in analysis.sections %}
+            <div class="data-cell">
+                <small>
+                    {% if section.source == "manual" %}手動{% else %}自動{% endif %}
+                </small>
+                <strong>
+                    {% if section.section == "intro" %}前奏
+                    {% elif section.section == "chorus" %}副歌
+                    {% else %}主歌{% endif %}
+                </strong>
+                <div style="margin-top:0.35rem; color:var(--muted); font-size:0.9rem">
+                    第 {{ section.start_measure }}–{{ section.end_measure }} 小節
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
     {% if analysis.chords %}
     <div class="card">
         <p class="section-title">🎸 和弦清單</p>

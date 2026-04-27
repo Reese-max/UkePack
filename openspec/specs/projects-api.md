@@ -86,13 +86,14 @@ Saves file and records `midi_path`; full MIDI parsing deferred to Phase 2.
 ### 2.4 POST `/api/projects/{id}/chords` — Manual chord input (FR-004)
 
 **Request body**: `{ "text": "C | G | Am | F" }`  
-Pipe-delimited symbols, multi-line, section headers (lines ending `:`) ignored.  
-Builds a minimal `Score` from the parsed symbols.
+Pipe-delimited symbols, multi-line, and optional section headers such as
+`Verse:` / `Chorus:`. Manual headers are normalized to intro / verse / chorus
+and preserved in `Score.sections`.
 
 **Response** `200 OK`:
 
 ```json
-{ "project_id": 1, "chord_count": 4, "measures": 4 }
+{ "project_id": 1, "chord_count": 4, "measures": 4, "section_count": 2 }
 ```
 
 ---
@@ -103,21 +104,13 @@ Requires `score_json` or `chords_text` to be set → `422` otherwise.
 
 **Response** `200 OK`:
 
-```json
-{
-  "key": "C major",
-  "target_key": "C major",
-  "transposition_steps": 0,
-  "bpm": 120,
-  "time_signature": "4/4",
-  "measures": 32,
-  "chord_count": 12,
-  "unique_chords": ["C", "G", "Am", "F"],
-  "playability_score": 72,
-  "recommended_level": 1,
-  "label": "Beginner"
-}
-```
+Response includes:
+
+1. Raw score metadata: `key`, `bpm`, `time_signature`, `measures`
+2. Serialized chord events under `chords`
+3. Serialized section spans under `sections`
+4. Nested `key_recommendation`
+5. Nested `playability` with `score`, `level`, and `label`
 
 ---
 

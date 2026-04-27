@@ -20,6 +20,15 @@ class MelodyNote(BaseModel):
     quarter_length: float
 
 
+class ScoreSection(BaseModel):
+    """A labeled score span used for section-aware practice views."""
+
+    section: str
+    start_measure: int
+    end_measure: int
+    source: str = "detected"
+
+
 class Score(BaseModel):
     """Normalized score payload extracted from MusicXML."""
 
@@ -30,6 +39,7 @@ class Score(BaseModel):
     measures: int
     chords: list[ChordEvent] = Field(default_factory=list)
     melody: list[MelodyNote] = Field(default_factory=list)
+    sections: list[ScoreSection] = Field(default_factory=list)
 
 
 class KeyRecommendation(BaseModel):

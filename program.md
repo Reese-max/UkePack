@@ -169,6 +169,17 @@
 
 ---
 
+## 階段十二：Beta 段落辨識（P2-01）
+
+> 動機：PRD 使用者流程早就寫了「系統分析 Key、BPM、段落、和弦」，但實作只到前 3 項。老師現在看不到 Intro / Verse / Chorus，Page 3 `歌曲練習` 也缺段落地圖。先把 section metadata 接進資料模型、API、UI、PDF，讓下一步 P2-03 老師審稿模式有基礎可站。
+
+- [x] 58. 建 `app/arrangement/section_detector.py`：用 2–8 小節重複和弦 phrase 偵測 `intro / verse / chorus`，無重複時退化為單一 `verse`
+- [x] 59. 建 `app/core/chord_sheet.py`：保留 `Verse:` / `Chorus:` / `前奏:` 等手動段落 header，序列化到 `Score.sections`
+- [x] 60. 串 `Score.sections` 到 `app/core/musicxml.py`、`/api/projects/{id}/analysis`、`analysis.html`、PDF 第 3 頁 `段落地圖`，並補 `openspec/specs/section-detection.md`
+- [x] 61. git commit `feat(arrangement): detect intro verse chorus sections`
+
+---
+
 ## 全域守則（每輪 AI 都要遵守）
 
 1. 動工前先讀 `MISSION.md` + `AGENTS.md`

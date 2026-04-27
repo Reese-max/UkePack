@@ -57,6 +57,13 @@ Renders `analysis.html`.
 Context includes `project` dict, `analysis` dict (or `null`), and `import_error` bool.  
 If `?import_error=1` in query string: template displays a red error banner.  
 `analysis` is `null` when no score data exists (project created without a file).
+When score data exists, the template shows:
+
+1. score metadata
+2. section map (`analysis.sections`) with manual vs detected badges
+3. chord list
+4. strum selector
+5. license gate card
 
 ---
 

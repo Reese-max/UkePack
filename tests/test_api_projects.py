@@ -200,9 +200,10 @@ def test_add_chords(db_client: TestClient) -> None:
     )
     assert resp.status_code == 200
     assert resp.json()["chord_count"] == 8
+    assert resp.json()["section_count"] >= 1
 
 
-def test_add_chords_section_labels_ignored(db_client: TestClient) -> None:
+def test_add_chords_section_labels_preserved(db_client: TestClient) -> None:
     pid = _create(db_client)
     resp = db_client.post(
         f"/api/projects/{pid}/chords",
@@ -210,6 +211,7 @@ def test_add_chords_section_labels_ignored(db_client: TestClient) -> None:
     )
     assert resp.status_code == 200
     assert resp.json()["chord_count"] == 4
+    assert resp.json()["section_count"] == 2
 
 
 # ── analysis ───────────────────────────────────────────────────────────────
@@ -230,6 +232,33 @@ def test_get_analysis_with_chords(db_client: TestClient) -> None:
     assert "key_recommendation" in data
     assert "playability" in data
     assert "chords" in data
+    assert data["sections"]
+
+
+def test_get_analysis_preserves_manual_sections(db_client: TestClient) -> None:
+    pid = _create(db_client)
+    db_client.post(
+        f"/api/projects/{pid}/chords",
+        json={"text": "Verse:\nC | G\nChorus:\nAm | F"},
+    )
+
+    resp = db_client.get(f"/api/projects/{pid}/analysis")
+
+    assert resp.status_code == 200
+    assert resp.json()["sections"] == [
+        {
+            "section": "verse",
+            "start_measure": 1,
+            "end_measure": 2,
+            "source": "manual",
+        },
+        {
+            "section": "chorus",
+            "start_measure": 3,
+            "end_measure": 4,
+            "source": "manual",
+        },
+    ]
 
 
 def test_get_analysis_after_import(db_client: TestClient) -> None:
@@ -242,6 +271,7 @@ def test_get_analysis_after_import(db_client: TestClient) -> None:
     resp = db_client.get(f"/api/projects/{pid}/analysis")
     assert resp.status_code == 200
     assert resp.json()["measures"] > 0
+    assert resp.json()["sections"]
 
 
 # ── arrange ────────────────────────────────────────────────────────────────

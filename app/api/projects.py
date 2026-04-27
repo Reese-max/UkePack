@@ -15,10 +15,11 @@ from app.arrangement.key_advisor import suggest_key
 from app.arrangement.level_classifier import classify
 from app.arrangement.strum_pattern import suggest_for_level
 from app.config import get_settings
+from app.core.chord_sheet import parse_chord_sheet
 from app.core.db import get_session
 from app.models.pack_request import PackRequest
 from app.models.project import Project, ProjectCreate, ProjectRead
-from app.models.score import ChordEvent, Score
+from app.models.score import Score
 from app.render.pdf import render_pdf
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
@@ -64,28 +65,12 @@ def _utc_now() -> datetime:
     return datetime.now(UTC)
 
 
-def _parse_chords_text(text: str, title: str) -> Score:
-    """Build a minimal Score from pipe-delimited chord text (FR-004)."""
-    chords: list[ChordEvent] = []
-    measure = 1
-    for line in text.splitlines():
-        clean = line.strip()
-        if not clean or clean.endswith(":"):
-            continue
-        for token in clean.split("|"):
-            symbol = token.strip()
-            if symbol:
-                chords.append(ChordEvent(symbol=symbol, measure=measure, beat=1.0))
-                measure += 1
-    return Score(title=title, key="C major", measures=max(measure - 1, 0), chords=chords)
-
-
 def _load_score(project: Project) -> Score:
     """Deserialize stored Score, or build from chords_text."""
     if project.score_json is not None:
         return Score.model_validate_json(project.score_json)
     if project.chords_text is not None:
-        return _parse_chords_text(project.chords_text, project.title)
+        return parse_chord_sheet(project.title, project.chords_text)
     raise HTTPException(422, "No score data; import a MusicXML file or add chords first")
 
 
@@ -192,14 +177,19 @@ def add_chords(
 ) -> dict[str, Any]:
     """FR-004: Set manual pipe-delimited chord input."""
     project = _get_or_404(session, project_id)
-    score = _parse_chords_text(body.text, project.title)
+    score = parse_chord_sheet(project.title, body.text)
     project.chords_text = body.text
     project.score_json = score.model_dump_json()
     project.original_key = score.key
     project.updated_at = _utc_now()
     session.add(project)
     session.commit()
-    return {"project_id": project_id, "chord_count": len(score.chords)}
+    return {
+        "project_id": project_id,
+        "chord_count": len(score.chords),
+        "measures": score.measures,
+        "section_count": len(score.sections),
+    }
 
 
 @router.get("/{project_id}/analysis")
@@ -217,6 +207,7 @@ def get_analysis(project_id: int, session: SessionDep) -> dict[str, Any]:
         "time_signature": score.time_signature,
         "measures": score.measures,
         "chords": [c.model_dump() for c in score.chords],
+        "sections": [section.model_dump() for section in score.sections],
         "key_recommendation": key_rec.model_dump(),
         "playability": {
             "score": playability.playability_score,

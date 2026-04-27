@@ -17,9 +17,10 @@ from app.arrangement.key_advisor import suggest_key
 from app.arrangement.level_classifier import classify
 from app.arrangement.strum_pattern import suggest_for_level
 from app.config import get_settings
+from app.core.chord_sheet import parse_chord_sheet
 from app.core.db import get_session
 from app.models.project import Project, ProjectCreate
-from app.models.score import ChordEvent, Score
+from app.models.score import Score
 
 router = APIRouter(tags=["pages"])
 logger = logging.getLogger(__name__)
@@ -187,28 +188,11 @@ def project_preview_page(
 # ── Private helpers ────────────────────────────────────────────────────────
 
 
-def _score_from_project(project: Project) -> Any:
+def _score_from_project(project: Project) -> Score:
     """Return a Score object from stored JSON or chords text."""
     if project.score_json:
         return Score.model_validate_json(project.score_json)
-
-    chords: list[ChordEvent] = []
-    measure = 1
-    for line in (project.chords_text or "").splitlines():
-        clean = line.strip()
-        if not clean or clean.endswith(":"):
-            continue
-        for token in clean.split("|"):
-            sym = token.strip()
-            if sym:
-                chords.append(ChordEvent(symbol=sym, measure=measure, beat=1.0))
-                measure += 1
-    return Score(
-        title=project.title,
-        key="C major",
-        measures=max(measure - 1, 0),
-        chords=chords,
-    )
+    return parse_chord_sheet(project.title, project.chords_text or "")
 
 
 def _build_analysis(project: Project) -> dict[str, Any] | None:
@@ -227,6 +211,7 @@ def _build_analysis(project: Project) -> dict[str, Any] | None:
         "time_signature": score.time_signature,
         "measures": score.measures,
         "chords": [c.model_dump() for c in score.chords[:24]],
+        "sections": [section.model_dump() for section in score.sections],
         "key_recommendation": key_rec.model_dump(),
         "playability": {
             "score": playability.playability_score,

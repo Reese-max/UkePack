@@ -79,10 +79,12 @@ When `source_type == "private_research"`, the footer also draws the warning
 #### Page 3 — 歌曲練習
 
 1. If there are no chord events, show `（無和弦資料）`.
-2. Otherwise group chord symbols by measure number.
-3. Render up to 24 measures in a four-column grid.
-4. Each measure cell shows the measure label and up to four chord symbols joined
-   by ` / `.
+2. If `score.sections` exists, draw a compact `段落地圖` summary above the
+   measure grid with section label, measure span, and manual/detected source.
+3. Otherwise group chord symbols by measure number.
+4. Render up to 24 measures in a four-column grid.
+5. Each measure cell shows the measure label and up to four chord symbols joined
+    by ` / `.
 
 #### Page 4 — 老師 / 家長備註
 

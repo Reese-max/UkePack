@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Any, cast
 
 import pytest
-from music21 import chord, key, metadata, meter, note, stream
+from music21 import chord, harmony, key, metadata, meter, note, stream
 
 from app.core.musicxml import parse
 
@@ -218,6 +218,32 @@ def test_parse_extracts_highest_pitch_from_chord_melody(tmp_path: Path) -> None:
 
     assert [melody_note.pitch for melody_note in score.melody] == ["C4", "C5"]
     assert score.melody[1].quarter_length == pytest.approx(2.0)
+
+
+def test_parse_detects_sections_from_repeated_chords(tmp_path: Path) -> None:
+    chord_section_path = tmp_path / "section_song.musicxml"
+    score_stream = stream.Score()
+    score_stream.metadata = metadata.Metadata(title="Section Song")
+    part = _new_part()
+    repeated = ["C", "G", "Am", "F"]
+    measures = ["Dm", "G", *repeated, "Em", "F", *repeated]
+    for number, chord_name in enumerate(measures, start=1):
+        measure = stream.Measure(number=number)
+        _insert_element(measure, 0, _time_signature("4/4"))
+        _insert_element(measure, 0, harmony.ChordSymbol(chord_name))
+        _insert_element(measure, 0, note.Note("C4", quarterLength=4.0))
+        _append_element(part, measure)
+    _append_element(score_stream, part)
+    _write_score_file(score_stream, "musicxml", chord_section_path)
+
+    score = parse(chord_section_path)
+
+    assert [(section.section, section.start_measure, section.end_measure) for section in score.sections] == [
+        ("intro", 1, 2),
+        ("chorus", 3, 6),
+        ("verse", 7, 8),
+        ("chorus", 9, 12),
+    ]
 
 
 def test_parse_supports_compressed_mxl_scores(tmp_path: Path) -> None:

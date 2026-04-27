@@ -6,6 +6,7 @@ from typing import Any
 
 from music21 import chord, converter, harmony, key, note, tempo
 
+from app.arrangement.section_detector import detect_sections
 from app.models import ChordEvent, MelodyNote, Score
 
 SUPPORTED_EXTENSIONS = {".musicxml", ".mxl", ".xml"}
@@ -31,7 +32,7 @@ def parse(path: Path) -> Score:
 
     parsed_score = converter.parse(str(path))
     melody_part = _get_melody_part(parsed_score)
-    return Score(
+    score = Score(
         title=_extract_title(parsed_score, path),
         key=_extract_key(parsed_score),
         bpm=_extract_bpm(parsed_score),
@@ -40,6 +41,7 @@ def parse(path: Path) -> Score:
         chords=_extract_chords(parsed_score),
         melody=_extract_melody(melody_part),
     )
+    return score.model_copy(update={"sections": detect_sections(score)})
 
 
 def _reject_url_path(path: Path) -> None:

@@ -133,11 +133,16 @@ def test_analysis_page_with_chords(db_client: TestClient) -> None:
         json={"title": "Chord Song", "source_type": "public_domain"},
     )
     pid = create.json()["id"]
-    db_client.post(f"/api/projects/{pid}/chords", json={"text": "C | G | Am | F"})
+    db_client.post(
+        f"/api/projects/{pid}/chords",
+        json={"text": "Verse:\nC | G\nChorus:\nAm | F"},
+    )
 
     resp = db_client.get(f"/projects/{pid}")
     assert resp.status_code == 200
     assert "分析結果" in resp.text
+    assert "段落結構" in resp.text
+    assert "副歌" in resp.text
 
 
 def test_analysis_page_not_found(db_client: TestClient) -> None:

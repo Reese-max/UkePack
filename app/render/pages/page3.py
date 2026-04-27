@@ -6,7 +6,7 @@ from reportlab.lib import colors
 from reportlab.pdfgen import canvas as rl_canvas
 
 from app.models.pack_request import PackRequest
-from app.models.score import ChordEvent
+from app.models.score import ChordEvent, ScoreSection
 from app.render._layout import (
     _CONTENT_W,
     _MARGIN,
@@ -23,6 +23,10 @@ def render_page3(c: rl_canvas.Canvas, req: PackRequest) -> None:
     page_title(c, "歌曲練習", y)
     y -= 44
 
+    if req.score.sections:
+        y = _section_summary(c, req.score.sections, y)
+        y -= 16
+
     if not req.score.chords:
         c.setFont(_ZH, 14)
         c.setFillColor(colors.HexColor("#888888"))
@@ -31,6 +35,26 @@ def render_page3(c: rl_canvas.Canvas, req: PackRequest) -> None:
         _chord_progression(c, req.score.chords, y)
 
     footer(c, req, 3)
+
+
+def _section_summary(
+    c: rl_canvas.Canvas, sections: list[ScoreSection], y_start: float
+) -> float:
+    """Draw a compact detected section map above the measure grid."""
+    labels = {"intro": "前奏", "verse": "主歌", "chorus": "副歌"}
+    c.setFont(_ZH, 12)
+    c.setFillColor(colors.HexColor("#666666"))
+    c.drawString(_MARGIN, y_start, "段落地圖")
+    y = y_start - 18
+    c.setFont(_ZH, 11)
+    for section in sections[:6]:
+        name = labels.get(section.section, "主歌")
+        start = section.start_measure
+        end = section.end_measure
+        source = "手動" if section.source == "manual" else "自動"
+        c.drawString(_MARGIN + 8, y, f"{name}｜第 {start}-{end} 小節｜{source}")
+        y -= 16
+    return y
 
 
 def _chord_progression(

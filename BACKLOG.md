@@ -74,7 +74,7 @@
 
 ## Phase 2：Beta（6–10 週）
 
-- [ ] P2-01 段落自動辨識（Intro/Verse/Chorus）
+- [x] P2-01 段落自動辨識（Intro/Verse/Chorus；MusicXML + 手動和弦 + API/UI/PDF 已串接）
 - [ ] P2-02 慢速練習音檔（mido + 50%/70%/100% 速度，輸出 MIDI 再轉 mp3）
 - [ ] P2-03 老師審稿模式（FR-013）
 - [ ] P2-04 私人分享連結（短碼 + 過期）

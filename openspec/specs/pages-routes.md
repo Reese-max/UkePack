@@ -64,11 +64,13 @@ When score data exists, the template shows:
 1. score metadata
 2. section map (`analysis.sections`) with manual vs detected badges
 3. chord list
-4. strum selector
-5. teacher-review entry point
-6. license gate card
-7. practice-audio actions when a MIDI upload exists
-8. private-share link card (create / rotate / revoke / copy)
+4. playability score card: total score, beginner-facing label, distinct chord count,
+   highest fret, and factor bars
+5. strum selector
+6. teacher-review entry point
+7. license gate card
+8. practice-audio actions when a MIDI upload exists
+9. private-share link card (create / rotate / revoke / copy)
 
 ---
 

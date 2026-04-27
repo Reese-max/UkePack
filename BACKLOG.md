@@ -76,7 +76,7 @@
 - [x] P2-03 老師審稿模式（FR-013；file-backed review manifest + compare/restore/template flow + API/UI/PDF override 已落地）
 - [x] P2-04 私人分享連結（短碼 + 過期）
 - [x] P2-05 Discord bot 初版（讀檔 → 回 PDF）
-- [ ] P2-06 可彈性分數視覺化
+- [x] P2-06 可彈性分數視覺化
 
 ---
 

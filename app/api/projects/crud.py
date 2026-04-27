@@ -6,6 +6,7 @@ from typing import Any
 
 from fastapi import APIRouter, status
 
+from app.api.playability import build_playability_payload
 from app.arrangement.key_advisor import suggest_key
 from app.arrangement.level_classifier import classify
 from app.arrangement.strum_pattern import suggest_for_level
@@ -37,11 +38,7 @@ def _analysis_response(score: Score) -> dict[str, Any]:
         "chords": [chord.model_dump() for chord in score.chords],
         "sections": [section.model_dump() for section in score.sections],
         "key_recommendation": key_rec.model_dump(),
-        "playability": {
-            "score": playability.playability_score,
-            "level": playability.recommended_level,
-            "label": playability.label,
-        },
+        "playability": build_playability_payload(score, playability),
     }
 
 

@@ -285,6 +285,19 @@ def test_get_analysis_with_chords(db_client: TestClient) -> None:
     assert "playability" in data
     assert "chords" in data
     assert data["sections"]
+    assert data["playability"]["summary"] == {
+        "distinct_chord_count": 4,
+        "total_chord_events": 8,
+        "highest_fret": 3,
+    }
+    assert [factor["key"] for factor in data["playability"]["factors"]] == [
+        "chord_difficulty",
+        "chord_change_freq",
+        "melody_position",
+        "rhythm_complexity",
+        "bpm",
+        "layout_readability",
+    ]
 
 
 def test_get_analysis_preserves_manual_sections(db_client: TestClient) -> None:

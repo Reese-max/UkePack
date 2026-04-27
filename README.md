@@ -35,7 +35,7 @@ uv run python -m app.discord_bot
 | **MusicXML / .mxl 匯入** | music21 解析，自動取 Key / BPM / 時間拍號 / 和弦 / 旋律 |
 | **和弦簡化** | 20+ 規則把 `Cmaj7`、`F#m7b5` 等降到烏克麗麗初學者可彈的和弦 |
 | **調性建議** | 評分算法推薦 GCEA 友善 key（C / G / F / Am 優先） |
-| **難度分級** | 6 因子加權（和弦數、BPM、換和弦頻率…）→ Level 1 / 2 / 3 |
+| **難度分級 / 可彈性分數** | 6 因子加權（和弦數、BPM、換和弦頻率…）→ Level 1 / 2 / 3，分析頁顯示因子條、需學和弦數、最高把位 |
 | **刷法配對** | 5 種刷法（Down / DU / DDU / DUDU / Calypso）依難度建議 |
 | **段落偵測** | Intro / Verse / Chorus 自動辨識（支援手動 header） |
 | **PDF 輸出** | 4 頁 A4：練習總覽、刷法說明、段落地圖、老師備註；含授權聲明 |
@@ -100,7 +100,7 @@ uv run pytest -q
 - [x] Phase 2 P2-03：老師審稿模式（編輯 / 比較 / 復原 / 模板）
 - [x] Phase 2 P2-04：私人分享連結（短碼 + 過期）
 - [x] Phase 2 P2-05：Discord bot 初版
-- [ ] Phase 2 P2-06：可彈性分數視覺化
+- [x] Phase 2 P2-06：可彈性分數視覺化
 - [ ] Phase 3：Public v1.0（Klangio API + 老師工作區 + 訂閱）
 
 ## 北極星指標

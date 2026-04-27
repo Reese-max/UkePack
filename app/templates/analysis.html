@@ -2,6 +2,71 @@
 
 {% block title %}{{ project.title }} — UkePack AI{% endblock %}
 
+{% block head %}
+<style>
+    .playability-shell {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .playability-hero {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        background: linear-gradient(135deg, #fff7ee 0%, #fff2cc 100%);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+    }
+
+    .playability-score {
+        display: flex;
+        align-items: baseline;
+        gap: 0.25rem;
+        color: var(--accent-strong);
+    }
+
+    .playability-score strong {
+        font-size: clamp(2.4rem, 8vw, 3.25rem);
+        line-height: 1;
+    }
+
+    .playability-score span {
+        font-size: 1rem;
+        color: var(--muted);
+    }
+
+    .score-meter {
+        width: 100%;
+        height: 12px;
+        background: #f3e6da;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .score-meter-fill {
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #ffd166 0%, #ff8b3d 55%, #67c587 100%);
+    }
+
+    .factor-list {
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    .factor-row {
+        padding: 0.85rem 1rem;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div>
     <a class="back-link" href="/">← 回首頁</a>
@@ -142,6 +207,73 @@
             <div class="data-cell">
                 <small>難度等級</small>
                 <strong>Level {{ analysis.playability.level }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="section-title">🎯 可彈性分數</p>
+        <div class="playability-shell">
+            <div class="playability-hero">
+                <div>
+                    <p style="margin:0 0 0.35rem; color:var(--muted); font-size:0.95rem">越高越容易給孩子直接上手</p>
+                    <div class="playability-score">
+                        <strong>{{ analysis.playability.score }}</strong>
+                        <span>/100</span>
+                    </div>
+                    <p style="margin:0.5rem 0 0; font-weight:700">{{ analysis.playability.label }}</p>
+                </div>
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center">
+                    <span class="badge badge-orange">Level {{ analysis.playability.level }}</span>
+                    <span class="badge badge-muted">{{ analysis.playability.summary.distinct_chord_count }} 個需學和弦</span>
+                    <span class="badge badge-muted">
+                        最高把位
+                        {% if analysis.playability.summary.highest_fret is not none %}
+                        {{ analysis.playability.summary.highest_fret }} 格
+                        {% else %}
+                        未知
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <div class="score-meter" aria-label="可彈性總分">
+                <span class="score-meter-fill" style="width: {{ analysis.playability.score }}%"></span>
+            </div>
+
+            <div class="data-grid" aria-label="可彈性摘要">
+                <div class="data-cell">
+                    <small>需學和弦</small>
+                    <strong>{{ analysis.playability.summary.distinct_chord_count }}</strong>
+                </div>
+                <div class="data-cell">
+                    <small>和弦事件</small>
+                    <strong>{{ analysis.playability.summary.total_chord_events }}</strong>
+                </div>
+                <div class="data-cell">
+                    <small>最高把位</small>
+                    <strong>
+                        {% if analysis.playability.summary.highest_fret is not none %}
+                        {{ analysis.playability.summary.highest_fret }} 格
+                        {% else %}
+                        未知
+                        {% endif %}
+                    </strong>
+                </div>
+            </div>
+
+            <div class="factor-list" aria-label="可彈性因子">
+                {% for factor in analysis.playability.factors %}
+                <div class="factor-row">
+                    <div style="display:flex; justify-content:space-between; gap:0.75rem; flex-wrap:wrap; margin-bottom:0.5rem">
+                        <strong>{{ factor.label }}</strong>
+                        <span style="color:var(--muted); font-size:0.95rem">{{ factor.score|int }}/100 · 權重 {{ factor.weight }}%</span>
+                    </div>
+                    <div class="score-meter" aria-label="{{ factor.label }}">
+                        <span class="score-meter-fill" style="width: {{ factor.score }}%"></span>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </div>

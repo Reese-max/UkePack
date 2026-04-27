@@ -12,6 +12,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlmodel import Session
 
+from app.api.playability import build_playability_payload
 from app.api.project_uploads import import_musicxml_into_project, save_upload_with_limit
 from app.arrangement.key_advisor import suggest_key
 from app.arrangement.level_classifier import classify
@@ -262,11 +263,7 @@ def _build_analysis(project: Project) -> dict[str, Any] | None:
         "chords": [c.model_dump() for c in score.chords[:24]],
         "sections": [section.model_dump() for section in score.sections],
         "key_recommendation": key_rec.model_dump(),
-        "playability": {
-            "score": playability.playability_score,
-            "level": playability.recommended_level,
-            "label": playability.label,
-        },
+        "playability": build_playability_payload(score, playability),
         "strum_patterns": [
             {"name": p.name, "notation": p.notation(), "description": p.description}
             for p in patterns

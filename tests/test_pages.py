@@ -130,6 +130,9 @@ def test_analysis_page_with_import(db_client: TestClient) -> None:
     assert "分析結果" in resp.text
     assert "Level" in resp.text
     assert "刷法建議" in resp.text
+    assert "可彈性分數" in resp.text
+    assert "最高把位" in resp.text
+    assert "和弦難度" in resp.text
     assert 'hx-post="/projects/' in resp.text
     assert f'href="/projects/{pid}/review"' in resp.text
 

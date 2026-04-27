@@ -110,7 +110,10 @@ Response includes:
 2. Serialized chord events under `chords`
 3. Serialized section spans under `sections`
 4. Nested `key_recommendation`
-5. Nested `playability` with `score`, `level`, and `label`
+5. Nested `playability` with:
+   - `score`, `level`, `label`
+   - `summary.distinct_chord_count`, `summary.total_chord_events`, `summary.highest_fret`
+   - ordered `factors[]` entries (`key`, `label`, `weight`, `score`) for UI score bars
 
 ---
 

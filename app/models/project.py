@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlmodel import Field, SQLModel
+
+
+def _utc_now() -> datetime:
+    return datetime.now(UTC)
 
 
 class ProjectBase(SQLModel):
@@ -38,8 +42,8 @@ class Project(ProjectBase, table=True):
     chords_text: str | None = Field(default=None)
     score_json: str | None = Field(default=None)
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utc_now)
+    updated_at: datetime = Field(default_factory=_utc_now)
 
 
 class ProjectCreate(ProjectBase):

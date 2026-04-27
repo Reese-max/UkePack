@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 from music21 import chord, key, metadata, meter, note, stream
@@ -23,6 +24,26 @@ CORPUS_FIXTURE_PARAMS = [
     )
     for fixture_path in ALL_FIXTURE_PATHS
 ]
+
+
+def _new_part() -> stream.Part:
+    return cast(stream.Part, cast(Any, stream).Part())
+
+
+def _time_signature(signature: str) -> Any:
+    return cast(Any, meter).TimeSignature(signature)
+
+
+def _insert_element(container: object, offset: float, element: object) -> None:
+    cast(Any, container).insert(offset, element)
+
+
+def _append_element(container: object, element: object) -> None:
+    cast(Any, container).append(element)
+
+
+def _write_score_file(score_stream: stream.Score, output_format: str, path: Path) -> None:
+    cast(Any, score_stream).write(output_format, fp=path)
 
 
 @pytest.mark.parametrize(
@@ -184,14 +205,14 @@ def test_parse_extracts_highest_pitch_from_chord_melody(tmp_path: Path) -> None:
     chord_melody_path = tmp_path / "chord_melody.musicxml"
     score_stream = stream.Score()
     score_stream.metadata = metadata.Metadata(title="Chord Melody")
-    part = stream.Part()
+    part = _new_part()
     measure = stream.Measure(number=1)
-    measure.insert(0, meter.TimeSignature("4/4"))
-    measure.insert(0, note.Note("C4", quarterLength=1.0))
-    measure.insert(1.0, chord.Chord(["E4", "G4", "C5"], quarterLength=2.0))
-    part.append(measure)
-    score_stream.append(part)
-    score_stream.write("musicxml", fp=chord_melody_path)
+    _insert_element(measure, 0, _time_signature("4/4"))
+    _insert_element(measure, 0, note.Note("C4", quarterLength=1.0))
+    _insert_element(measure, 1.0, chord.Chord(["E4", "G4", "C5"], quarterLength=2.0))
+    _append_element(part, measure)
+    _append_element(score_stream, part)
+    _write_score_file(score_stream, "musicxml", chord_melody_path)
 
     score = parse(chord_melody_path)
 
@@ -308,13 +329,13 @@ def _write_single_part_score(
     if title is not None:
         score_stream.metadata = metadata.Metadata(title=title)
 
-    part = stream.Part()
+    part = _new_part()
     measure = stream.Measure(number=1)
-    measure.insert(0, meter.TimeSignature("4/4"))
-    measure.insert(0, key.Key(tonic))
-    measure.append(note.Note(melody_pitch, quarterLength=4.0))
-    part.append(measure)
-    score_stream.append(part)
+    _insert_element(measure, 0, _time_signature("4/4"))
+    _insert_element(measure, 0, key.Key(tonic))
+    _append_element(measure, note.Note(melody_pitch, quarterLength=4.0))
+    _append_element(part, measure)
+    _append_element(score_stream, part)
 
     output_format = "mxl" if path.suffix.lower() == ".mxl" else "musicxml"
-    score_stream.write(output_format, fp=path)
+    _write_score_file(score_stream, output_format, path)

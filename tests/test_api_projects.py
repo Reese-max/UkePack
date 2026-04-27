@@ -142,7 +142,7 @@ def test_import_musicxml_invalid_xml(db_client: TestClient) -> None:
 
 
 def test_import_midi(db_client: TestClient) -> None:
-    import mido  # type: ignore[import-untyped]
+    import mido
 
     pid = _create(db_client)
     mid = mido.MidiFile()

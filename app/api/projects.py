@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -52,6 +52,10 @@ def _get_or_404(session: Session, project_id: int) -> Project:
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
     return project
+
+
+def _utc_now() -> datetime:
+    return datetime.now(UTC)
 
 
 def _parse_chords_text(text: str, title: str) -> Score:
@@ -142,7 +146,7 @@ async def import_musicxml(
     project.bpm = score.bpm
     project.target_key = key_rec.target_key
     project.arrangement_level = playability.recommended_level
-    project.updated_at = datetime.utcnow()
+    project.updated_at = _utc_now()
     session.add(project)
     session.commit()
 
@@ -181,7 +185,7 @@ async def import_midi(
     save_path.write_bytes(content)
 
     project.midi_path = str(save_path.relative_to(settings.data_dir))
-    project.updated_at = datetime.utcnow()
+    project.updated_at = _utc_now()
     session.add(project)
     session.commit()
 
@@ -200,7 +204,7 @@ def add_chords(
     project.chords_text = body.text
     project.score_json = score.model_dump_json()
     project.original_key = score.key
-    project.updated_at = datetime.utcnow()
+    project.updated_at = _utc_now()
     session.add(project)
     session.commit()
     return {"project_id": project_id, "chord_count": len(score.chords)}
@@ -245,7 +249,7 @@ def arrange(project_id: int, body: ArrangeBody, session: SessionDep) -> dict[str
 
     patterns = suggest_for_level(score, body.level)
     project.arrangement_level = body.level
-    project.updated_at = datetime.utcnow()
+    project.updated_at = _utc_now()
     session.add(project)
     session.commit()
 
@@ -266,7 +270,7 @@ def confirm_license(
     """P1-10: Record user's license acknowledgment (required before PDF export)."""
     project = _get_or_404(session, project_id)
     project.license_confirmed = body.confirmed
-    project.updated_at = datetime.utcnow()
+    project.updated_at = _utc_now()
     session.add(project)
     session.commit()
     return {"project_id": project_id, "license_confirmed": project.license_confirmed}

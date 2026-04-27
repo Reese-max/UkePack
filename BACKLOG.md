@@ -6,14 +6,11 @@
 - conventional commit
 - 不改 PRD/MISSION/AGENTS（除非 BACKLOG 明確指示）
 - 必須跑 `pytest -q` + `ruff check` 通過再 commit
+- 備註：`P1-11` 已在「已完成」區塊結案為首頁 `templates/index.html`；Phase 1 Web UI 清單從 `P1-12` 接續，編號刻意保留不重編
 
 ---
 
 ## Phase 0：研究與原型（1–2 週）
-
-### 基礎設施
-
-### MusicXML 解析
 
 ### 烏克麗麗化引擎（核心）
 - [x] P0-13 `app/arrangement/level_classifier.py` — 難度分級（PRD §10.4 評分公式）

@@ -163,8 +163,6 @@
 - [x] 36v. 修 `app/core/db.py` session ResourceWarning：確認 `get_session` context manager / `dispose()` 路徑被測試覆蓋；pytest 跑出的 `ResourceWarning: unclosed database` 應全消；db.py coverage ≥ 95%
 - [x] 36w. 補 API layer OpenSpec：`openspec/specs/projects-api.md`（9 endpoints：FR-001~FR-015 input/output schema + status code）+ `openspec/specs/pages-routes.md`（6 routes：HTMX 互動契約、redirect 規則、license gate 行為）
 - [x] 36x. 收口雙事實源：本輪起新規定 — `engineering-log.md` 只留 reflection + 重大 incident（含換策略）、每輪 sprint 實作 metadata 只寫 `results.log`；不回頭改舊 entries；在 `program.md` 全域守則加一條備忘（守則 8）
-- [ ] 36y. git commit `refactor: pdf split + db cleanup + api specs + log consolidation`
-
 - [x] 36y. git commit `refactor: pdf split + db cleanup + api specs + log consolidation`
 
 ---
@@ -215,7 +213,7 @@
 
 > 動機：`BACKLOG.md` Phase 0 兩個 H3 章節（基礎設施 / MusicXML 解析）只剩標題沒項目，新人讀會困惑；`P1-11` 編號缺失（10 → 12 跳號）。資訊架構失序的小事，但留著就會被下一輪反思繼續抓。
 
-- [ ] 37e. 清 BACKLOG Phase 0 兩個空 H3 章節（補回 P0-01~P0-12 的歷史記錄到「已完成」區塊，或直接刪除標題）；釋疑 P1-11 缺號（合併進 P1-12 / 已刪 / 重新編號擇一），在 BACKLOG 開頭備註
+- [x] 37e. 清 BACKLOG Phase 0 兩個空 H3 章節（補回 P0-01~P0-12 的歷史記錄到「已完成」區塊，或直接刪除標題）；釋疑 P1-11 缺號（合併進 P1-12 / 已刪 / 重新編號擇一），在 BACKLOG 開頭備註
 
 ---
 

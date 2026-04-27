@@ -59,6 +59,7 @@ Thank you!
 
 Checklist:
 - [ ] Record or screen-capture the demo video (follow script above)
+- [ ] Share [`docs/teacher_guide.md`](./teacher_guide.md) with the teacher as a self-serve reference before / during the session
 - [ ] Send invitation email to at least 1 ukulele teacher
 - [ ] Agree on trial date/time and delivery method (live walkthrough / async video)
 - [ ] Share `feedback.md` form (PDF print or editable Google Doc copy)

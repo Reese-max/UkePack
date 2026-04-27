@@ -115,7 +115,8 @@ uv run pytest -q
 |------|------|
 | [PRD.md](./PRD.md) | 完整產品需求文件 v1.0 |
 | [BACKLOG.md](./BACKLOG.md) | 任務清單（依 Phase 排列） |
-| [openspec/specs/](./openspec/specs/) | 各模組 API / 行為規格（14 份） |
+| [docs/teacher_guide.md](./docs/teacher_guide.md) | 老師操作手冊（建立專案 → 審稿 → 分享，30 分鐘上手） |
+| [openspec/specs/](./openspec/specs/) | 各模組 API / 行為規格（15 份） |
 | [docs/teacher_trial_sop.md](./docs/teacher_trial_sop.md) | 老師試用 SOP + 邀請信範本 |
 | [feedback.md](./feedback.md) | 老師試用回饋問卷 |
 | [engineering-log.md](./engineering-log.md) | 技術決策 + 重大 incident 記錄 |

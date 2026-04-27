@@ -151,9 +151,9 @@
 > 動機：MVP DoD §2「30 首 fixture 端到端產 PDF 成功率 ≥ 95%」目前只有 parse 級別 100%、整條 pipeline 沒批次跑。P1-16 條目寫「全 repo coverage ≥ 70%」現況已 97%，但內含的 4 條觀察池缺口（music_theory/key_advisor/pdf.py/db.py 共 19 行）一條沒補；條目語意失真誤導 auto-engineer。P1-18 老師試用 feedback 沒材料就邀請等於給人添亂。
 
 - [x] 36q. 改寫 BACKLOG `P1-16` 描述為「補 4 條觀察池缺口」並列出 specific lines：`music_theory.py:57-58/73`（3 行）+ `key_advisor.py:76`（1 行）+ `pdf.py` svglib `contextlib.suppress` 12 行（mock `svglib.svglib.svg2rlg` 失敗）+ `core/db.py` 3 行 session cleanup；補測試使該 4 模組 coverage 拉到 ≥ 99%
-- [ ] 36r. 新增 `tests/test_corpus_e2e_pdf.py`：對 `tests/fixtures/` 30 首 × Level 1 完整跑 `parse → suggest_key → classify → suggest_strum → render_pdf`，斷言成功率 ≥ 95%、每個 PDF `%PDF-` magic 正確、bytes > 0；失敗的標 xfail 並寫進 `tests/fixtures/E2E_REPORT.md`（P1-17）
-- [ ] 36s. 建 `feedback.md` template（5 問題清單：分級準確度 / 字體大小 / 和弦圖可讀性 / 刷法合理度 / 整體可用性）+ 老師試用 SOP（`docs/teacher_trial_sop.md`：demo 影片腳本、邀請信範本、收 feedback 流程、驗收欄位）；P1-18 拆成 18a 準備材料 / 18b 邀請 / 18c 收 feedback / 18d 寫結論四步
-- [ ] 36t. git commit `test: phase 1 dod gate (coverage gaps + corpus e2e + feedback sop)`
+- [x] 36r. 新增 `tests/test_corpus_e2e_pdf.py`：對 `tests/fixtures/` 30 首 × Level 1 完整跑 `parse → suggest_key → classify → suggest_strum → render_pdf`，斷言成功率 ≥ 95%、每個 PDF `%PDF-` magic 正確、bytes > 0；失敗的標 xfail 並寫進 `tests/fixtures/E2E_REPORT.md`（P1-17）
+- [x] 36s. 建 `feedback.md` template（5 問題清單：分級準確度 / 字體大小 / 和弦圖可讀性 / 刷法合理度 / 整體可用性）+ 老師試用 SOP（`docs/teacher_trial_sop.md`：demo 影片腳本、邀請信範本、收 feedback 流程、驗收欄位）；P1-18 拆成 18a 準備材料 / 18b 邀請 / 18c 收 feedback / 18d 寫結論四步
+- [x] 36t. git commit `test: phase 1 dod gate (coverage gaps + corpus e2e + feedback sop)`
 
 ## 階段十一：技術債一次到位 + spec 補課（reflect 2026-04-27 第五輪新增，可與階段十並行）
 

@@ -63,9 +63,9 @@
   - [x] `app/arrangement/key_advisor.py:76`（1 行：`_parse_key_name` error path）
   - [x] `app/render/pdf.py` svglib `contextlib.suppress` 12 行（mock `svglib.svglib.svg2rlg` 失敗）
   - [x] `app/core/db.py` 3 行 session cleanup（並修 pytest `ResourceWarning: unclosed database`）
-- [ ] P1-17 30 首 fixture 端到端產 PDF 成功率 ≥ 95%（`tests/test_corpus_e2e_pdf.py` + `tests/fixtures/E2E_REPORT.md`）
+- [x] P1-17 30 首 fixture 端到端產 PDF 成功率 ≥ 95%（`tests/test_corpus_e2e_pdf.py` + `tests/fixtures/E2E_REPORT.md`）— 100% 通過
 - [ ] P1-18 找 1 位老師試用 + 寫 `feedback.md`
-  - [ ] P1-18a 準備材料：`feedback.md` template（5 題） + `docs/teacher_trial_sop.md`（demo 影片腳本、邀請信、驗收欄位）
+  - [x] P1-18a 準備材料：`feedback.md` template（5 題） + `docs/teacher_trial_sop.md`（demo 影片腳本、邀請信、驗收欄位）
   - [ ] P1-18b 邀請：寄出邀請信、約定試用時間
   - [ ] P1-18c 收 feedback：跑試用、整理回答到 `feedback.md`
   - [ ] P1-18d 寫結論：根據 feedback 排 Phase 2 backlog 調整或標 known issue

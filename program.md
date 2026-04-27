@@ -76,9 +76,48 @@
 - [x] 34. 確認：< 5 秒 + PDF 可開 + 4 個基本和弦圖都在
 - [x] 35. git commit `feat(demo): cli end-to-end pipeline`
 
-## 階段七：Web API（Phase 1 啟動）
+## 階段六.5：demo 回歸 + 模型解耦（reflect 2026-04-27 第三輪新增，先做完才能進階段七）
 
-- [ ] 36. 進 BACKLOG.md Phase 1 區塊照做
+> 動機：第三輪 reflect 抓出 (a) `app/demo.py` 0% 覆蓋率——北極星 < 5s 是手測一次性數字、沒有自動回歸守門；(b) `PackRequest` 定義在 `app/render/pdf.py` 變成跨層 import 源、Phase 1 API 動工前必須搬家；(c) 階段四/五/六新增 5 個模組（`level_classifier / strum_pattern / chord_diagram / pdf / demo`）零 OpenSpec 契約、spec-driven 退步；(d) `level_classifier` 89% 邊界分支沒測。先把這四條收掉再開 Phase 1 API。
+
+- [x] 36a. 加 `tests/test_demo_pipeline.py`：跑 `app.demo.run(twinkle.musicxml, level=1, out=tmp)`，斷言 elapsed < 5.0s + PDF bytes > 0 + PDF magic header (`%PDF-`) 正確；把 `app/demo.py` 從 0% 拉到 ≥ 60%
+- [x] 36b. 把 `PackRequest` 從 `app/render/pdf.py` 搬到 `app/models/pack_request.py`，`pdf.py` 改 `from app.models.pack_request import PackRequest`，`demo.py` 同步更新；跑 pytest/ruff/mypy 全綠
+- [ ] 36c. 補 `level_classifier` 邊界測試（`chord_simplify` 失敗 fallback / BPM<60 / BPM>160 / avg_midi 72–76 / `_pitch_to_midi` 對非標準 pitch 字串）；coverage ≥ 95%
+- [ ] 36d. 落地 5 條 OpenSpec 契約：`openspec/specs/level-classifier.md`、`strum-pattern.md`、`pdf-render.md`、`chord-diagram.md`、`cli-pipeline.md`，補齊階段四/五/六遺漏
+- [ ] 36e. git commit `test+refactor: demo regression + decouple PackRequest + arrangement/render specs`
+
+## 階段六.6：Phase 1 動工前安全護欄（reflect 2026-04-27 第三輪新增，與六.5 可並行）
+
+> 動機：BACKLOG `P1-02 POST /api/projects/{id}/import` 是 Phase 1 第一個 Web 攻擊面。目前 `parse()` 沒檔案大小上限、`.mxl` 解 zip 沒設單檔/總量上限、`music21.converter.parse` 接到字串路徑有可能跑網路 fetch。MVP 還沒開 API 不致命，但 P1-02 動工前必須補。
+
+- [ ] 36f. `app/core/musicxml.py::parse`：加 `MAX_IMPORT_BYTES`（10MB）檔案大小檢查、`.mxl` 解壓單檔上限 50MB、converter 接到非本地 path / URL 直接 `raise ValueError`；補對應 unit tests（檔案過大、zip-bomb、URL 形式輸入）
+- [ ] 36g. 同步 `openspec/specs/musicxml-import.md`：把「File-size limits, zip-bomb protection, network-fetch blocking」從 Out of Scope 改寫成 Contract，spec ↔ code 對齊
+- [ ] 36h. git commit `feat(core): import safety guards + spec sync`
+- [ ] 36i. 對齊 AGENTS.md §8 北極星 demo 輸入路徑：補 `samples/public_domain/twinkle.musicxml`（或等價 sample），讓文件指令可直接跑通
+
+## 階段七：Web API + SQLite（Phase 1 啟動，對齊 BACKLOG P1-01~P1-10）
+
+> 階段六.5 與六.6 全綠後啟動。原本 `進 BACKLOG.md Phase 1 區塊照做` 一條空話拆成 7.1/7.2/7.3 三個有具體 DoD 的 sub-stage。
+
+### 7.1 API CRUD 骨架
+- [ ] 37. P1-01 `POST /api/projects` 建專案（FR-001）
+- [ ] 38. P1-02 `POST /api/projects/{id}/import` MusicXML 上傳（FR-002，依賴 36f 安全護欄）
+- [ ] 39. P1-03 `POST /api/projects/{id}/midi` MIDI 上傳（FR-003）
+- [ ] 40. P1-04 `POST /api/projects/{id}/chords` 手動和弦輸入（FR-004）
+- [ ] 41. P1-05 `GET /api/projects/{id}/analysis` Key/BPM/和弦/難度分數
+- [ ] 42. P1-06 `POST /api/projects/{id}/arrange` 產生 Level 1/2/3（依賴 36b 解耦完成）
+- [ ] 43. P1-07 `GET /api/projects/{id}/export.pdf` 下載 PDF
+- [ ] 44. P1-08 `GET /api/projects/{id}/export.musicxml` 下載編輯版
+- [ ] 45. git commit `feat(api): project CRUD + import/arrange/export endpoints`
+
+### 7.2 持久化層
+- [ ] 46. P1-09 SQLite + SQLModel 建 `projects` table（FR-014 schema）
+- [ ] 47. 接上 7.1 各 endpoint，跑 e2e 整合測試
+- [ ] 48. git commit `feat(persist): sqlite + sqlmodel projects table`
+
+### 7.3 授權聲明流程
+- [ ] 49. P1-10 授權聲明流程（必勾才可進輸出，FR-015）
+- [ ] 50. git commit `feat(api): mandatory license attribution gate`
 
 ---
 

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import io
 import tempfile
-from dataclasses import dataclass, field
 from pathlib import Path
 
 from reportlab.graphics import renderPDF
@@ -14,9 +13,8 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 from reportlab.pdfgen import canvas as rl_canvas
 
-from app.arrangement.level_classifier import PlayabilityResult
-from app.arrangement.strum_pattern import StrumPattern
-from app.models.score import ChordEvent, KeyRecommendation, Score
+from app.models.pack_request import PackRequest
+from app.models.score import ChordEvent, Score
 from app.render.chord_diagram import generate_svg
 
 try:
@@ -51,22 +49,6 @@ _LEVEL_GOALS: dict[int, list[str]] = {
     2: ["練習刷法節奏", "配合節拍器完整彈一遍", "嘗試副歌"],
     3: ["挑戰副歌 TAB", "完整演奏一遍", "自我錄音檢視"],
 }
-
-
-@dataclass
-class PackRequest:
-    """Bundle of data needed to render a practice pack PDF."""
-
-    title: str
-    source_type: str = "public_domain"
-    level: int = 1
-    score: Score = field(
-        default_factory=lambda: Score(title="", key="C", measures=0)
-    )
-    key_recommendation: KeyRecommendation | None = None
-    strum_patterns: list[StrumPattern] = field(default_factory=list)
-    playability: PlayabilityResult | None = None
-
 
 def render_pdf(request: PackRequest) -> bytes:
     """Render a 4-page A4 practice pack PDF and return raw bytes."""

@@ -8,9 +8,10 @@ from app.arrangement.key_advisor import suggest_key
 from app.arrangement.level_classifier import classify
 from app.arrangement.strum_pattern import suggest_for_level
 from app.core.musicxml import parse
+from app.models.pack_request import PackRequest
 from app.models.score import Score
 from app.render.chord_diagram import generate_svg, get_fingering
-from app.render.pdf import PackRequest, render_pdf
+from app.render.pdf import render_pdf
 
 _FIXTURE_DIR = Path(__file__).parent / "fixtures"
 _SAMPLE_FIXTURES = sorted(_FIXTURE_DIR.glob("*.musicxml"))[:3]

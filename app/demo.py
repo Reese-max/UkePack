@@ -44,7 +44,8 @@ def run(input_path: Path, level: int, out_path: Path, source_type: str) -> float
     from app.arrangement.level_classifier import classify
     from app.arrangement.strum_pattern import suggest_for_level
     from app.core.musicxml import parse
-    from app.render.pdf import PackRequest, render_pdf
+    from app.models.pack_request import PackRequest
+    from app.render.pdf import render_pdf
 
     t0 = time.perf_counter()
 

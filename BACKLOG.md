@@ -52,10 +52,10 @@
 - [x] P1-10 授權聲明流程（必勾才可進輸出，FR-015）
 
 ### Web UI（HTMX，不要 React）
-- [ ] P1-12 `templates/new_project.html` 建立專案表單
-- [ ] P1-13 `templates/analysis.html` 分析結果頁（HTMX 換 Key 即時更新）
-- [ ] P1-14 `templates/preview.html` PDF 預覽 iframe
-- [ ] P1-15 兒童版面樣式（大字體、大和弦圖）
+- [x] P1-12 `templates/new_project.html` 建立專案表單
+- [x] P1-13 `templates/analysis.html` 分析結果頁（HTMX 換 Key 即時更新）
+- [x] P1-14 `templates/preview.html` PDF 預覽 iframe
+- [x] P1-15 兒童版面樣式（大字體、大和弦圖）
 
 ### 測試門檻
 - [ ] P1-16 全 repo coverage ≥ 70%（含：music_theory.py lines 57-58/73 分支、key_advisor.py `_parse_key_name` error path、pdf.py svglib suppress path via mock）

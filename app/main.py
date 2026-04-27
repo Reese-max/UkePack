@@ -20,7 +20,7 @@ def _homepage_cards() -> list[dict[str, str]]:
         {
             "title": "建立練習包",
             "description": "先建立歌曲專案，再走分析、轉 Key、輸出 PDF 流程。",
-            "href": "/docs#/default/create_project_api_projects_post",
+            "href": "/new",
         },
         {
             "title": "匯入 MusicXML",
@@ -72,9 +72,11 @@ def create_app() -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
+    from app.api.pages import router as pages_router
     from app.api.projects import router as projects_router
 
     application.include_router(projects_router)
+    application.include_router(pages_router)
 
     return application
 

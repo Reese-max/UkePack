@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}UkePack AI{% endblock %}</title>
+    <script src="https://unpkg.com/htmx.org@1.9.12/dist/htmx.min.js" defer></script>
+    <style>
+        /* ── Design tokens ── */
+        :root {
+            --bg: #fffaf0;
+            --surface: #ffffff;
+            --surface-soft: #fff2cc;
+            --text: #2f241f;
+            --muted: #6f625b;
+            --accent: #ff8b3d;
+            --accent-strong: #e06716;
+            --accent-hover: #c75a10;
+            --border: #f1d8c7;
+            --border-focus: #ff8b3d;
+            --shadow-sm: 0 4px 12px rgba(88, 57, 32, 0.10);
+            --shadow: 0 12px 32px rgba(88, 57, 32, 0.12);
+            --radius: 20px;
+            --radius-sm: 12px;
+            /* P1-15 children-first sizing */
+            --font-base: 18px;
+            --btn-min-h: 52px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", "Noto Sans TC", system-ui, sans-serif;
+            font-size: var(--font-base);
+            line-height: 1.7;
+            background: linear-gradient(180deg, #fff9ef 0%, #fff3df 100%);
+            color: var(--text);
+            min-height: 100dvh;
+        }
+
+        a { color: inherit; text-decoration: none; }
+
+        /* ── Nav ── */
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.92);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-brand {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--accent-strong);
+        }
+
+        .nav-brand span { color: var(--text); }
+
+        .nav-actions { display: flex; gap: 0.5rem; }
+
+        /* ── Buttons ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: var(--btn-min-h);
+            padding: 0.75rem 1.5rem;
+            border-radius: 999px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+        }
+
+        .btn:hover, .btn:focus-visible {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn:focus-visible { outline: 3px solid rgba(224, 103, 22, 0.4); outline-offset: 3px; }
+
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: var(--accent-hover); }
+
+        .btn-ghost {
+            background: var(--surface);
+            color: var(--text);
+            border-color: var(--border);
+        }
+
+        .btn-sm {
+            min-height: 40px;
+            padding: 0.5rem 1rem;
+            font-size: 0.95rem;
+        }
+
+        /* ── Layout shell ── */
+        .shell {
+            width: min(820px, calc(100% - 2rem));
+            margin: 2rem auto;
+            padding-bottom: 3rem;
+        }
+
+        /* ── Card ── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card + .card { margin-top: 1rem; }
+
+        /* ── Section heading ── */
+        .section-title {
+            margin: 0 0 1rem;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--accent-strong);
+        }
+
+        /* ── Form controls ── */
+        .field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1.25rem; }
+        .field:last-child { margin-bottom: 0; }
+
+        label { font-weight: 700; font-size: 1rem; }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-family: inherit;
+            background: var(--bg);
+            color: var(--text);
+            transition: border-color 0.15s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--border-focus);
+        }
+
+        input[type="file"] {
+            padding: 0.75rem;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-sm);
+            width: 100%;
+            font-size: 0.95rem;
+            cursor: pointer;
+            background: var(--surface-soft);
+        }
+
+        /* Radio group */
+        .radio-group { display: flex; flex-direction: column; gap: 0.5rem; }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+        }
+
+        .radio-option:has(input:checked) {
+            border-color: var(--accent);
+            background: #fff7ee;
+        }
+
+        .radio-option input[type="radio"] { width: 20px; height: 20px; accent-color: var(--accent); }
+
+        /* ── Badge ── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.875rem;
+            font-weight: 700;
+        }
+
+        .badge-orange { background: #fff0e0; color: var(--accent-strong); }
+        .badge-green  { background: #edfbea; color: #2a8a1a; }
+        .badge-blue   { background: #e8f4ff; color: #1a5fa8; }
+        .badge-muted  { background: #f5f0ec; color: var(--muted); }
+
+        /* ── Data grid ── */
+        .data-grid {
+            display: grid;
+            gap: 0.75rem;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        }
+
+        .data-cell {
+            padding: 0.85rem 1rem;
+            background: var(--surface-soft);
+            border-radius: var(--radius-sm);
+        }
+
+        .data-cell small {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .data-cell strong { font-size: 1.1rem; }
+
+        /* ── Chord chip grid ── */
+        .chord-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .chord-chip {
+            padding: 0.4rem 0.9rem;
+            background: var(--surface-soft);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        /* ── Level selector ── */
+        .level-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+        .level-tab {
+            padding: 0.6rem 1.25rem;
+            border: 2px solid var(--border);
+            border-radius: 999px;
+            font-weight: 700;
+            cursor: pointer;
+            background: var(--surface);
+            transition: all 0.15s;
+        }
+
+        .level-tab:hover, .level-tab.active {
+            border-color: var(--accent);
+            background: #fff7ee;
+            color: var(--accent-strong);
+        }
+
+        /* ── Strum pattern card ── */
+        .strum-card {
+            padding: 1rem;
+            background: var(--surface-soft);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        .strum-notation {
+            font-family: monospace;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent-strong);
+        }
+
+        /* ── Alert ── */
+        .alert {
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid transparent;
+        }
+
+        .alert-warning { background: #fffbe6; border-color: #ffe066; color: #7a5c00; }
+        .alert-info    { background: #e8f4ff; border-color: #b3d8ff; color: #1a5fa8; }
+
+        /* ── Spinner (htmx indicator) ── */
+        .htmx-indicator { opacity: 0; transition: opacity 0.2s; }
+        .htmx-request .htmx-indicator { opacity: 1; }
+
+        /* ── Page title ── */
+        .page-title {
+            margin: 0 0 0.25rem;
+            font-size: clamp(1.6rem, 5vw, 2.4rem);
+            line-height: 1.15;
+        }
+
+        .page-subtitle {
+            margin: 0 0 1.5rem;
+            color: var(--muted);
+        }
+
+        /* ── Back link ── */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            color: var(--muted);
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            font-size: 0.95rem;
+        }
+
+        .back-link:hover { color: var(--accent-strong); }
+
+        /* ── Step indicator ── */
+        .steps { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        .step.active { color: var(--accent-strong); font-weight: 700; }
+        .step-num {
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; font-weight: 700;
+        }
+        .step.active .step-num { background: var(--accent); color: #fff; }
+
+        /* ── Responsive ── */
+        @media (max-width: 560px) {
+            .nav { padding: 0.6rem 1rem; }
+            .shell { width: calc(100% - 1.5rem); margin: 1rem auto; }
+            .card { padding: 1.1rem; }
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <nav class="nav" role="navigation" aria-label="主選單">
+        <a class="nav-brand" href="/">🎸 <span>UkePack</span></a>
+        <div class="nav-actions">
+            <a class="btn btn-primary btn-sm" href="/new">+ 新練習包</a>
+        </div>
+    </nav>
+
+    <main class="shell" id="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

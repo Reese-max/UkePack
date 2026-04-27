@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}建立練習包 — UkePack AI{% endblock %}
+
+{% block content %}
+<div>
+    <a class="back-link" href="/">← 回首頁</a>
+    <h1 class="page-title">建立練習包</h1>
+    <p class="page-subtitle">填入歌曲資訊，上傳 MusicXML，UkePack 會自動分析並產出 PDF。</p>
+
+    <div class="steps" aria-label="建立步驟">
+        <div class="step active">
+            <span class="step-num" aria-hidden="true">1</span>
+            <span>歌曲資訊 + 上傳</span>
+        </div>
+        <span aria-hidden="true">→</span>
+        <div class="step">
+            <span class="step-num" aria-hidden="true">2</span>
+            <span>分析結果</span>
+        </div>
+        <span aria-hidden="true">→</span>
+        <div class="step">
+            <span class="step-num" aria-hidden="true">3</span>
+            <span>下載 PDF</span>
+        </div>
+    </div>
+
+    <form
+        method="POST"
+        action="/projects/create-htmx"
+        enctype="multipart/form-data"
+        id="create-form"
+    >
+        <div class="card">
+            <p class="section-title">🎵 歌曲基本資訊</p>
+
+            <div class="field">
+                <label for="title">歌曲名稱 <span aria-hidden="true" style="color:var(--accent-strong)">*</span></label>
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    placeholder="例：小星星 / Twinkle Twinkle"
+                    required
+                    autocomplete="off"
+                    maxlength="200"
+                >
+            </div>
+
+            <div class="field">
+                <label>授權來源 <span aria-hidden="true" style="color:var(--accent-strong)">*</span></label>
+                <div class="radio-group" role="radiogroup" aria-label="授權來源">
+                    {% for value, label in source_types %}
+                    <label class="radio-option">
+                        <input
+                            type="radio"
+                            name="source_type"
+                            value="{{ value }}"
+                            {% if value == 'public_domain' %}checked{% endif %}
+                            required
+                        >
+                        <span>{{ label }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:1rem">
+            <p class="section-title">👶 學習者設定（選填）</p>
+
+            <div class="field">
+                <label for="learner_age">學習者年齡</label>
+                <input
+                    type="number"
+                    id="learner_age"
+                    name="learner_age"
+                    placeholder="例：8"
+                    min="3"
+                    max="99"
+                    style="max-width:200px"
+                >
+            </div>
+
+            <div class="field">
+                <label>使用類型</label>
+                <div class="radio-group" role="radiogroup" aria-label="使用類型">
+                    <label class="radio-option">
+                        <input type="radio" name="usage_type" value="private" checked>
+                        <span>私人練習</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="usage_type" value="teaching">
+                        <span>教學使用</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:1rem">
+            <p class="section-title">📄 上傳 MusicXML（選填，可後續補傳）</p>
+            <div class="field">
+                <label for="file">選擇 .musicxml / .mxl / .xml 檔</label>
+                <input
+                    type="file"
+                    id="file"
+                    name="file"
+                    accept=".musicxml,.mxl,.xml"
+                >
+                <small style="color:var(--muted);font-size:0.9rem">
+                    不超過 10 MB。找不到檔案？先建立專案，之後再從分析頁匯入。
+                </small>
+            </div>
+        </div>
+
+        <div style="margin-top:1.5rem; display:flex; gap:1rem; flex-wrap:wrap">
+            <button type="submit" class="btn btn-primary" aria-describedby="submit-hint">
+                下一步：分析 →
+            </button>
+            <a class="btn btn-ghost" href="/">取消</a>
+        </div>
+        <p id="submit-hint" style="margin:0.5rem 0 0; color:var(--muted); font-size:0.9rem">
+            建立後可繼續在分析頁調整設定。
+        </p>
+    </form>
+</div>
+{% endblock %}

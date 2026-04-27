@@ -108,24 +108,34 @@
 > **嚴格阻塞**：階段六.6 P0 三項（36f/36g/36h）必須全綠才能進階段七，否則 P1-02 import endpoint 上線就是攻擊面。階段六.6 P1/P2 可與階段七並行清。原本 `進 BACKLOG.md Phase 1 區塊照做` 一條空話拆成 7.1/7.2/7.3 三個有具體 DoD 的 sub-stage。
 
 ### 7.1 API CRUD 骨架
-- [ ] 37. P1-01 `POST /api/projects` 建專案（FR-001）
-- [ ] 38. P1-02 `POST /api/projects/{id}/import` MusicXML 上傳（FR-002，依賴 36f 安全護欄）
-- [ ] 39. P1-03 `POST /api/projects/{id}/midi` MIDI 上傳（FR-003）
-- [ ] 40. P1-04 `POST /api/projects/{id}/chords` 手動和弦輸入（FR-004）
-- [ ] 41. P1-05 `GET /api/projects/{id}/analysis` Key/BPM/和弦/難度分數
-- [ ] 42. P1-06 `POST /api/projects/{id}/arrange` 產生 Level 1/2/3（依賴 36b 解耦完成）
-- [ ] 43. P1-07 `GET /api/projects/{id}/export.pdf` 下載 PDF
-- [ ] 44. P1-08 `GET /api/projects/{id}/export.musicxml` 下載編輯版
-- [ ] 45. git commit `feat(api): project CRUD + import/arrange/export endpoints`
+- [x] 37. P1-01 `POST /api/projects` 建專案（FR-001）
+- [x] 38. P1-02 `POST /api/projects/{id}/import` MusicXML 上傳（FR-002，依賴 36f 安全護欄）
+- [x] 39. P1-03 `POST /api/projects/{id}/midi` MIDI 上傳（FR-003）
+- [x] 40. P1-04 `POST /api/projects/{id}/chords` 手動和弦輸入（FR-004）
+- [x] 41. P1-05 `GET /api/projects/{id}/analysis` Key/BPM/和弦/難度分數
+- [x] 42. P1-06 `POST /api/projects/{id}/arrange` 產生 Level 1/2/3（依賴 36b 解耦完成）
+- [x] 43. P1-07 `GET /api/projects/{id}/export.pdf` 下載 PDF
+- [x] 44. P1-08 `GET /api/projects/{id}/export.musicxml` 下載編輯版
+- [x] 45. git commit `feat(api): project CRUD + import/arrange/export endpoints`
 
 ### 7.2 持久化層
-- [ ] 46. P1-09 SQLite + SQLModel 建 `projects` table（FR-014 schema）
-- [ ] 47. 接上 7.1 各 endpoint，跑 e2e 整合測試
-- [ ] 48. git commit `feat(persist): sqlite + sqlmodel projects table`
+- [x] 46. P1-09 SQLite + SQLModel 建 `projects` table（FR-014 schema）
+- [x] 47. 接上 7.1 各 endpoint，跑 e2e 整合測試
+- [x] 48. git commit `feat(persist): sqlite + sqlmodel projects table`
 
 ### 7.3 授權聲明流程
-- [ ] 49. P1-10 授權聲明流程（必勾才可進輸出，FR-015）
-- [ ] 50. git commit `feat(api): mandatory license attribution gate`
+- [x] 49. P1-10 授權聲明流程（必勾才可進輸出，FR-015）
+- [x] 50. git commit `feat(api): mandatory license attribution gate`
+
+## 階段八：HTMX Web UI（P1-12–P1-15）
+
+- [x] 51. P1-12 `templates/new_project.html` 建立專案表單（HTMX multipart submit）
+- [x] 52. P1-13 `templates/analysis.html` 分析結果頁（HTMX Level 刷法即時切換）
+- [x] 53. P1-14 `templates/preview.html` PDF 預覽 iframe
+- [x] 54. P1-15 兒童版面樣式（`base.html`：18px 字體、52px 按鈕、大和弦圖、高對比）
+- [x] 55. `app/api/pages.py` HTML 頁面路由：`/new`, `/projects/{id}`, `/strum-partial`, `/confirm-license`, `/preview`
+- [x] 56. `tests/test_pages.py` 22 cases 全綠
+- [x] 57. git commit `feat(templates): HTMX web UI + children-first styles`
 
 ---
 

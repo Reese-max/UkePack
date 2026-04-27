@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.title }} — UkePack AI{% endblock %}
+
+{% block content %}
+<div>
+    <a class="back-link" href="/">← 回首頁</a>
+
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem">
+        <div>
+            <h1 class="page-title" style="margin-bottom:0.25rem">{{ project.title }}</h1>
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center">
+                {% if project.source_type == 'public_domain' %}
+                <span class="badge badge-green">公版</span>
+                {% elif project.source_type == 'suno_free' %}
+                <span class="badge badge-blue">Suno Free</span>
+                {% else %}
+                <span class="badge badge-muted">私人研究</span>
+                {% endif %}
+                {% if project.original_key %}
+                <span class="badge badge-orange">{{ project.original_key }}</span>
+                {% endif %}
+                {% if project.bpm %}
+                <span class="badge badge-muted">{{ project.bpm }} BPM</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap">
+            {% if project.license_confirmed %}
+            <a class="btn btn-primary btn-sm" href="/projects/{{ project.id }}/preview">🎼 預覽 PDF</a>
+            <a class="btn btn-ghost btn-sm" href="/api/projects/{{ project.id }}/export.pdf">⬇ 下載 PDF</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if not analysis %}
+    {# ── No score yet ── #}
+    <div class="card">
+        <p class="section-title">📥 尚未匯入曲譜</p>
+        <p style="color:var(--muted)">請上傳 MusicXML 或手動輸入和弦，才能看到分析結果。</p>
+        <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:1rem">
+            <form
+                method="POST"
+                action="/api/projects/{{ project.id }}/import"
+                enctype="multipart/form-data"
+                style="display:flex; gap:0.75rem; align-items:flex-end; flex-wrap:wrap"
+            >
+                <div class="field" style="margin:0; flex:1; min-width:220px">
+                    <label for="import-file">選擇 .musicxml / .mxl 檔</label>
+                    <input type="file" id="import-file" name="file" accept=".musicxml,.mxl,.xml">
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">匯入</button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    {# ── Analysis result ── #}
+    <div class="card">
+        <p class="section-title">📊 分析結果</p>
+        <div class="data-grid">
+            <div class="data-cell">
+                <small>原始 Key</small>
+                <strong>{{ analysis.key }}</strong>
+            </div>
+            <div class="data-cell">
+                <small>建議 Key</small>
+                <strong>{{ analysis.key_recommendation.target_key }}</strong>
+            </div>
+            {% if analysis.bpm %}
+            <div class="data-cell">
+                <small>BPM</small>
+                <strong>{{ analysis.bpm }}</strong>
+            </div>
+            {% endif %}
+            {% if analysis.time_signature %}
+            <div class="data-cell">
+                <small>拍號</small>
+                <strong>{{ analysis.time_signature }}</strong>
+            </div>
+            {% endif %}
+            <div class="data-cell">
+                <small>小節數</small>
+                <strong>{{ analysis.measures }}</strong>
+            </div>
+            <div class="data-cell">
+                <small>難度等級</small>
+                <strong>Level {{ analysis.playability.level }}</strong>
+            </div>
+        </div>
+    </div>
+
+    {% if analysis.chords %}
+    <div class="card">
+        <p class="section-title">🎸 和弦清單</p>
+        <div class="chord-grid" aria-label="和弦列表">
+            {% set seen = [] %}
+            {% for chord in analysis.chords %}
+                {% if chord.symbol not in seen %}
+                    {% set _ = seen.append(chord.symbol) %}
+                    <span class="chord-chip">{{ chord.symbol }}</span>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% if analysis.chords|length == 24 %}
+        <p style="margin:0.75rem 0 0; font-size:0.875rem; color:var(--muted)">（僅顯示前 24 個和弦）</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {# ── Level selector + strum patterns ── #}
+    <div class="card">
+        <p class="section-title">🥁 刷法建議</p>
+        <p style="margin:0 0 0.75rem; color:var(--muted); font-size:0.95rem">選擇難度等級，查看對應刷法：</p>
+        <div class="level-tabs" role="tablist" aria-label="難度等級">
+            {% for lvl in [1, 2, 3] %}
+            <button
+                type="button"
+                class="level-tab {% if lvl == analysis.playability.level %}active{% endif %}"
+                hx-get="/projects/{{ project.id }}/strum-partial?level={{ lvl }}"
+                hx-target="#strum-section"
+                hx-swap="innerHTML"
+                hx-indicator="#strum-spinner"
+                aria-selected="{% if lvl == analysis.playability.level %}true{% else %}false{% endif %}"
+                onclick="document.querySelectorAll('.level-tab').forEach(b=>b.classList.remove('active')); this.classList.add('active')"
+            >Level {{ lvl }}</button>
+            {% endfor %}
+        </div>
+
+        <div id="strum-section" style="margin-top:1rem" aria-live="polite">
+            {% include "partials/strum_patterns.html" %}
+        </div>
+        <span id="strum-spinner" class="htmx-indicator" aria-label="載入中">⏳ 載入中…</span>
+    </div>
+
+    {# ── License confirmation ── #}
+    <div class="card" id="license-card">
+        <p class="section-title">📜 授權確認</p>
+        {% if project.license_confirmed %}
+        <div class="alert alert-info">
+            ✅ 授權已確認。可以下載或預覽 PDF。
+        </div>
+        <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-top:1rem">
+            <a class="btn btn-primary" href="/projects/{{ project.id }}/preview">🎼 預覽 PDF</a>
+            <a class="btn btn-ghost" href="/api/projects/{{ project.id }}/export.pdf">⬇ 下載 PDF</a>
+        </div>
+        {% else %}
+        <div class="alert alert-warning" style="margin-bottom:1rem">
+            ⚠️ 下載 PDF 前，請先確認您了解此練習包的授權條件。
+        </div>
+        {% if project.source_type == 'private_research' %}
+        <p style="color:var(--muted); font-size:0.95rem">
+            此專案標記為「私人研究」，PDF 將印上「Private study only. Do not distribute.」警語。
+        </p>
+        {% elif project.source_type == 'suno_free' %}
+        <p style="color:var(--muted); font-size:0.95rem">
+            此專案使用 Suno Free 生成，PDF 將印上「Non-commercial practice use」聲明。
+        </p>
+        {% else %}
+        <p style="color:var(--muted); font-size:0.95rem">
+            此為公版曲目，可自由分發練習包。
+        </p>
+        {% endif %}
+        <form method="POST" action="/projects/{{ project.id }}/confirm-license" style="margin-top:1rem">
+            <button type="submit" class="btn btn-primary">✅ 確認授權，準備輸出</button>
+        </form>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

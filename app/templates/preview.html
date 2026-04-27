@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}預覽 PDF — {{ project.title }} — UkePack AI{% endblock %}
+
+{% block head %}
+<style>
+    .preview-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .preview-iframe {
+        width: 100%;
+        height: min(80vh, 900px);
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        background: #fff;
+    }
+
+    @media (max-width: 560px) {
+        .preview-iframe { height: 60vh; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="preview-wrapper">
+    <div>
+        <a class="back-link" href="/projects/{{ project.id }}">← 回分析頁</a>
+        <h1 class="page-title">{{ project.title }}</h1>
+        <p class="page-subtitle">PDF 練習包預覽</p>
+    </div>
+
+    {% if not project.license_confirmed %}
+    <div class="alert alert-warning">
+        ⚠️ 尚未確認授權。請先回分析頁確認授權，才能預覽 PDF。
+        <br>
+        <a href="/projects/{{ project.id }}" class="btn btn-primary btn-sm" style="margin-top:0.75rem; display:inline-flex">
+            回分析頁 →
+        </a>
+    </div>
+    {% else %}
+    <div class="card" style="padding:1rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem">
+        <div>
+            {% if project.source_type == 'private_research' %}
+            <span class="badge badge-muted">🔒 Private study only</span>
+            {% elif project.source_type == 'suno_free' %}
+            <span class="badge badge-blue">Non-commercial practice use</span>
+            {% else %}
+            <span class="badge badge-green">✅ 公版授權</span>
+            {% endif %}
+        </div>
+        <a
+            class="btn btn-primary btn-sm"
+            href="/api/projects/{{ project.id }}/export.pdf"
+            download="{{ project.title }}.pdf"
+        >
+            ⬇ 下載 PDF
+        </a>
+    </div>
+
+    <iframe
+        class="preview-iframe"
+        src="/api/projects/{{ project.id }}/export.pdf"
+        title="{{ project.title }} PDF 練習包預覽"
+        aria-label="PDF 預覽框"
+    ></iframe>
+
+    <div class="alert alert-info" style="font-size:0.9rem">
+        ℹ️ 如果瀏覽器不支援內嵌 PDF，請使用上方「下載 PDF」按鈕。
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

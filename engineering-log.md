@@ -3,6 +3,23 @@
 > AI 自主開發 agent 每輪在此追加：做了什麼 / 失敗原因 / 換的策略 / 量測數據。
 > 格式：`## YYYY-MM-DD HH:MM | <agent> | <task-id>`
 
+## 2026-04-29 02:17 | copilot | P1-18 external blocker recheck 5
+
+**目標**：確認本輪是否還有 repo 內可直接推進 K6/K7 或北極星的 M0-M3 工作
+**結果**：🟡
+**量測**：
+- pytest -q / ruff check . / mypy app：PASS
+- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out data\trial-check.pdf --trial-packet data\teacher-trial-check.zip --host-url https://example.com/new`：PASS（demo 0.03s）
+- K7 onboarding checklist：5/5 全綠（Windows setup / MIDI workflow / web UI guide / feedback form / 中文 invite email）
+- openspec pending changes：2 個 proposal，皆為 `accepted`（slow-practice / discord-bot），非當前 blocker
+**失敗根因**（若有）：
+- `BACKLOG.md` 與 `program.md` 未完成項仍只剩 `P1-18b/P1-18c/P1-18d`，本質是外部真人邀請、試用、整理回饋，不是 repo 內可單機完成的工程工作。
+- K7 文件與 sender-safe 試用包已全綠；再補 docs、test、archive 都不會新增 K6/K7 實質進度。
+- 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或 feedback，會讓 teacher-trial 紀錄失真。
+**下一步**：
+- 由專案擁有者用現成試用包與 `docs\teacher\templates\` 完成 `P1-18b`
+- 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`
+
 ## 2026-04-29 00:31 | copilot | P1-18 external blocker recheck 4
 
 **目標**：確認本輪是否還有 repo 內可直接推進 K6/K7 或北極星的 M0-M3 工作

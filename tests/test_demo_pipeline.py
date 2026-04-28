@@ -88,6 +88,7 @@ def test_main_can_export_teacher_trial_packet(
         guide = archive.read(guide_name).decode("utf-8")
         assert "https://trial.example/new" in guide
         assert "<your-host>" not in guide
+        assert "`/new`" not in guide
 
 
 def test_main_normalizes_root_trial_packet_host_url(

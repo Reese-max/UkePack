@@ -185,12 +185,13 @@ def _render_teacher_guide(guide_body: str, *, host_url: str) -> str:
             rendered_lines.append(_teacher_guide_packet_note(host_url))
             continue
         rendered_lines.append(line.replace("https://<your-host>/share/8H4Q7K2M", share_url))
-    return _join_rendered_lines(rendered_lines, guide_body)
+    rendered = _join_rendered_lines(rendered_lines, guide_body)
+    return _render_entry_url_tokens(rendered, host_url=host_url)
 
 
 def _render_teacher_trial_sop(sop_body: str, *, host_url: str) -> str:
     rendered = sop_body.replace("https://<your-host>/new", host_url)
-    return rendered
+    return _render_entry_url_tokens(rendered, host_url=host_url)
 
 
 def _join_rendered_lines(lines: list[str], original: str) -> str:
@@ -217,6 +218,10 @@ def _teacher_guide_packet_note(host_url: str) -> str:
 def _share_example_url(host_url: str) -> str:
     parsed = urlparse(host_url)
     return urlunparse(parsed._replace(path="/share/8H4Q7K2M", query="", fragment=""))
+
+
+def _render_entry_url_tokens(body: str, *, host_url: str) -> str:
+    return body.replace("`/new`", f"`{host_url}`")
 
 
 def _is_localhost_url(host_url: str) -> bool:

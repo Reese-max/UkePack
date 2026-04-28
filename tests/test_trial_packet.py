@@ -29,6 +29,8 @@ def test_trial_packet_includes_sender_docs_and_localhost_warning(tmp_path: Path)
         guide = archive.read(guide_name).decode("utf-8")
         checklist_name = next(name for name in names if name.endswith("/docs/teacher/checklist.md"))
         checklist = archive.read(checklist_name).decode("utf-8")
+        sop_name = next(name for name in names if name.endswith("/docs/teacher_trial_sop.md"))
+        sop = archive.read(sop_name).decode("utf-8")
         rendered_templates = {
             Path(name).name: archive.read(name).decode("utf-8")
             for name in names
@@ -53,6 +55,9 @@ def test_trial_packet_includes_sender_docs_and_localhost_warning(tmp_path: Path)
     assert "中文 invite email" in checklist
     assert "http://localhost:8000/new" in guide
     assert "只適合同一台電腦現場示範" in guide
+    assert "`/new`" not in guide
+    assert "http://localhost:8000/new" in sop
+    assert "`/new`" not in sop
 
     assert "http://localhost:8000/new" in rendered_templates["invite_email.txt"]
     assert "http://localhost:8000/new" in rendered_templates["scheduling_confirmation.txt"]
@@ -96,8 +101,10 @@ def test_trial_packet_marks_public_host_url_as_sendable(tmp_path: Path) -> None:
     assert "https://trial.example/share/8H4Q7K2M" in guide
     assert "http://localhost:8000/new" not in guide
     assert "<your-host>" not in guide
+    assert "`/new`" not in guide
     assert "https://trial.example/new" in sop
     assert "<your-host>" not in sop
+    assert "`/new`" not in sop
 
 
 def test_trial_packet_normalizes_bare_host_to_new_project_path(tmp_path: Path) -> None:

@@ -1,3 +1,6 @@
+[範本原稿 — 若直接從 repo 開這份檔案，寄出前請先替換 {{TRIAL_URL}} / {{SONG_TITLE}}；最安全是用 `uv run python -m app.demo --trial-packet ...` 產出的 ZIP 內版本。]
+[Source template — if you open this file directly from the repo, replace {{TRIAL_URL}} / {{SONG_TITLE}} before sending. The safest option is the rendered copy inside `uv run python -m app.demo --trial-packet ...`.]
+
 Traditional Chinese
 -------------------
 老師好，提醒您明天 / 稍後的 UkePack 試用：

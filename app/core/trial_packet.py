@@ -31,6 +31,7 @@ def create_teacher_trial_packet(
         raise ValueError(f"score file not found: {score_path}")
     if not pdf_bytes.startswith(b"%PDF-"):
         raise ValueError("pdf_bytes must start with %PDF-")
+    host_url = validate_trial_host_url(host_url)
 
     packet_path.parent.mkdir(parents=True, exist_ok=True)
     root = f"{_safe_stem(score_path.stem)}_teacher_trial_packet"
@@ -69,6 +70,17 @@ def create_teacher_trial_packet(
         archive.writestr(f"{root}/output/{pdf_filename}", pdf_bytes)
 
     return packet_path
+
+
+def validate_trial_host_url(host_url: str) -> str:
+    """Accept only absolute http(s) URLs for teacher-trial handoff links."""
+    normalized = host_url.strip()
+    parsed = urlparse(normalized)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc or not parsed.hostname:
+        raise ValueError(
+            "host_url must be an absolute http(s) URL, e.g. https://trial.example/new"
+        )
+    return normalized
 
 
 def _packet_readme(

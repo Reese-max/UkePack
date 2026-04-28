@@ -86,6 +86,21 @@ def test_trial_packet_marks_public_host_url_as_sendable(tmp_path: Path) -> None:
     assert "https://trial.example/new" in reminder
 
 
+@pytest.mark.parametrize("host_url", ["trial.example/new", "ftp://trial.example/new"])
+def test_trial_packet_rejects_non_http_absolute_host_url(
+    tmp_path: Path, host_url: str
+) -> None:
+    with pytest.raises(ValueError, match=r"absolute http\(s\) URL"):
+        create_teacher_trial_packet(
+            score_path=_FIXTURE_PATH,
+            pdf_filename="trial.pdf",
+            pdf_bytes=_PDF_BYTES,
+            level=1,
+            host_url=host_url,
+            packet_path=tmp_path / "teacher-trial.zip",
+        )
+
+
 def test_render_template_raises_for_unresolved_placeholders(tmp_path: Path) -> None:
     template_path = tmp_path / "invite_email.txt"
     template_path.write_text("{{TRIAL_URL}}\n{{UNKNOWN_TOKEN}}\n", encoding="utf-8")

@@ -8,7 +8,7 @@ import time
 from pathlib import Path
 
 from app.core.practice_pack import SUPPORTED_SOURCE_TYPES, build_pack_request
-from app.core.trial_packet import create_teacher_trial_packet
+from app.core.trial_packet import create_teacher_trial_packet, validate_trial_host_url
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -32,7 +32,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--host-url",
         default="http://localhost:8000/new",
-        help="Trial URL written into --trial-packet/README.txt; default http://localhost:8000/new",
+        help="Absolute trial URL written into --trial-packet/README.txt; default http://localhost:8000/new",
     )
     parser.add_argument(
         "--source-type",
@@ -74,10 +74,17 @@ def main(argv: list[str] | None = None) -> None:
 
     input_path = Path(args.input)
     out_path = Path(args.out)
+    trial_host_url = args.host_url
 
     if not input_path.exists():
         print(f"ERROR: input file not found: {input_path}", file=sys.stderr)
         sys.exit(1)
+    if args.trial_packet:
+        try:
+            trial_host_url = validate_trial_host_url(args.host_url)
+        except ValueError as error:
+            print(f"ERROR: {error}", file=sys.stderr)
+            sys.exit(1)
 
     print(f"Processing: {input_path.name}  (level {args.level})")
     pdf_bytes, elapsed = _render_pdf_bytes(input_path, args.level, args.source_type)
@@ -91,7 +98,7 @@ def main(argv: list[str] | None = None) -> None:
             pdf_filename=out_path.name,
             pdf_bytes=pdf_bytes,
             level=args.level,
-            host_url=args.host_url,
+            host_url=trial_host_url,
             packet_path=Path(args.trial_packet),
         )
         print(f"Trial packet: {packet_path}")

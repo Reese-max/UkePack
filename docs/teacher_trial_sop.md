@@ -21,7 +21,7 @@
 > 若要一次整理寄給老師的材料，可先產出試用包 ZIP：  
 > `uv run python -m app.demo --input samples/public_domain/twinkle.musicxml --level 1 --out /tmp/trial.pdf --trial-packet /tmp/teacher-trial.zip`
 >
-> 若老師不在您這台電腦前操作，記得加 `--host-url https://<your-host>/new`。新的 ZIP README 會直接提醒 `localhost` 不能外寄。
+> 若老師不在您這台電腦前操作，記得加 `--host-url https://<your-host>/new`，而且要用完整 `http://` 或 `https://` 網址。新的 ZIP README 會直接提醒 `localhost` 不能外寄，CLI 也會擋掉不完整網址。
 >
 > 新版試用包還會附 `docs/teacher/templates/`，把邀請信 / 排程確認 / 前一天提醒 / 24 小時追蹤模板一起打包，而且 `Trial URL` 與曲名已代入，可直接 copy-paste。
 

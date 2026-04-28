@@ -86,6 +86,34 @@ def test_main_can_export_teacher_trial_packet(
         assert "https://trial.example/new" in archive.read(readme_name).decode("utf-8")
 
 
+def test_main_exits_when_trial_packet_host_url_is_invalid(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    output_path = tmp_path / "cli-demo.pdf"
+    packet_path = tmp_path / "teacher-trial.zip"
+
+    with pytest.raises(SystemExit) as exc_info:
+        main(
+            [
+                "--input",
+                str(_FIXTURE_PATH),
+                "--level",
+                "1",
+                "--out",
+                str(output_path),
+                "--trial-packet",
+                str(packet_path),
+                "--host-url",
+                "trial.example/new",
+            ]
+        )
+
+    assert exc_info.value.code == 1
+    assert "absolute http(s) URL" in capsys.readouterr().err
+    assert not output_path.exists()
+    assert not packet_path.exists()
+
+
 def test_main_exits_when_input_is_missing(capsys: pytest.CaptureFixture[str], tmp_path: Path) -> None:
     missing_path = tmp_path / "missing.musicxml"
 

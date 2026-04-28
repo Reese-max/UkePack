@@ -31,7 +31,7 @@
 
 ## 每次寄試用包前，照這樣檢查
 
-1. 打開 `docs/teacher_trial_sop.md`，確認本輪要寄的網址不是 `localhost`。
+1. 打開 `docs/teacher_trial_sop.md`，確認本輪要寄的網址不是 `localhost`，且是完整 `http://` / `https://` 網址。
 2. 打開 `docs/teacher_guide.md`，確認按鈕名稱仍和現行 Web UI 一致。
 3. 打開 `feedback.md`，確認主持人觀察欄與 5 題問卷沒有被刪漏。
 4. 用 `uv run python -m app.demo --trial-packet ...` 重新產 ZIP，確認裡面包含這份 checklist。

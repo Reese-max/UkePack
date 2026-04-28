@@ -82,8 +82,12 @@ def test_main_can_export_teacher_trial_packet(
         assert any(name.endswith("/samples/twinkle_twinkle_little_star.musicxml") for name in names)
         pdf_name = next(name for name in names if name.endswith("/output/cli-demo.pdf"))
         readme_name = next(name for name in names if name.endswith("/README.txt"))
+        guide_name = next(name for name in names if name.endswith("/docs/teacher_guide.md"))
         assert archive.read(pdf_name).startswith(b"%PDF-")
         assert "https://trial.example/new" in archive.read(readme_name).decode("utf-8")
+        guide = archive.read(guide_name).decode("utf-8")
+        assert "https://trial.example/new" in guide
+        assert "<your-host>" not in guide
 
 
 def test_main_normalizes_root_trial_packet_host_url(

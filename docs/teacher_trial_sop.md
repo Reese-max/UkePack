@@ -23,7 +23,7 @@
 >
 > 若老師不在您這台電腦前操作，記得加 `--host-url https://<your-host>/new`，而且要用完整 `http://` 或 `https://` 網址。新的 ZIP README 會直接提醒 `localhost` 不能外寄，CLI 也會擋掉不完整網址。所有要寄出去的信件、QR code、分享短碼示意，也都要先換成真實可連線的網址。
 >
-> 新版試用包還會附 `docs/teacher/templates/`，把邀請信 / 排程確認 / 前一天提醒 / 24 小時追蹤模板一起打包，而且 `Trial URL` 與曲名已代入，可直接 copy-paste。
+> 新版試用包還會附 `docs/teacher/templates/`，把邀請信 / 排程確認 / 前一天提醒 / 24 小時追蹤模板一起打包，而且 `Trial URL` 與曲名已代入，可直接 copy-paste。ZIP 內的 `teacher_guide.md` / `teacher_trial_sop.md` 也會把外寄用的 `https://<your-host>/new` 示意改成您這次指定的實際 host URL。
 
 ### 3 分鐘 demo 腳本
 

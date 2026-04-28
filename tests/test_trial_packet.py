@@ -25,6 +25,8 @@ def test_trial_packet_includes_sender_docs_and_localhost_warning(tmp_path: Path)
         names = archive.namelist()
         readme_name = next(name for name in names if name.endswith("/README.txt"))
         readme = archive.read(readme_name).decode("utf-8")
+        guide_name = next(name for name in names if name.endswith("/docs/teacher_guide.md"))
+        guide = archive.read(guide_name).decode("utf-8")
         checklist_name = next(name for name in names if name.endswith("/docs/teacher/checklist.md"))
         checklist = archive.read(checklist_name).decode("utf-8")
         rendered_templates = {
@@ -49,6 +51,8 @@ def test_trial_packet_includes_sender_docs_and_localhost_warning(tmp_path: Path)
     assert "docs/teacher/templates/*.txt" in readme
     assert "5/5 全綠" in checklist
     assert "中文 invite email" in checklist
+    assert "http://localhost:8000/new" in guide
+    assert "只適合同一台電腦現場示範" in guide
 
     assert "http://localhost:8000/new" in rendered_templates["invite_email.txt"]
     assert "http://localhost:8000/new" in rendered_templates["scheduling_confirmation.txt"]
@@ -73,7 +77,11 @@ def test_trial_packet_marks_public_host_url_as_sendable(tmp_path: Path) -> None:
 
     with zipfile.ZipFile(packet_path) as archive:
         readme_name = next(name for name in archive.namelist() if name.endswith("/README.txt"))
+        guide_name = next(name for name in archive.namelist() if name.endswith("/docs/teacher_guide.md"))
+        sop_name = next(name for name in archive.namelist() if name.endswith("/docs/teacher_trial_sop.md"))
         readme = archive.read(readme_name).decode("utf-8")
+        guide = archive.read(guide_name).decode("utf-8")
+        sop = archive.read(sop_name).decode("utf-8")
         reminder_name = next(
             name
             for name in archive.namelist()
@@ -84,6 +92,12 @@ def test_trial_packet_marks_public_host_url_as_sendable(tmp_path: Path) -> None:
     assert "https://trial.example/new" in readme
     assert "可外寄" in readme
     assert "https://trial.example/new" in reminder
+    assert "https://trial.example/new" in guide
+    assert "https://trial.example/share/8H4Q7K2M" in guide
+    assert "http://localhost:8000/new" not in guide
+    assert "<your-host>" not in guide
+    assert "https://trial.example/new" in sop
+    assert "<your-host>" not in sop
 
 
 def test_trial_packet_normalizes_bare_host_to_new_project_path(tmp_path: Path) -> None:

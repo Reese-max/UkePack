@@ -24,7 +24,7 @@ uv run uvicorn app.main:app --reload
 # Windows PowerShell：CLI 產 PDF（北極星驗證）
 uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out $env:TEMP\demo.pdf
 
-# Windows PowerShell：產老師試用包（PDF + teacher_guide + feedback + score）
+# Windows PowerShell：產老師試用包（PDF + teacher_guide + SOP + feedback + score）
 uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out $env:TEMP\trial.pdf --trial-packet $env:TEMP\teacher-trial.zip
 
 # Windows PowerShell：Discord bot（需設 DISCORD_BOT_TOKEN）
@@ -38,7 +38,7 @@ uv run python -m app.demo \
   --level 1 \
   --out /tmp/demo.pdf
 
-# macOS / Linux：產老師試用包（PDF + teacher_guide + feedback + score）
+# macOS / Linux：產老師試用包（PDF + teacher_guide + SOP + feedback + score）
 uv run python -m app.demo \
   --input samples/public_domain/twinkle.musicxml \
   --level 1 \
@@ -48,6 +48,8 @@ uv run python -m app.demo \
 # macOS / Linux：Discord bot（需設 DISCORD_BOT_TOKEN）
 uv run python -m app.discord_bot
 ```
+
+> 要把試用包寄給外部老師時，記得加 `--host-url https://<your-host>/new`。不加時 ZIP 內 README 會標示 `localhost` 只限同機器使用。
 
 ## 功能一覽
 

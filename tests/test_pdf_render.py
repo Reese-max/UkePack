@@ -12,8 +12,11 @@ from app.arrangement.strum_pattern import suggest_for_level
 from app.core.musicxml import parse
 from app.models.pack_request import PackRequest
 from app.models.score import ChordEvent, Score, ScoreSection
+from app.models.teacher_review import TeacherReviewDraft
 from app.render import _layout as layout_module
 from app.render.chord_diagram import generate_svg, get_fingering
+from app.render.pages import page1 as page1_module
+from app.render.pages import page2 as page2_module
 from app.render.pages import page3 as page3_module
 from app.render.pdf import render_pdf
 
@@ -204,3 +207,136 @@ class TestRenderPdf:
         monkeypatch.setattr("app.arrangement.chord_simplify.simplify", _boom)
 
         assert layout_module.unique_chords(score) == ["???"]
+
+
+class TestTeacherReviewPdfOverrides:
+    """Exercises teacher review override paths in page renderers (page1:57-73/100-110,
+    page2:32-46, page3:30-32/46-63).  These paths are used when a teacher has saved
+    review overrides before exporting the PDF."""
+
+    def _canvas(self) -> tuple[io.BytesIO, rl_canvas.Canvas]:
+        buf = io.BytesIO()
+        return buf, rl_canvas.Canvas(buf)
+
+    def _score(self) -> Score:
+        return Score(
+            title="Test",
+            key="C major",
+            measures=4,
+            chords=[ChordEvent(symbol="C", measure=1, beat=1.0)],
+        )
+
+    def test_page1_teacher_strum_with_description(self) -> None:
+        """page1.py:57-73 — teacher strum override with strum_description."""
+        buf, c = self._canvas()
+        review = TeacherReviewDraft(
+            strum_name="慢搖",
+            strum_notation="D-DU-UDU",
+            strum_description="每拍一次，輕鬆掃弦",
+        )
+        req = PackRequest(
+            title="Strum Override", score=self._score(), teacher_review=review
+        )
+        page1_module.render_page1(c, req)
+        c.save()
+        assert buf.getvalue()[:4] == b"%PDF"
+
+    def test_page1_teacher_strum_without_description(self) -> None:
+        """page1.py:57-64 — teacher strum override, empty strum_description skips that block."""
+        buf, c = self._canvas()
+        review = TeacherReviewDraft(strum_name="快搖", strum_notation="DUDU")
+        req = PackRequest(
+            title="Strum No Desc", score=self._score(), teacher_review=review
+        )
+        page1_module.render_page1(c, req)
+        c.save()
+        assert buf.getvalue()[:4] == b"%PDF"
+
+    def test_page1_teacher_practice_notes_multiline(self) -> None:
+        """page1.py:100-110 — teacher practice notes with blank lines (exercises the skip)."""
+        buf, c = self._canvas()
+        review = TeacherReviewDraft(
+            practice_notes="第一行：先學 C 和弦\n\n第二行：再練 G 和弦\n第三行：最後換弦"
+        )
+        req = PackRequest(
+            title="Practice Notes", score=self._score(), teacher_review=review
+        )
+        page1_module.render_page1(c, req)
+        c.save()
+        assert buf.getvalue()[:4] == b"%PDF"
+
+    def test_page2_teacher_strum_with_description(self) -> None:
+        """page2.py:32-46 — teacher strum override with strum_description on page 2."""
+        buf, c = self._canvas()
+        review = TeacherReviewDraft(
+            strum_name="標準",
+            strum_notation="D-DU",
+            strum_description="穩定拍子",
+        )
+        req = PackRequest(
+            title="Page2 Strum", score=self._score(), teacher_review=review
+        )
+        page2_module.render_page2(c, req)
+        c.save()
+        assert buf.getvalue()[:4] == b"%PDF"
+
+    def test_page2_teacher_strum_without_description(self) -> None:
+        """page2.py:31-37 — teacher strum override, no strum_description."""
+        buf, c = self._canvas()
+        review = TeacherReviewDraft(strum_name="慢", strum_notation="D--D")
+        req = PackRequest(
+            title="Page2 No Desc", score=self._score(), teacher_review=review
+        )
+        page2_module.render_page2(c, req)
+        c.save()
+        assert buf.getvalue()[:4] == b"%PDF"
+
+    def test_page3_teacher_tab_notes(self) -> None:
+        """page3.py:30-32,46-63 — teacher tab_notes triggers _tab_notes render path."""
+        buf, c = self._canvas()
+        review = TeacherReviewDraft(
+            tab_notes="A----|-----\nB----|-----\n\n(空白行測試)"
+        )
+        req = PackRequest(
+            title="Page3 Tabs", score=self._score(), teacher_review=review
+        )
+        page3_module.render_page3(c, req)
+        c.save()
+        assert buf.getvalue()[:4] == b"%PDF"
+
+    def test_full_pdf_with_teacher_review_all_fields(self) -> None:
+        """Full render_pdf with teacher review overrides covering all 4 pages."""
+        review = TeacherReviewDraft(
+            arrangement_level=2,
+            chords_text="C|G|Am|F",
+            strum_name="Calypso",
+            strum_notation="D-DU-UDU",
+            strum_description="節奏感強",
+            tab_notes="0-2-3-2-0",
+            practice_notes="注意換弦速度\n保持穩定節拍",
+        )
+        score = Score(
+            title="Review Song",
+            key="C major",
+            measures=8,
+            chords=[
+                ChordEvent(symbol="C", measure=1, beat=1.0),
+                ChordEvent(symbol="G", measure=2, beat=1.0),
+                ChordEvent(symbol="Am", measure=3, beat=1.0),
+                ChordEvent(symbol="F", measure=4, beat=1.0),
+            ],
+            sections=[
+                ScoreSection(section="verse", start_measure=1, end_measure=4),
+                ScoreSection(section="chorus", start_measure=5, end_measure=8),
+            ],
+        )
+        req = PackRequest(
+            title="Review Song",
+            source_type="public_domain",
+            level=2,
+            score=score,
+            teacher_review=review,
+        )
+        pdf = render_pdf(req)
+        assert pdf[:4] == b"%PDF"
+        assert len(pdf) > 500

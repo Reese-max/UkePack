@@ -14,6 +14,21 @@
 - 檔名測試改成對齊實作契約，不為了測試去扭曲輸出命名。
 - `DiscordPackResult.bpm` 改顯式 nullable，summary 對無 BPM 輸出 `unknown BPM`，不塞假數字。
 
+## 2026-04-28 09:03 | copilot | P1-18b blocker
+
+**目標**：推進 P1-18b 老師試用邀請
+**結果**：🟡
+**量測**：
+- pytest: 327/327 pass
+- coverage: N/A
+- 北極星（demo 秒數）: N/A
+**失敗根因**（若有）：
+- 目前 BACKLOG / program 剩餘未完成項只剩 P1-18b/18c/18d，性質是外部真人試用，不是 repo 內可自行完成的工程工作。
+- 此執行環境沒有可合法使用的外部寄信/排程通道，也沒有預先提供的老師聯絡名單；若硬編收件人或假造回饋，會把流程紀錄做假。
+- repo 內試用材料已齊：`feedback.md`、`docs/teacher_trial_sop.md`、`docs/teacher_guide.md`；阻塞點已縮到真人 outreach 本身。
+**下一步**：
+- 由專案擁有者用 `docs/teacher_trial_sop.md` 邀請信範本寄給至少 1 位老師，拿到試用時段後再執行 18c/18d。
+
 ## 2026-04-27 10:51 | copilot | 階段六.6 36f/36g/36h + 36i/36j/36k + 36l
 
 **目標**：P0 安全護欄 + 狀態漂移清理 + 技術債觀察池結案

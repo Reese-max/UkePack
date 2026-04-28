@@ -42,3 +42,4 @@
 [2026-04-28T07:00:13+08:00] | M1 | PASS | KPI-impact: 北極星 <30 分鐘 降低 P1-18 老師試用摩擦 | 新增 docs/teacher_guide.md（12 節，涵蓋建立專案→審稿→音檔→分享→Discord，Traditional Chinese）；同步 teacher_trial_sop.md + README.md 文件表
 [2026-04-28T07:37:24+08:00] | M1 | PASS | KPI-impact: 北極星 <30 分鐘 降低 P1-18b/c 老師試用語言摩擦 | 翻譯 feedback.md 為繁體中文 + 新增中文邀請信範本到 teacher_trial_sop.md；消除英文文件對中文老師的填寫障礙
 [2026-04-28T08:40:00+08:00] | M1 | PASS | KPI-impact: 北極星 <30 分鐘 降低老師試用首輪操作錯誤 | 對齊 docs/teacher_guide.md 與 teacher_trial_sop.md 到實際 Web UI：修正「下一步：分析 →」/ 授權來源 3 選項 / 審稿與分享按鈕名稱，並把 trial SOP 改成繁中 15 分鐘實測腳本
+[2026-04-28T09:03:34+08:00] | M1 | FAIL | KPI-impact: 北極星 <30 分鐘 老師試用剩外部真人流程阻塞 | baseline 327 tests + ruff + mypy 全綠；確認 BACKLOG 僅剩 P1-18b/c/d，repo 內材料已齊（feedback.md / teacher_trial_sop.md / teacher_guide.md），但本環境無合法外寄通道與老師名單，故記錄 blocker 不硬幹

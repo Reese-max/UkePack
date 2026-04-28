@@ -20,6 +20,23 @@
 - 由專案擁有者用現成試用包與 `docs\teacher\templates\` 完成 `P1-18b`
 - 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`
 
+## 2026-04-29 03:29 | copilot | P1-18 external blocker recheck 6
+
+**目標**：先確認 baseline 仍綠，再判斷本輪是否還有 repo 內可直接推進 K6/K7 或北極星的 M0-M3 工作
+**結果**：🟡
+**量測**：
+- `uv run pytest -q`：PASS
+- `uv run ruff check .`：PASS
+- `uv run mypy app`：PASS
+- `BACKLOG.md` / `program.md` / `openspec\changes\`：重新盤點後，未完成項仍只剩 `P1-18b/P1-18c/P1-18d`
+**失敗根因**（若有）：
+- 目前唯一未完成的 backlog 是真人邀請、排程、試用、收 feedback，不是 repo 內可單機完成的工程工作。
+- K7 onboarding 文件已 5/5 全綠；依 teacher-trial 階段規則，這輪若再補 docs / archive / cleanup，只會落入 H0，對 K6/K7 沒有新增推進。
+- 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或 feedback，會讓 trial 紀錄失真。
+**下一步**：
+- 由專案擁有者用現成試用包與 `docs\teacher\templates\` 完成 `P1-18b`
+- 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`
+
 ## 2026-04-29 00:31 | copilot | P1-18 external blocker recheck 4
 
 **目標**：確認本輪是否還有 repo 內可直接推進 K6/K7 或北極星的 M0-M3 工作

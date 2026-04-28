@@ -46,3 +46,4 @@
 [2026-04-28T09:53:32+08:00] | M1 | PASS | KPI-impact: 北極星 <30 分鐘 降低老師對練習音檔流程的錯誤預期 | 對齊 README、docs/teacher_guide.md、docs/teacher_trial_sop.md 與首頁文案：明確標示 Web UI 主流程是 MusicXML/手動和弦，MIDI 上傳目前走 API `/api/projects/{id}/midi`，避免老師試用時誤以為頁面可直接上傳 MIDI；pytest/ruff/mypy 全綠
 [2026-04-28T10:30:58+08:00] | M0 | PASS | KPI-impact: 北極星 <30 分鐘 baseline 守門可重跑不再污染 worktree | 修 tests/test_corpus_e2e_pdf.py 與 tests/fixtures/E2E_REPORT.md：移除每次重跑都變動的 timestamp/elapsed，保留 deterministic corpus snapshot；pytest/ruff/mypy 全綠，連跑 hash 穩定不再漂移
 [2026-04-28T11:05:47+08:00] | M1 | PASS | KPI-impact: 北極星 <30 分鐘 降低 Windows 本機啟動與老師試用摩擦 | 修 README、docs/teacher_trial_sop.md、docs/teacher_guide.md 的平台指令漂移：補 Windows PowerShell 的 demo / .env 複製 / 健康檢查 / ffmpeg 安裝寫法，避免首輪 setup 卡在 Unix-only 指令
+[2026-04-28T11:42:18+08:00] | M1 | PASS | KPI-impact: 北極星 <30 分鐘 降低 P1-18c/18d 試用觀察遺漏 | 補 feedback.md 的主持人觀察欄位（metadata / 第一次卡住 / 原話 / 稱讚 / 結論模板），並同步 docs/teacher_trial_sop.md 指向新欄位；pytest/ruff/mypy 全綠

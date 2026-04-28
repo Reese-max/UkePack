@@ -24,6 +24,8 @@ target.
 | `--input` | Required path to `.musicxml`, `.xml`, or `.mxl`. |
 | `--level` | Optional arrangement level, choices `1`, `2`, `3`, default `1`. |
 | `--out` | Required output PDF path. |
+| `--trial-packet` | Optional ZIP output path for a teacher-trial handoff bundle that includes the rendered PDF, score file, teacher docs, checklist, and outreach templates. |
+| `--host-url` | Optional absolute `http(s)` URL written into `--trial-packet`; defaults to `http://localhost:8000/new`. Bare-host/root URLs normalize to `/new`, but non-`/new` paths are rejected so the packet always lands teachers on the project-creation page. |
 | `--source-type` | Optional source label, choices `self_created`, `suno_free`, `suno_paid`, `public_domain`, `licensed`, `private_research`; default `public_domain`. |
 
 ### Pipeline order
@@ -47,9 +49,15 @@ target.
 
 1. If the input path does not exist, print
    `ERROR: input file not found: <path>` to stderr and exit with code `1`.
-2. On success, print a `Processing:` line before work starts.
-3. On success, print a `Done:` line with output path and elapsed seconds.
-4. If elapsed time is `>= 5.0`, print a warning to stderr but do not fail the
+2. If `--trial-packet` is set, validate `--host-url` before rendering; invalid
+   scheme/host or non-`/new` paths exit with code `1`.
+3. If `--trial-packet` is set and `--host-url` points at the bare host/root,
+   normalize it to the matching `/new` URL before writing the packet.
+4. On success, print a `Processing:` line before work starts.
+5. On success, print a `Done:` line with output path and elapsed seconds.
+6. When `--trial-packet` succeeds, print a `Trial packet:` line with the ZIP
+   path.
+7. If elapsed time is `>= 5.0`, print a warning to stderr but do not fail the
    command.
 
 ## Acceptance Signals
@@ -58,7 +66,11 @@ target.
    elapsed time `< 5.0`.
 2. Successful runs write non-empty files whose bytes start with `%PDF-`.
 3. The CLI success path prints both `Processing:` and `Done:`.
-4. Missing input exits cleanly with code `1` and an understandable error.
+4. Trial-packet runs write README/template URLs that point at `/new`, even when
+   the caller passes only the host/root URL.
+5. Invalid trial-packet URLs exit cleanly with code `1` and an understandable
+   error.
+6. Missing input exits cleanly with code `1` and an understandable error.
 
 ## Out of Scope
 

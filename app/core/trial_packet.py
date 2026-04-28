@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 import zipfile
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 
 _INVALID_STEM_CHARS = re.compile(r"[^A-Za-z0-9._-]+")
 _UNRESOLVED_TEMPLATE_TOKEN = re.compile(r"\{\{[A-Z0-9_]+\}\}")
@@ -80,7 +80,17 @@ def validate_trial_host_url(host_url: str) -> str:
         raise ValueError(
             "host_url must be an absolute http(s) URL, e.g. https://trial.example/new"
         )
-    return normalized
+    normalized_path = _normalize_trial_host_path(parsed.path)
+    return urlunparse(parsed._replace(path=normalized_path))
+
+
+def _normalize_trial_host_path(path: str) -> str:
+    trimmed = path.rstrip("/") or "/"
+    if trimmed == "/":
+        return "/new"
+    if trimmed.endswith("/new"):
+        return trimmed
+    raise ValueError("host_url must point to the new-project page, e.g. https://trial.example/new")
 
 
 def _packet_readme(

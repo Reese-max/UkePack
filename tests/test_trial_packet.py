@@ -86,11 +86,42 @@ def test_trial_packet_marks_public_host_url_as_sendable(tmp_path: Path) -> None:
     assert "https://trial.example/new" in reminder
 
 
-@pytest.mark.parametrize("host_url", ["trial.example/new", "ftp://trial.example/new"])
+def test_trial_packet_normalizes_bare_host_to_new_project_path(tmp_path: Path) -> None:
+    packet_path = create_teacher_trial_packet(
+        score_path=_FIXTURE_PATH,
+        pdf_filename="trial.pdf",
+        pdf_bytes=_PDF_BYTES,
+        level=1,
+        host_url="https://trial.example",
+        packet_path=tmp_path / "teacher-trial.zip",
+    )
+
+    with zipfile.ZipFile(packet_path) as archive:
+        readme_name = next(name for name in archive.namelist() if name.endswith("/README.txt"))
+        invite_name = next(
+            name
+            for name in archive.namelist()
+            if name.endswith("/docs/teacher/templates/invite_email.txt")
+        )
+        readme = archive.read(readme_name).decode("utf-8")
+        invite = archive.read(invite_name).decode("utf-8")
+
+    assert "https://trial.example/new" in readme
+    assert "https://trial.example/new" in invite
+
+
+@pytest.mark.parametrize(
+    ("host_url", "message"),
+    [
+        ("trial.example/new", r"absolute http\(s\) URL"),
+        ("ftp://trial.example/new", r"absolute http\(s\) URL"),
+        ("https://trial.example/docs", r"new-project page"),
+    ],
+)
 def test_trial_packet_rejects_non_http_absolute_host_url(
-    tmp_path: Path, host_url: str
+    tmp_path: Path, host_url: str, message: str
 ) -> None:
-    with pytest.raises(ValueError, match=r"absolute http\(s\) URL"):
+    with pytest.raises(ValueError, match=message):
         create_teacher_trial_packet(
             score_path=_FIXTURE_PATH,
             pdf_filename="trial.pdf",

@@ -86,8 +86,46 @@ def test_main_can_export_teacher_trial_packet(
         assert "https://trial.example/new" in archive.read(readme_name).decode("utf-8")
 
 
-def test_main_exits_when_trial_packet_host_url_is_invalid(
+def test_main_normalizes_root_trial_packet_host_url(
     capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    output_path = tmp_path / "cli-demo.pdf"
+    packet_path = tmp_path / "teacher-trial.zip"
+
+    main(
+        [
+            "--input",
+            str(_FIXTURE_PATH),
+            "--level",
+            "1",
+            "--out",
+            str(output_path),
+            "--trial-packet",
+            str(packet_path),
+            "--host-url",
+            "https://trial.example",
+        ]
+    )
+
+    assert "Trial packet:" in capsys.readouterr().out
+
+    with zipfile.ZipFile(packet_path) as archive:
+        readme_name = next(name for name in archive.namelist() if name.endswith("/README.txt"))
+        assert "https://trial.example/new" in archive.read(readme_name).decode("utf-8")
+
+
+@pytest.mark.parametrize(
+    ("host_url", "message"),
+    [
+        ("trial.example/new", "absolute http(s) URL"),
+        ("https://trial.example/docs", "new-project page"),
+    ],
+)
+def test_main_exits_when_trial_packet_host_url_is_invalid(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    host_url: str,
+    message: str,
 ) -> None:
     output_path = tmp_path / "cli-demo.pdf"
     packet_path = tmp_path / "teacher-trial.zip"
@@ -104,12 +142,12 @@ def test_main_exits_when_trial_packet_host_url_is_invalid(
                 "--trial-packet",
                 str(packet_path),
                 "--host-url",
-                "trial.example/new",
+                host_url,
             ]
         )
 
     assert exc_info.value.code == 1
-    assert "absolute http(s) URL" in capsys.readouterr().err
+    assert message in capsys.readouterr().err
     assert not output_path.exists()
     assert not packet_path.exists()
 

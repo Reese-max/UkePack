@@ -11,20 +11,31 @@ UkePack AI 讀取 MusicXML（或手動和弦），自動簡化和弦、推薦調
 
 ```bash
 # 安裝
-git clone <repo-url> && cd UkePack
+git clone <repo-url>
+cd UkePack
 uv sync --extra dev
 
 # 啟動 Web Server
 uv run uvicorn app.main:app --reload
 # 瀏覽器打開 http://localhost:8000
+```
 
-# 或用 CLI 產 PDF（北極星驗證）
+```powershell
+# Windows PowerShell：CLI 產 PDF（北極星驗證）
+uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out $env:TEMP\demo.pdf
+
+# Windows PowerShell：Discord bot（需設 DISCORD_BOT_TOKEN）
+uv run python -m app.discord_bot
+```
+
+```bash
+# macOS / Linux：CLI 產 PDF（北極星驗證）
 uv run python -m app.demo \
   --input samples/public_domain/twinkle.musicxml \
   --level 1 \
   --out /tmp/demo.pdf
 
-# 或跑 Discord bot（需設 DISCORD_BOT_TOKEN）
+# macOS / Linux：Discord bot（需設 DISCORD_BOT_TOKEN）
 uv run python -m app.discord_bot
 ```
 
@@ -73,22 +84,41 @@ GET    /share/{code}                     開啟短碼分享頁
 
 ```bash
 # 1. clone
-git clone <repo-url> && cd UkePack
+git clone <repo-url>
+cd UkePack
 
 # 2. 安裝 Python 依賴（含 dev 工具）
 uv sync --extra dev
-
-# 3. 複製環境設定（可選，預設值可直接啟動）
-cp .env.example .env
-
-# 4. 健康檢查
-curl http://localhost:8000/health   # {"status":"ok"}
 
 # 5. 跑測試確認環境正確
 uv run pytest -q
 ```
 
-**ffmpeg**（practice audio MP3 轉檔）：`brew install ffmpeg` / `apt install ffmpeg` / [下載 Windows 版](https://ffmpeg.org/download.html)。
+**步驟 3：複製環境設定**（可選，預設值可直接啟動）
+
+```powershell
+# Windows PowerShell
+Copy-Item .env.example .env
+```
+
+```bash
+# macOS / Linux
+cp .env.example .env
+```
+
+**步驟 4：健康檢查**
+
+```powershell
+# Windows PowerShell
+Invoke-RestMethod http://localhost:8000/health
+```
+
+```bash
+# macOS / Linux
+curl http://localhost:8000/health
+```
+
+**ffmpeg**（practice audio MP3 轉檔）：Windows 可用 `winget install Gyan.FFmpeg`，macOS 用 `brew install ffmpeg`，Ubuntu / Debian 用 `apt install ffmpeg`，或直接[下載 Windows 版](https://ffmpeg.org/download.html)。
 若 ffmpeg 不在 PATH，`.mid` 仍可產出，`.mp3` 會跳過而不報錯。
 
 **Discord bot**：在 `.env` 設 `DISCORD_BOT_TOKEN`；可選 `DISCORD_BOT_GUILD_ID` 做 guild-scoped slash-command sync。啟動後用 `/ukepack score_file:<attachment> source_type:public_domain confirm_license:true level:1` 產 PDF。

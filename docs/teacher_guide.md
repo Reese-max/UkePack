@@ -257,7 +257,7 @@ F | C | G | C
 6. 下載 **MP3** 播放，或下載 **MIDI** 用 DAW 開啟
 
 > **注意**：MP3 轉檔需要系統安裝 ffmpeg。若未安裝，仍可下載 MIDI 檔。  
-> ffmpeg 安裝：[Windows 版下載](https://ffmpeg.org/download.html) / `brew install ffmpeg`（Mac）
+> ffmpeg 安裝：Windows 可用 `winget install Gyan.FFmpeg`（或[手動下載](https://ffmpeg.org/download.html)），macOS 用 `brew install ffmpeg`。
 
 ---
 

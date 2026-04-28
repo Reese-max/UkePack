@@ -445,6 +445,9 @@ def test_teacher_review_page_renders_editor(db_client: TestClient) -> None:
     assert "老師審稿模式" in resp.text
     assert 'name="chords_text"' in resp.text
     assert "目前與系統原始建議相同" in resp.text
+    assert "主歌:" in resp.text
+    assert "副歌:" in resp.text
+    assert "前奏:" in resp.text
 
 
 def test_teacher_review_page_save_redirects(db_client: TestClient) -> None:

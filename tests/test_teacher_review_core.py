@@ -192,8 +192,8 @@ class TestScoreToChordText:
         text = _score_to_chord_text(score)
         # Measure 1 (not in any section) should still appear without a header
         assert "C" in text
-        # "Chorus:" header should be omitted (no matching measures)
-        assert "Chorus:" not in text
+        # "副歌:" header should be omitted (no matching measures)
+        assert "副歌:" not in text
 
     def test_uncovered_measures_appended_after_sections(self) -> None:
         """Line 236: measures not covered by any section appear at end."""
@@ -208,3 +208,27 @@ class TestScoreToChordText:
         lines = [ln for ln in text.splitlines() if ln.strip()]
         # Should have section header + 2 section lines + 1 uncovered (Am measure 3)
         assert any("Am" in line for line in lines)
+
+    def test_uses_traditional_chinese_section_headers(self) -> None:
+        score = _make_score(
+            chords=[
+                ChordEvent(symbol="C", measure=1, beat=1.0),
+                ChordEvent(symbol="G", measure=2, beat=1.0),
+                ChordEvent(symbol="Am", measure=3, beat=1.0),
+                ChordEvent(symbol="F", measure=4, beat=1.0),
+            ],
+            sections=[
+                ScoreSection(section="intro", start_measure=1, end_measure=1),
+                ScoreSection(section="verse", start_measure=2, end_measure=3),
+                ScoreSection(section="chorus", start_measure=4, end_measure=4),
+            ],
+        )
+
+        text = _score_to_chord_text(score)
+
+        assert "前奏:" in text
+        assert "主歌:" in text
+        assert "副歌:" in text
+        assert "Intro:" not in text
+        assert "Verse:" not in text
+        assert "Chorus:" not in text

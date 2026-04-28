@@ -27,7 +27,7 @@ _SECTION_ALIASES = {
     "副歌": "chorus",
     "hook": "chorus",
 }
-_SECTION_HEADERS = {"intro": "Intro:", "verse": "Verse:", "chorus": "Chorus:"}
+_SECTION_HEADERS = {"intro": "前奏:", "verse": "主歌:", "chorus": "副歌:"}
 _COMPARE_LABELS = {
     "arrangement_level": "難度等級",
     "chords_text": "和弦內容",

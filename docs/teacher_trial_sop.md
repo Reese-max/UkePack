@@ -78,6 +78,98 @@ Thank you!
 [Your name]
 ```
 
+### 約好時間後立刻寄出的試用包
+
+排程一敲定，就把下面 5 樣一起寄出，減少老師在試用前來回問：
+
+1. `http://<host>/new` 或實際部署網址
+2. [`docs/teacher_guide.md`](./teacher_guide.md)
+3. [`feedback.md`](../feedback.md)
+4. 指定試用曲目（或直接附上 1 份 `.musicxml` / `.mxl`）
+5. 明確告知「預計 15 分鐘、目標是做出第 1 份 PDF」
+
+**排程確認訊息範本（繁體中文版）**
+
+```
+老師好，謝謝您願意試用 UkePack。
+
+試用時間： [日期 / 時間]
+試用網址： http://localhost:8000/new
+測試曲目： [曲名]
+
+您只需要照這個順序操作：
+1. 建立專案
+2. 匯入 MusicXML
+3. 確認授權
+4. 預覽或下載 PDF
+5. 填 feedback.md
+
+操作手冊：
+- docs/teacher_guide.md
+- feedback.md
+
+整段流程預計 15 分鐘。若中途卡住，請不要先猜，直接把卡住的畫面或原話留給我。
+```
+
+**Scheduling confirmation template (English)**
+
+```
+Hi [Teacher name],
+
+Thank you for agreeing to try UkePack.
+
+Trial time: [date / time]
+Trial URL: http://localhost:8000/new
+Song for the trial: [song title]
+
+Please follow this sequence:
+1. Create a project
+2. Import the MusicXML file
+3. Confirm the license
+4. Preview or download the PDF
+5. Fill in feedback.md
+
+Materials:
+- docs/teacher_guide.md
+- feedback.md
+
+The full flow should take about 15 minutes. If anything feels unclear, please
+capture the exact step or wording instead of trying to work around it.
+```
+
+### 試用前一天提醒模板
+
+**繁體中文版**
+
+```
+老師好，提醒您明天 / 稍後的 UkePack 試用：
+
+- 時間： [日期 / 時間]
+- 網址： http://localhost:8000/new
+- 測試曲目： [曲名]
+- 預計時間：15 分鐘
+
+若您方便，請先把要測的 MusicXML 檔放在桌面。試用時只要照 teacher_guide.md 的 5 步完成即可。
+如果臨時需要改時間，直接回這封訊息就好，謝謝！
+```
+
+**English**
+
+```
+Hi [Teacher name],
+
+Just a quick reminder about your UkePack trial:
+
+- Time: [date / time]
+- URL: http://localhost:8000/new
+- Song: [song title]
+- Expected duration: 15 minutes
+
+If possible, please keep the MusicXML file ready on your desktop before we
+start. You can follow the 5-step flow in teacher_guide.md during the session.
+If you need to reschedule, just reply here. Thank you!
+```
+
 ---
 
 ## Step 18b — 邀請與排程
@@ -87,6 +179,8 @@ Thank you!
 - [ ] 附上 [`docs/teacher_guide.md`](./teacher_guide.md) 與 `feedback.md`
 - [ ] 確認試用形式：直播帶看 / 老師自己試 / 先看影片再回填
 - [ ] 約定明確時間，並指定要測的 1 首曲子
+- [ ] 排程一敲定，寄出「試用包」：網址 + teacher_guide + feedback + 指定曲目
+- [ ] 試用前一天補 1 封提醒，避免老師到場前還在找檔案或連結
 
 > 建議優先走 **老師自己操作 + 您旁邊只觀察**。這樣最容易抓到真實卡點。
 
@@ -131,6 +225,42 @@ Thank you!
 - 老師第一次卡住時，立刻寫進 `## 主持人觀察紀錄`
 - 老師講出原話時，不要翻譯，直接抄原句
 - 結束後 2 分鐘內補 `從開始到第一份 PDF 用時`
+
+### 試用結束後 24 小時內追蹤模板
+
+如果老師當下還沒填完 `feedback.md`，不要只說「有空再回」。直接丟一段可回覆的文字：
+
+**繁體中文版**
+
+```
+老師好，謝謝您今天試用 UkePack。
+
+想請您補最後一件事：把 feedback.md 的 5 題問卷填完，或直接回我下面 3 行也可以：
+
+1. 最卡的一步是：
+2. 最想保留的一個點是：
+3. 若只能改一件事，您想改：
+
+若方便，今天或明天回我都可以。這份回饋會直接決定下一版優先順序，謝謝！
+```
+
+**English**
+
+```
+Hi [Teacher name],
+
+Thank you again for trying UkePack today.
+
+Could you help with one last step? Please complete feedback.md, or simply reply
+with these three lines:
+
+1. The most confusing step was:
+2. The part worth keeping was:
+3. If you could change only one thing, it would be:
+
+Today or tomorrow is perfect. Your feedback will directly shape the next
+iteration. Thank you!
+```
 
 ---
 

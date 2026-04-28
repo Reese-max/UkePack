@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pathlib
 import re
 from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
@@ -295,3 +296,177 @@ class TestShareLinkUnitEdgeCases:
         from app.core.share_link import ShareLinkStateError, _project_id
         with pytest.raises(ShareLinkStateError, match="must be saved"):
             _project_id(_unsaved_project())
+
+
+# ---------------------------------------------------------------------------
+# share_pages.py route-level coverage (lines 45-46, 60-61, 96-97, 113-123,
+# 129, 137, 139, 146)
+# ---------------------------------------------------------------------------
+
+
+def _api_share_code(client: TestClient, project_id: int) -> str:
+    """Create a share link via the API and return the shortcode."""
+    resp = client.post(
+        f"/api/projects/{project_id}/share-link",
+        json={"expires_in_days": 7},
+    )
+    assert resp.status_code == 200, resp.text
+    return str(resp.json()["code"])
+
+
+class TestSharePagesErrorPaths:
+    def test_create_share_link_page_private_research_redirects_with_error(
+        self, db_client: TestClient
+    ) -> None:
+        """Lines 45-46: ShareLinkError → redirect with share_error=1."""
+        project_id = _create_shareable_project(db_client, source_type="private_research")
+        resp = db_client.post(
+            f"/projects/{project_id}/share-link",
+            data={"expires_in_days": "7", "return_to": "analysis"},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 303
+        assert "share_error=1" in resp.headers["location"]
+
+    def test_revoke_share_link_page_when_no_link_redirects_with_error(
+        self, db_client: TestClient, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Lines 60-61: ShareLinkError → redirect with share_error=1."""
+        from app.core.share_link import ShareLinkStateError
+
+        def _raise(_project: object) -> None:
+            raise ShareLinkStateError("No share link exists for this project")
+
+        project_id = _create_shareable_project(db_client)
+        monkeypatch.setattr("app.api.share_pages.revoke_share_link", _raise)
+        resp = db_client.post(
+            f"/projects/{project_id}/share-link/revoke",
+            data={"return_to": "analysis"},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 303
+        assert "share_error=1" in resp.headers["location"]
+
+    def test_create_share_link_page_returns_404_for_unknown_project(
+        self, db_client: TestClient
+    ) -> None:
+        """Line 146: _get_project_or_404 raises 404 for non-existent project."""
+        resp = db_client.post(
+            "/projects/9999/share-link",
+            data={"expires_in_days": "7"},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 404
+
+    def test_shared_project_page_returns_404_for_missing_code(
+        self, db_client: TestClient, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Line 129: _resolve_shared_project raises 404 when manifest is None."""
+        monkeypatch.setattr("app.api.share_pages.load_share_link_by_code", lambda _code: None)
+        resp = db_client.get("/share/ABCDEFGH")
+        assert resp.status_code == 404
+
+    def test_shared_project_page_returns_404_when_project_deleted(
+        self, db_client: TestClient, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Line 137: project lookup returns None after manifest was created."""
+        fake = ShareLinkManifest(
+            project_id=99999,
+            code="ABCDEFGH",
+            expires_at=datetime.now(UTC) + timedelta(days=7),
+            created_at=datetime.now(UTC),
+        )
+        monkeypatch.setattr("app.api.share_pages.load_share_link_by_code", lambda _code: fake)
+        resp = db_client.get("/share/ABCDEFGH")
+        assert resp.status_code == 404
+
+    def test_shared_project_page_returns_403_when_license_not_confirmed(
+        self, db_client: TestClient, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Line 139: project exists but license_confirmed=False → 403."""
+        # Create a project WITHOUT confirming license.
+        create = db_client.post(
+            "/api/projects",
+            json={"title": "No License", "source_type": "public_domain"},
+        )
+        pid = create.json()["id"]
+        db_client.post(f"/api/projects/{pid}/chords", json={"text": "C | G"})
+        fake = ShareLinkManifest(
+            project_id=pid,
+            code="ABCDEFGH",
+            expires_at=datetime.now(UTC) + timedelta(days=7),
+            created_at=datetime.now(UTC),
+        )
+        monkeypatch.setattr("app.api.share_pages.load_share_link_by_code", lambda _code: fake)
+        resp = db_client.get("/share/ABCDEFGH")
+        assert resp.status_code == 403
+
+    def test_shared_project_pdf_returns_422_on_score_error(
+        self, db_client: TestClient, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Lines 96-97: ValueError from render_project_pdf → 422."""
+        project_id = _create_shareable_project(db_client)
+        code = _api_share_code(db_client, project_id)
+
+        def _raise_ve(_project: object) -> None:
+            raise ValueError("no score")
+
+        monkeypatch.setattr("app.api.share_pages.render_project_pdf", _raise_ve)
+        resp = db_client.get(f"/share/{code}/pack.pdf")
+        assert resp.status_code == 422
+
+    def test_shared_practice_audio_unsupported_format_returns_404(
+        self, db_client: TestClient
+    ) -> None:
+        """Lines 113-115: unsupported file_format → 404."""
+        project_id = _create_shareable_project(db_client)
+        code = _api_share_code(db_client, project_id)
+        resp = db_client.get(f"/share/{code}/practice-audio/50bpm.wav")
+        assert resp.status_code == 404
+
+    def test_shared_practice_audio_file_not_found_returns_404(
+        self, db_client: TestClient, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Lines 118-119: FileNotFoundError from get_practice_audio_file → 404."""
+        project_id = _create_shareable_project(db_client)
+        code = _api_share_code(db_client, project_id)
+
+        def _raise_fnf(*_args: object, **_kw: object) -> None:
+            raise FileNotFoundError("practice audio not generated")
+
+        monkeypatch.setattr("app.api.share_pages.get_practice_audio_file", _raise_fnf)
+        resp = db_client.get(f"/share/{code}/practice-audio/50bpm.mid")
+        assert resp.status_code == 404
+
+    def test_shared_practice_audio_value_error_returns_404(
+        self, db_client: TestClient, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Lines 120-121: ValueError from get_practice_audio_file → 404."""
+        project_id = _create_shareable_project(db_client)
+        code = _api_share_code(db_client, project_id)
+
+        def _raise_ve(*_args: object, **_kw: object) -> None:
+            raise ValueError("bad variant")
+
+        monkeypatch.setattr("app.api.share_pages.get_practice_audio_file", _raise_ve)
+        resp = db_client.get(f"/share/{code}/practice-audio/bad.mid")
+        assert resp.status_code == 404
+
+    def test_shared_practice_audio_happy_path(
+        self, db_client: TestClient, monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path
+    ) -> None:
+        """Lines 122-123: valid variant + format → FileResponse with audio/midi."""
+        project_id = _create_shareable_project(db_client)
+        code = _api_share_code(db_client, project_id)
+
+        # Create a minimal stub MIDI file in a tmp location.
+        stub = tmp_path / "50bpm.mid"
+        stub.write_bytes(b"MThd\x00\x00\x00\x06\x00\x00\x00\x01\x00\x60")
+
+        monkeypatch.setattr(
+            "app.api.share_pages.get_practice_audio_file",
+            lambda *_a, **_kw: stub,
+        )
+        resp = db_client.get(f"/share/{code}/practice-audio/50bpm.mid")
+        assert resp.status_code == 200
+        assert resp.headers["content-type"].startswith("audio/midi")

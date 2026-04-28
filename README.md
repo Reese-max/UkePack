@@ -49,7 +49,7 @@ uv run python -m app.demo \
 uv run python -m app.discord_bot
 ```
 
-> 要把試用包寄給外部老師時，記得加 `--host-url https://<your-host>/new`，而且要用完整 `http://` 或 `https://` 網址。不加時 ZIP 內 README 會標示 `localhost` 只限同機器使用；新版 ZIP 也會附上可直接 copy-paste 的邀請 / 排程 / 提醒 / 追蹤模板。
+> 要把試用包寄給外部老師時，記得加 `--host-url https://<your-host>/new`，而且要用完整 `http://` 或 `https://` 網址。不加時 ZIP 內 README 會標示 `localhost` 只限同機器使用；新版 ZIP 也會附上可直接 copy-paste 的邀請 / 排程 / 提醒 / 追蹤模板。本文與 teacher docs 內所有「外寄範例」也一律用 `https://<your-host>` 佔位，避免把 `localhost` 誤寄出去。
 
 ## 功能一覽
 

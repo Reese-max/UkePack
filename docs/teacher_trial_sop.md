@@ -21,7 +21,7 @@
 > 若要一次整理寄給老師的材料，可先產出試用包 ZIP：  
 > `uv run python -m app.demo --input samples/public_domain/twinkle.musicxml --level 1 --out /tmp/trial.pdf --trial-packet /tmp/teacher-trial.zip`
 >
-> 若老師不在您這台電腦前操作，記得加 `--host-url https://<your-host>/new`，而且要用完整 `http://` 或 `https://` 網址。新的 ZIP README 會直接提醒 `localhost` 不能外寄，CLI 也會擋掉不完整網址。
+> 若老師不在您這台電腦前操作，記得加 `--host-url https://<your-host>/new`，而且要用完整 `http://` 或 `https://` 網址。新的 ZIP README 會直接提醒 `localhost` 不能外寄，CLI 也會擋掉不完整網址。所有要寄出去的信件、QR code、分享短碼示意，也都要先換成真實可連線的網址。
 >
 > 新版試用包還會附 `docs/teacher/templates/`，把邀請信 / 排程確認 / 前一天提醒 / 24 小時追蹤模板一起打包，而且 `Trial URL` 與曲名已代入，可直接 copy-paste。
 
@@ -31,7 +31,7 @@
    「UkePack 可以把一份 MusicXML 轉成初學者可直接練的烏克麗麗 PDF，匯入到出稿通常不到 5 秒。」
 
 2. **0:20–0:50｜建立專案**  
-   打開 `http://localhost:8000/new` → 輸入曲名 → 選「授權來源」→ 點 **下一步：分析 →**。
+   打開試用網址（本機 demo 可用 `http://localhost:8000/new`；外部試用請改成 `https://<your-host>/new`）→ 輸入曲名 → 選「授權來源」→ 點 **下一步：分析 →**。
 
 3. **0:50–1:20｜匯入與分析**  
    在分析頁點 **匯入**，上傳 MusicXML。帶老師看 Key、BPM、Level、可彈性分數、段落結構、刷法切換。
@@ -91,7 +91,7 @@ Thank you!
 
 排程一敲定，就把下面 5 樣一起寄出，減少老師在試用前來回問：
 
-1. `http://<host>/new` 或實際部署網址
+1. `https://<your-host>/new` 或實際部署網址（不要寄 `http://localhost:8000/new`）
 2. [`docs/teacher_guide.md`](./teacher_guide.md)
 3. [`docs/teacher/checklist.md`](./teacher/checklist.md)
 4. [`feedback.md`](../feedback.md)
@@ -104,7 +104,7 @@ Thank you!
 老師好，謝謝您願意試用 UkePack。
 
 試用時間： [日期 / 時間]
-試用網址： http://localhost:8000/new
+試用網址： https://<your-host>/new
 測試曲目： [曲名]
 
 您只需要照這個順序操作：
@@ -130,7 +130,7 @@ Hi [Teacher name],
 Thank you for agreeing to try UkePack.
 
 Trial time: [date / time]
-Trial URL: http://localhost:8000/new
+Trial URL: https://<your-host>/new
 Song for the trial: [song title]
 
 Please follow this sequence:
@@ -157,7 +157,7 @@ capture the exact step or wording instead of trying to work around it.
 老師好，提醒您明天 / 稍後的 UkePack 試用：
 
 - 時間： [日期 / 時間]
-- 網址： http://localhost:8000/new
+- 網址： https://<your-host>/new
 - 測試曲目： [曲名]
 - 預計時間：15 分鐘
 
@@ -173,7 +173,7 @@ Hi [Teacher name],
 Just a quick reminder about your UkePack trial:
 
 - Time: [date / time]
-- URL: http://localhost:8000/new
+- URL: https://<your-host>/new
 - Song: [song title]
 - Expected duration: 15 minutes
 
@@ -192,6 +192,7 @@ If you need to reschedule, just reply here. Thank you!
 - [ ] 附上 [`docs/teacher_guide.md`](./teacher_guide.md) 與 `feedback.md`
 - [ ] 確認試用形式：直播帶看 / 老師自己試 / 先看影片再回填
 - [ ] 約定明確時間，並指定要測的 1 首曲子
+- [ ] 若是遠端試用，確認所有寄出的網址都不是 `localhost`
 - [ ] 排程一敲定，寄出「試用包」：網址 + teacher_guide + feedback + 指定曲目
 - [ ] 試用前一天補 1 封提醒，避免老師到場前還在找檔案或連結
 

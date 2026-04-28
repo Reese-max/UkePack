@@ -1,36 +1,40 @@
-# Teacher Trial SOP
+# 老師試用 SOP
 
-**Purpose**: Structured process for the P1-18 teacher trial — from preparation to Phase 2 backlog update.
-
----
-
-## Step 18a — Prepare Materials
-
-### Demo video script (< 3 min)
-
-1. **Intro** (0:00–0:20)  
-   "UkePack turns any public-domain MusicXML file into a beginner-friendly ukulele practice PDF in under 5 seconds."
-
-2. **Import** (0:20–0:50)  
-   Open browser → `http://localhost:8000/new` → upload `twinkle_twinkle_little_star.musicxml` → click **Create**.
-
-3. **Analysis page** (0:50–1:20)  
-   Walk through: detected key, BPM, difficulty level, suggested strum pattern.  
-   Show the Level switcher (1 / 2 / 3) updating live via HTMX.
-
-4. **Preview & download** (1:20–2:00)  
-   Click **Preview PDF** → scroll through 4 pages (overview, strum, chord chart, teacher notes).  
-   Click **Download PDF** and open in system PDF viewer.
-
-5. **License gate** (2:00–2:30)  
-   Show the license attribution checkbox that must be ticked before exporting.
-
-6. **Close** (2:30–3:00)  
-   "We're looking for your honest feedback on 5 specific areas. The form takes about 5 minutes."
+**目的**：把 P1-18 老師試用壓成一條可直接照做的流程，讓老師在 **15 分鐘內**走完「建立專案 → 匯入 → 授權 → PDF → 回饋」。
 
 ---
 
-### Invitation email template（繁體中文版）
+## Step 18a — 先把材料備齊
+
+| 項目 | 怎麼確認 | 成功訊號 |
+|------|----------|----------|
+| App 已啟動 | `uv run uvicorn app.main:app --host 0.0.0.0 --port 8000` | `http://localhost:8000/health` 回 `{"status":"ok"}` |
+| 範例曲譜 | 準備 `samples/public_domain/twinkle.musicxml` | 老師不用等您臨時找檔案 |
+| 老師操作手冊 | 開好 [`docs/teacher_guide.md`](./teacher_guide.md) | 過程中可直接丟連結給老師自助看 |
+| 回饋表 | 準備 [`feedback.md`](../feedback.md) | 結束後 5 分鐘內可填完 |
+| 選用：練習音檔展示 | 若要 demo 音檔，先準備 1 個 MIDI 專案 | 分析頁會出現「🎧 練習音檔」卡片 |
+
+### 3 分鐘 demo 腳本
+
+1. **0:00–0:20｜開場**  
+   「UkePack 可以把一份 MusicXML 轉成初學者可直接練的烏克麗麗 PDF，匯入到出稿通常不到 5 秒。」
+
+2. **0:20–0:50｜建立專案**  
+   打開 `http://localhost:8000/new` → 輸入曲名 → 選「授權來源」→ 點 **下一步：分析 →**。
+
+3. **0:50–1:20｜匯入與分析**  
+   在分析頁點 **匯入**，上傳 MusicXML。帶老師看 Key、BPM、Level、可彈性分數、段落結構、刷法切換。
+
+4. **1:20–1:50｜授權與輸出**  
+   點 **✅ 確認授權，準備輸出** → 再點 **🎼 預覽 PDF** 或 **⬇ 下載 PDF**。
+
+5. **1:50–2:20｜老師可改的地方**  
+   點 **🧑‍🏫 老師審稿**，示範「💾 儲存審稿」與 **⚠️ 標記太難並降級**。
+
+6. **2:20–3:00｜收尾**  
+   「最後只要填 5 題問卷。哪一步卡、哪一步不清楚，請直接說。」
+
+### 邀請信範本（繁體中文版）
 
 ```
 主旨：小忙幫個手 — 烏克麗麗教學工具試用 5 分鐘問卷
@@ -74,53 +78,69 @@ Thank you!
 
 ---
 
-## Step 18b — Invite
+## Step 18b — 邀請與排程
 
-Checklist:
-- [ ] Record or screen-capture the demo video (follow script above)
-- [ ] Share [`docs/teacher_guide.md`](./teacher_guide.md) with the teacher as a self-serve reference before / during the session
-- [ ] Send invitation email to at least 1 ukulele teacher
-- [ ] Agree on trial date/time and delivery method (live walkthrough / async video)
-- [ ] Share `feedback.md` form (PDF print or editable Google Doc copy)
+- [ ] 先錄好 3 分鐘 demo，避免老師要等您現場摸索
+- [ ] 寄出邀請信給至少 1 位實際在教烏克麗麗的老師
+- [ ] 附上 [`docs/teacher_guide.md`](./teacher_guide.md) 與 `feedback.md`
+- [ ] 確認試用形式：直播帶看 / 老師自己試 / 先看影片再回填
+- [ ] 約定明確時間，並指定要測的 1 首曲子
 
----
-
-## Step 18c — Run Trial & Collect Feedback
-
-**Before the session**:
-- Start the app: `uv run uvicorn app.main:app --host 0.0.0.0 --port 8000`
-- Confirm `/health` returns 200
-- Pre-load at least 1 fixture (e.g., Twinkle Twinkle) so the teacher isn't waiting on import
-
-**During the session**:
-- Observe without prompting — note anything the teacher hesitates on
-- Only intervene if the app crashes
-- Record (with consent) if possible
-
-**After the session**:
-- Collect completed `feedback.md`
-- Copy raw answers into this file under the "Collected Responses" section below
-- Note any ad-hoc verbal observations
+> 建議優先走 **老師自己操作 + 您旁邊只觀察**。這樣最容易抓到真實卡點。
 
 ---
 
-## Step 18d — Write Conclusion & Update Backlog
+## Step 18c — 15 分鐘試用流程
 
-After collecting at least 1 teacher response:
+### 試用前 1 分鐘檢查
 
-1. Summarise findings in `feedback.md` under a new `## Conclusion` heading
-2. For each Q1–Q5 with "Disagree" or "Strongly disagree": open a Phase 2 BACKLOG item
-3. For the open-ended "one thing to change": consider P1 hotfix or P2 planned feature
-4. Mark BACKLOG items `P1-18a/b/c/d` all `[x]` once done
-5. Commit: `docs(feedback): teacher trial results and phase 2 backlog update`
+- App 已開好，瀏覽器停在 `/new`
+- 測試檔已放桌面或聊天視窗，老師拿得到
+- `feedback.md` 已開好可直接填
+
+### 正式流程
+
+| 時間 | 老師要做的事 | 觀察重點 |
+|------|--------------|----------|
+| 0–3 分 | 在 `/new` 輸入曲名、選授權來源、點 **下一步：分析 →** | 會不會找不到建立入口？會不會看不懂 3 種授權來源？ |
+| 3–6 分 | 在分析頁點 **匯入**，上傳 MusicXML | 會不會分不清建立專案 vs 匯入曲譜？ |
+| 6–8 分 | 看分析結果：Key、BPM、Level、可彈性分數、段落、刷法 | 哪一塊資訊最有用？哪一塊看不懂？ |
+| 8–10 分 | 點 **✅ 確認授權，準備輸出** | 是否知道要先授權才能輸出？ |
+| 10–12 分 | 點 **🎼 預覽 PDF**、**⬇ 下載 PDF** | PDF 是否夠清楚、夠快、可直接教？ |
+| 12–13 分 | 點 **🧑‍🏫 老師審稿**，做 1 次小修改後存檔 | 是否能理解審稿模式的價值？ |
+| 13–15 分 | 填 `feedback.md` 5 題問卷 | 是否願意真的把這份 PDF 拿去上課？ |
+
+### 可選延伸（有時間再做）
+
+- **🎧 練習音檔**：若專案已上傳 MIDI，點 **🎧 產生練習音檔**
+- **🔗 分享連結**：點 **🔗 建立分享連結**，確認手機可開分享頁
+- **Discord Bot**：若老師本來就用 Discord，再 demo `/ukepack`
+
+### 記錄規則
+
+- 老師卡住超過 5 秒，記 1 筆
+- 老師主動稱讚某功能，記 1 筆
+- 老師想像不到下一步，要原話記下來
+- 除非系統掛掉，否則先不要提示答案
 
 ---
 
-## Acceptance Criteria
+## Step 18d — 回收回饋與寫結論
+
+試用結束後，立刻做 4 件事：
+
+1. 把老師填好的 `feedback.md` 原文保留，不要先翻譯成工程術語
+2. 在 `feedback.md` 下面新增 `## Conclusion`，整理出 3 件最常見的卡點
+3. 若 Q1–Q5 有「不同意 / 非常不同意」，把對應問題轉成 Phase 2 backlog 或 known issue
+4. 完成後再勾掉 `P1-18b / P1-18c / P1-18d`
+
+---
+
+## 驗收標準
 
 | Step | Done when |
 |------|-----------|
-| 18a | `feedback.md` + this SOP exist; demo video recorded |
-| 18b | Invitation sent; trial date confirmed |
-| 18c | Completed `feedback.md` received |
-| 18d | Conclusion written; BACKLOG updated; committed |
+| 18a | App、範例曲譜、老師指南、回饋表都已備好 |
+| 18b | 邀請信已寄出，試用時間已敲定 |
+| 18c | 至少 1 份完整 `feedback.md` 已回收 |
+| 18d | `feedback.md` 有 `## Conclusion`，且已同步 backlog / known issue |

@@ -158,20 +158,43 @@
     <div class="card">
         <p class="section-title">📥 尚未匯入曲譜</p>
         <p style="color:var(--muted)">請上傳 MusicXML 或手動輸入和弦，才能看到分析結果。</p>
-        <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:1rem">
-            <form
-                method="POST"
-                action="/api/projects/{{ project.id }}/import"
-                enctype="multipart/form-data"
-                style="display:flex; gap:0.75rem; align-items:flex-end; flex-wrap:wrap"
-            >
-                <div class="field" style="margin:0; flex:1; min-width:220px">
-                    <label for="import-file">選擇 .musicxml / .mxl 檔</label>
-                    <input type="file" id="import-file" name="file" accept=".musicxml,.mxl,.xml">
-                </div>
-                <button type="submit" class="btn btn-primary btn-sm">匯入</button>
-            </form>
-        </div>
+
+        <form
+            method="POST"
+            action="/api/projects/{{ project.id }}/import"
+            enctype="multipart/form-data"
+            style="display:flex; gap:0.75rem; align-items:flex-end; flex-wrap:wrap; margin-top:1rem"
+        >
+            <div class="field" style="margin:0; flex:1; min-width:220px">
+                <label for="import-file">選擇 .musicxml / .mxl 檔</label>
+                <input type="file" id="import-file" name="file" accept=".musicxml,.mxl,.xml">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">匯入</button>
+        </form>
+
+        <p style="margin:1.25rem 0 0.75rem; color:var(--muted); font-size:0.9rem; font-weight:600; text-align:center">— 或直接輸入和弦 —</p>
+
+        <form method="POST" action="/projects/{{ project.id }}/save-chords">
+            <div class="field" style="margin:0 0 0.75rem">
+                <label for="chords-text">
+                    和弦文字
+                    <small style="font-weight:400; color:var(--muted)">（每行用 | 分隔；可用 <code>主歌:</code> / <code>副歌:</code> 等段落標記）</small>
+                </label>
+                <textarea
+                    id="chords-text"
+                    name="chords_text"
+                    rows="6"
+                    placeholder="主歌:
+C | Am | F | G |
+C | Am | F | G |
+副歌:
+F | G | C | C |"
+                    style="font-family:monospace; font-size:0.95rem; padding:0.6rem 0.75rem; border:1px solid var(--border); border-radius:var(--radius-sm); resize:vertical; width:100%"
+                    required
+                ></textarea>
+            </div>
+            <button type="submit" class="btn btn-ghost btn-sm">儲存和弦</button>
+        </form>
     </div>
     {% else %}
     {# ── Analysis result ── #}

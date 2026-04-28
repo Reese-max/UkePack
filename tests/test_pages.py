@@ -484,3 +484,70 @@ def test_teacher_review_page_not_found(db_client: TestClient) -> None:
 def test_index_cta_links_to_new(db_client: TestClient) -> None:
     resp = db_client.get("/")
     assert 'href="/new"' in resp.text
+
+
+def test_homepage_hero_cta_links_to_new_project_form(db_client: TestClient) -> None:
+    resp = db_client.get("/")
+    assert resp.status_code == 200
+    # hero-link buttons must point to /new, not to /docs#
+    assert 'class="hero-link" href="/new"' in resp.text
+
+
+# ── POST /projects/{id}/save-chords ────────────────────────────────────────
+
+
+def test_save_chords_page_redirects(db_client: TestClient) -> None:
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Manual Chords Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+
+    resp = db_client.post(
+        f"/projects/{pid}/save-chords",
+        data={"chords_text": "C | Am | F | G"},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 303
+    assert resp.headers["location"] == f"/projects/{pid}"
+
+
+def test_save_chords_page_updates_analysis(db_client: TestClient) -> None:
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Save Chords Analysis", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+
+    db_client.post(
+        f"/projects/{pid}/save-chords",
+        data={"chords_text": "主歌:\nC | Am | F | G"},
+    )
+
+    resp = db_client.get(f"/projects/{pid}")
+    assert resp.status_code == 200
+    assert "分析結果" in resp.text
+    assert "段落結構" in resp.text
+
+
+def test_save_chords_page_not_found(db_client: TestClient) -> None:
+    resp = db_client.post(
+        "/projects/99999/save-chords",
+        data={"chords_text": "C | G"},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 404
+
+
+def test_analysis_page_shows_chord_textarea_when_no_score(db_client: TestClient) -> None:
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "No Score Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+
+    resp = db_client.get(f"/projects/{pid}")
+    assert resp.status_code == 200
+    assert "尚未匯入曲譜" in resp.text
+    assert 'name="chords_text"' in resp.text
+    assert f'action="/projects/{pid}/save-chords"' in resp.text

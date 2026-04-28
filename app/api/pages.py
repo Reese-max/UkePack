@@ -190,6 +190,26 @@ def confirm_license_page(project_id: int, session: SessionDep) -> RedirectRespon
     return RedirectResponse(url=f"/projects/{project_id}", status_code=303)
 
 
+@router.post("/projects/{project_id}/save-chords")
+def save_chords_page(
+    project_id: int,
+    session: SessionDep,
+    chords_text: str = Form(...),
+) -> RedirectResponse:
+    """Save manual chord text and redirect to analysis page (P1-04 UI)."""
+    project = session.get(Project, project_id)
+    if project is None:
+        raise HTTPException(404, "Project not found")
+    score = parse_chord_sheet(project.title, chords_text)
+    project.chords_text = chords_text
+    project.score_json = score.model_dump_json()
+    project.original_key = score.key
+    project.updated_at = datetime.now(UTC)
+    session.add(project)
+    session.commit()
+    return RedirectResponse(url=f"/projects/{project_id}", status_code=303)
+
+
 @router.post("/projects/{project_id}/generate-practice-audio")
 def generate_practice_audio_page(project_id: int, session: SessionDep) -> RedirectResponse:
     """Generate practice audio, then redirect back to analysis page."""

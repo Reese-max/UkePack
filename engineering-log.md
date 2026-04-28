@@ -3,18 +3,37 @@
 > AI 自主開發 agent 每輪在此追加：做了什麼 / 失敗原因 / 換的策略 / 量測數據。
 > 格式：`## YYYY-MM-DD HH:MM | <agent> | <task-id>`
 
-## 2026-04-29 02:17 | copilot | P1-18 external blocker recheck 5
+## 2026-04-29 05:19 | copilot | P1-18 external blocker recheck 8
 
-**目標**：確認本輪是否還有 repo 內可直接推進 K6/K7 或北極星的 M0-M3 工作
+**目標**：確認本輪 baseline 仍綠，並判斷是否還有 repo 內可直接推進 K6/K7 的 M0-M3 工作
 **結果**：🟡
 **量測**：
-- pytest -q / ruff check . / mypy app：PASS
-- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out data\trial-check.pdf --trial-packet data\teacher-trial-check.zip --host-url https://example.com/new`：PASS（demo 0.03s）
-- K7 onboarding checklist：5/5 全綠（Windows setup / MIDI workflow / web UI guide / feedback form / 中文 invite email）
-- openspec pending changes：2 個 proposal，皆為 `accepted`（slow-practice / discord-bot），非當前 blocker
+- `uv run pytest -q`：PASS
+- `uv run ruff check .`：PASS
+- `uv run mypy app`：PASS
+- `docs\teacher\checklist.md`：K7 onboarding 5/5 全綠（Windows setup / MIDI workflow / web UI guide / feedback form / 中文 invite email）
 **失敗根因**（若有）：
 - `BACKLOG.md` 與 `program.md` 未完成項仍只剩 `P1-18b/P1-18c/P1-18d`，本質是外部真人邀請、試用、整理回饋，不是 repo 內可單機完成的工程工作。
-- K7 文件與 sender-safe 試用包已全綠；再補 docs、test、archive 都不會新增 K6/K7 實質進度。
+- 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或 feedback，會讓 teacher-trial 紀錄失真。
+- 既有 K7 文件與試用包已可直接交接；此時再做 docs 微調或其他 repo 內改動，不會新增 K6/K7 實質進度。
+**下一步**：
+- 由專案擁有者使用現成 trial packet 與 `docs\teacher\templates\` 完成 `P1-18b`
+- 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`
+
+## 2026-04-29 04:03 | copilot | P1-18 external blocker recheck 7
+
+**目標**：確認 baseline 與北極星量測仍綠，判斷本輪是否還有 repo 內可直接推進 K6/K7 或北極星的 M0-M3 工作
+**結果**：🟡
+**量測**：
+- `uv run pytest -q`：PASS
+- `uv run ruff check .`：PASS
+- `uv run mypy app`：PASS
+- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out data\ukepack-kpi-check.pdf --trial-packet data\ukepack-kpi-check.zip --host-url https://example.com/new`：PASS（PDF 0.03s，total 0.84s）
+- K7 onboarding checklist：5/5 全綠（Windows setup / MIDI workflow / web UI guide / feedback form / 中文 invite email）
+- 24h chore ratio：63% FAIL（`.harness-chore-ratio.json`）
+**失敗根因**（若有）：
+- `BACKLOG.md` 與 `program.md` 未完成項仍只剩 `P1-18b/P1-18c/P1-18d`，本質是外部真人邀請、試用、整理回饋，不是 repo 內可單機完成的工程工作。
+- 依 Housekeeping Cap，24h chore ratio 已高於 30%；此時再做 blocker recheck commit、docs 微調或其他 H0，只會增加治理噪音，對 K6/K7 沒有實質新增。
 - 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或 feedback，會讓 teacher-trial 紀錄失真。
 **下一步**：
 - 由專案擁有者用現成試用包與 `docs\teacher\templates\` 完成 `P1-18b`
@@ -33,6 +52,23 @@
 - 目前唯一未完成的 backlog 是真人邀請、排程、試用、收 feedback，不是 repo 內可單機完成的工程工作。
 - K7 onboarding 文件已 5/5 全綠；依 teacher-trial 階段規則，這輪若再補 docs / archive / cleanup，只會落入 H0，對 K6/K7 沒有新增推進。
 - 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或 feedback，會讓 trial 紀錄失真。
+**下一步**：
+- 由專案擁有者用現成試用包與 `docs\teacher\templates\` 完成 `P1-18b`
+- 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`
+
+## 2026-04-29 02:17 | copilot | P1-18 external blocker recheck 5
+
+**目標**：確認本輪是否還有 repo 內可直接推進 K6/K7 或北極星的 M0-M3 工作
+**結果**：🟡
+**量測**：
+- pytest -q / ruff check . / mypy app：PASS
+- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out data\trial-check.pdf --trial-packet data\teacher-trial-check.zip --host-url https://example.com/new`：PASS（demo 0.03s）
+- K7 onboarding checklist：5/5 全綠（Windows setup / MIDI workflow / web UI guide / feedback form / 中文 invite email）
+- openspec pending changes：2 個 proposal，皆為 `accepted`（slow-practice / discord-bot），非當前 blocker
+**失敗根因**（若有）：
+- `BACKLOG.md` 與 `program.md` 未完成項仍只剩 `P1-18b/P1-18c/P1-18d`，本質是外部真人邀請、試用、整理回饋，不是 repo 內可單機完成的工程工作。
+- K7 文件與 sender-safe 試用包已全綠；再補 docs、test、archive 都不會新增 K6/K7 實質進度。
+- 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或 feedback，會讓 teacher-trial 紀錄失真。
 **下一步**：
 - 由專案擁有者用現成試用包與 `docs\teacher\templates\` 完成 `P1-18b`
 - 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`

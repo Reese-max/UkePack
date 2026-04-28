@@ -1,13 +1,11 @@
 """End-to-end corpus test: 30 fixtures x Level 1 -> full PDF pipeline.
 
 Validates BACKLOG P1-17: success rate >= 95%, %PDF- magic header, bytes > 0.
-Writes tests/fixtures/E2E_REPORT.md with per-fixture results.
+Writes a deterministic tests/fixtures/E2E_REPORT.md snapshot.
 """
 
 from __future__ import annotations
 
-import datetime
-import time
 from pathlib import Path
 
 import pytest
@@ -54,21 +52,19 @@ def test_e2e_pdf_single_fixture(fixture_path: Path, tmp_path: Path) -> None:
 def test_corpus_success_rate_and_write_report(tmp_path: Path) -> None:
     """Aggregate gate: ≥ 95% of the 30-song corpus must reach valid PDF output.
 
-    Writes tests/fixtures/E2E_REPORT.md regardless of pass/fail so every CI run
-    leaves a traceable artifact.
+    Writes tests/fixtures/E2E_REPORT.md regardless of pass/fail so the checked-in
+    report stays reviewable without changing on every green baseline run.
     """
     results: list[dict[str, object]] = []
 
     for fixture_path in ALL_FIXTURE_PATHS:
         out_pdf = tmp_path / f"{fixture_path.stem}.pdf"
-        t0 = time.perf_counter()
         try:
-            elapsed = run(fixture_path, 1, out_pdf, "public_domain")
+            run(fixture_path, 1, out_pdf, "public_domain")
             pdf_bytes = out_pdf.read_bytes()
             ok = pdf_bytes.startswith(b"%PDF-") and len(pdf_bytes) > 0
             status = "PASS" if ok else "FAIL (bad magic)"
         except Exception as exc:
-            elapsed = time.perf_counter() - t0
             status = f"FAIL ({type(exc).__name__}: {exc})"
             ok = False
 
@@ -76,7 +72,6 @@ def test_corpus_success_rate_and_write_report(tmp_path: Path) -> None:
             {
                 "name": fixture_path.stem,
                 "status": status,
-                "elapsed": elapsed,
                 "ok": ok,
             }
         )
@@ -104,14 +99,13 @@ def _write_e2e_report(
     total: int,
     success_rate: float,
 ) -> None:
-    timestamp = datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     lines: list[str] = [
         "# E2E Corpus PDF Report",
         "",
-        f"**Generated**: {timestamp}  ",
         "**Pipeline**: `parse -> suggest_key -> classify -> suggest_strum -> render_pdf`  ",
         "**Level**: 1  ",
         "**Source type**: public_domain  ",
+        "**Timing gate**: each fixture must render within 5.0 s (`test_e2e_pdf_single_fixture`)  ",
         "",
         "## Summary",
         "",
@@ -124,14 +118,16 @@ def _write_e2e_report(
         "| Target | >= 95% |",
         f"| Gate | {'PASS' if success_rate >= 0.95 else 'FAIL'} |",
         "",
+        "> This snapshot omits per-run timestamps and elapsed numbers so repeated green",
+        "> baseline runs do not dirty the git worktree.",
+        "",
         "## Per-Fixture Results",
         "",
-        "| Fixture | Status | Elapsed (s) |",
-        "|---------|--------|-------------|",
+        "| Fixture | Status |",
+        "|---------|--------|",
     ]
     for r in results:
-        elapsed_str = f"{r['elapsed']:.2f}"
-        lines.append(f"| {r['name']} | {r['status']} | {elapsed_str} |")
+        lines.append(f"| {r['name']} | {r['status']} |")
 
     lines += [
         "",

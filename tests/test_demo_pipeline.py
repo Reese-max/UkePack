@@ -1,5 +1,6 @@
 """Regression tests for the CLI demo north-star pipeline."""
 
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -43,6 +44,43 @@ def test_main_reports_successful_render(capsys: pytest.CaptureFixture[str], tmp_
     assert "Processing:" in stdout
     assert "Done:" in stdout
     assert output_path.read_bytes().startswith(b"%PDF-")
+
+
+def test_main_can_export_teacher_trial_packet(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    output_path = tmp_path / "cli-demo.pdf"
+    packet_path = tmp_path / "teacher-trial.zip"
+
+    main(
+        [
+            "--input",
+            str(_FIXTURE_PATH),
+            "--level",
+            "1",
+            "--out",
+            str(output_path),
+            "--trial-packet",
+            str(packet_path),
+            "--host-url",
+            "https://trial.example/new",
+        ]
+    )
+
+    stdout = capsys.readouterr().out
+    assert "Trial packet:" in stdout
+    assert packet_path.exists()
+
+    with zipfile.ZipFile(packet_path) as archive:
+        names = archive.namelist()
+        assert any(name.endswith("/README.txt") for name in names)
+        assert any(name.endswith("/docs/teacher_guide.md") for name in names)
+        assert any(name.endswith("/feedback.md") for name in names)
+        assert any(name.endswith("/samples/twinkle_twinkle_little_star.musicxml") for name in names)
+        pdf_name = next(name for name in names if name.endswith("/output/cli-demo.pdf"))
+        readme_name = next(name for name in names if name.endswith("/README.txt"))
+        assert archive.read(pdf_name).startswith(b"%PDF-")
+        assert "https://trial.example/new" in archive.read(readme_name).decode("utf-8")
 
 
 def test_main_exits_when_input_is_missing(capsys: pytest.CaptureFixture[str], tmp_path: Path) -> None:

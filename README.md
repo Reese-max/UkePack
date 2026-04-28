@@ -24,6 +24,9 @@ uv run uvicorn app.main:app --reload
 # Windows PowerShell：CLI 產 PDF（北極星驗證）
 uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out $env:TEMP\demo.pdf
 
+# Windows PowerShell：產老師試用包（PDF + teacher_guide + feedback + score）
+uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out $env:TEMP\trial.pdf --trial-packet $env:TEMP\teacher-trial.zip
+
 # Windows PowerShell：Discord bot（需設 DISCORD_BOT_TOKEN）
 uv run python -m app.discord_bot
 ```
@@ -34,6 +37,13 @@ uv run python -m app.demo \
   --input samples/public_domain/twinkle.musicxml \
   --level 1 \
   --out /tmp/demo.pdf
+
+# macOS / Linux：產老師試用包（PDF + teacher_guide + feedback + score）
+uv run python -m app.demo \
+  --input samples/public_domain/twinkle.musicxml \
+  --level 1 \
+  --out /tmp/trial.pdf \
+  --trial-packet /tmp/teacher-trial.zip
 
 # macOS / Linux：Discord bot（需設 DISCORD_BOT_TOKEN）
 uv run python -m app.discord_bot

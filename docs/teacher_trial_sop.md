@@ -12,9 +12,13 @@
 | 範例曲譜 | 準備 `samples/public_domain/twinkle.musicxml` | 老師不用等您臨時找檔案 |
 | 老師操作手冊 | 開好 [`docs/teacher_guide.md`](./teacher_guide.md) | 過程中可直接丟連結給老師自助看 |
 | 回饋表 | 準備 [`feedback.md`](../feedback.md) | 結束後 5 分鐘內可填完 |
+| 試用包 ZIP | `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out $env:TEMP\trial.pdf --trial-packet $env:TEMP\teacher-trial.zip` | 可直接附寄 PDF + teacher_guide + feedback + 範例曲譜 |
 | 選用：練習音檔展示 | 若要 demo 音檔，先用 API 把 1 個 MIDI 補傳到測試專案 | 分析頁會出現「🎧 練習音檔」卡片 |
 
 > Windows PowerShell 可用 `Invoke-RestMethod http://localhost:8000/health` 做健康檢查；macOS / Linux 可用 `curl http://localhost:8000/health`。
+
+> 若要一次整理寄給老師的材料，可先產出試用包 ZIP：  
+> `uv run python -m app.demo --input samples/public_domain/twinkle.musicxml --level 1 --out /tmp/trial.pdf --trial-packet /tmp/teacher-trial.zip`
 
 ### 3 分鐘 demo 腳本
 

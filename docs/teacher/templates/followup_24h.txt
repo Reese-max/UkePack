@@ -1,0 +1,27 @@
+Traditional Chinese
+-------------------
+老師好，謝謝您今天試用 UkePack。
+
+想請您補最後一件事：把 feedback.md 的 5 題問卷填完，或直接回我下面 3 行也可以：
+
+1. 最卡的一步是：
+2. 最想保留的一個點是：
+3. 若只能改一件事，您想改：
+
+今天或明天回我都可以。這份回饋會直接決定下一版優先順序，謝謝！
+
+English
+-------
+Hi [Teacher name],
+
+Thank you again for trying UkePack today.
+
+Could you help with one last step? Please complete feedback.md, or simply reply
+with these three lines:
+
+1. The most confusing step was:
+2. The part worth keeping was:
+3. If you could change only one thing, it would be:
+
+Today or tomorrow is perfect. Your feedback will directly shape the next
+iteration. Thank you!

@@ -1,0 +1,44 @@
+Subject / 主旨:
+Quick favour — 5-min feedback on a ukulele teaching tool
+小忙幫個手 — 烏克麗麗教學工具試用 5 分鐘問卷
+
+Traditional Chinese
+-------------------
+[老師名字] 老師好，
+
+我在開發 UkePack，可以把樂譜自動轉成適合初學者的烏克麗麗練習包 PDF。
+
+想請您幫忙做一次大約 15–20 分鐘的試用。流程很短：建立專案 → 匯入曲譜 → 確認授權 → 看 PDF → 回 5 題問卷。
+
+- 試用網址：{{TRIAL_URL}}
+- 建議測試曲目：{{SONG_TITLE}}
+- 附件：老師使用指南、feedback、試用流程說明
+
+若您願意，我可以線上陪跑，或先寄 3 分鐘 demo 影片給您。
+
+這週方便的時間：[填入您的空檔]
+
+謝謝！
+[您的名字]
+
+English
+-------
+Hi [Teacher name],
+
+I'm building UkePack, a tool that turns sheet music into beginner-friendly
+ukulele practice-pack PDFs.
+
+Could I ask you for a short 15–20 minute trial? The flow is simple: create a
+project, import the score, confirm the license, review the PDF, then answer 5
+feedback questions.
+
+- Trial URL: {{TRIAL_URL}}
+- Suggested song: {{SONG_TITLE}}
+- Attachments: teacher guide, feedback form, trial SOP
+
+I can walk you through it live, or send a short 3-minute demo video first.
+
+Availability this week: [your slots]
+
+Thank you!
+[Your name]

@@ -1,0 +1,26 @@
+Traditional Chinese
+-------------------
+老師好，提醒您明天 / 稍後的 UkePack 試用：
+
+- 時間：[日期 / 時間]
+- 網址：{{TRIAL_URL}}
+- 測試曲目：{{SONG_TITLE}}
+- 預計時間：15 分鐘
+
+若您方便，請先把要測的 MusicXML 檔放在桌面。試用時照 teacher_guide.md 的 5 步完成即可。
+如果臨時需要改時間，直接回這封訊息就好，謝謝！
+
+English
+-------
+Hi [Teacher name],
+
+Just a quick reminder about your UkePack trial:
+
+- Time: [date / time]
+- URL: {{TRIAL_URL}}
+- Song: {{SONG_TITLE}}
+- Expected duration: 15 minutes
+
+If possible, please keep the MusicXML file ready on your desktop before we
+start. You can follow the 5-step flow in teacher_guide.md during the session.
+If you need to reschedule, just reply here. Thank you!

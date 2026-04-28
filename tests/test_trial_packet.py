@@ -23,14 +23,22 @@ def test_trial_packet_includes_sender_docs_and_localhost_warning(tmp_path: Path)
         names = archive.namelist()
         readme_name = next(name for name in names if name.endswith("/README.txt"))
         readme = archive.read(readme_name).decode("utf-8")
+        invite_name = next(
+            name for name in names if name.endswith("/docs/teacher/templates/invite_email.txt")
+        )
+        invite_email = archive.read(invite_name).decode("utf-8")
 
     assert any(name.endswith("/docs/teacher_guide.md") for name in names)
     assert any(name.endswith("/docs/teacher/checklist.md") for name in names)
     assert any(name.endswith("/docs/teacher_trial_sop.md") for name in names)
+    assert any(name.endswith("/docs/teacher/templates/invite_email.txt") for name in names)
     assert "localhost" in readme
     assert "--host-url" in readme
     assert "15 分鐘流程" in readme
     assert "docs/teacher/checklist.md" in readme
+    assert "docs/teacher/templates/*.txt" in readme
+    assert "http://localhost:8000/new" in invite_email
+    assert "Twinkle Twinkle Little Star" in invite_email
 
 
 def test_trial_packet_marks_public_host_url_as_sendable(tmp_path: Path) -> None:
@@ -46,6 +54,13 @@ def test_trial_packet_marks_public_host_url_as_sendable(tmp_path: Path) -> None:
     with zipfile.ZipFile(packet_path) as archive:
         readme_name = next(name for name in archive.namelist() if name.endswith("/README.txt"))
         readme = archive.read(readme_name).decode("utf-8")
+        reminder_name = next(
+            name
+            for name in archive.namelist()
+            if name.endswith("/docs/teacher/templates/day_before_reminder.txt")
+        )
+        reminder = archive.read(reminder_name).decode("utf-8")
 
     assert "https://trial.example/new" in readme
     assert "可外寄" in readme
+    assert "https://trial.example/new" in reminder

@@ -8,6 +8,12 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 _INVALID_STEM_CHARS = re.compile(r"[^A-Za-z0-9._-]+")
+_OUTREACH_TEMPLATES = (
+    "invite_email.txt",
+    "scheduling_confirmation.txt",
+    "day_before_reminder.txt",
+    "followup_24h.txt",
+)
 
 
 def create_teacher_trial_packet(
@@ -30,7 +36,12 @@ def create_teacher_trial_packet(
     guide_path = _repo_root() / "docs" / "teacher_guide.md"
     sop_path = _repo_root() / "docs" / "teacher_trial_sop.md"
     checklist_path = _repo_root() / "docs" / "teacher" / "checklist.md"
+    templates_dir = _repo_root() / "docs" / "teacher" / "templates"
     feedback_path = _repo_root() / "feedback.md"
+    template_context = {
+        "TRIAL_URL": host_url,
+        "SONG_TITLE": _display_song_title(score_path.stem),
+    }
     readme_body = _packet_readme(
         host_url=host_url,
         score_filename=score_path.name,
@@ -46,6 +57,12 @@ def create_teacher_trial_packet(
             f"{root}/docs/teacher/checklist.md",
             checklist_path.read_text(encoding="utf-8"),
         )
+        for template_name in _OUTREACH_TEMPLATES:
+            template_path = templates_dir / template_name
+            archive.writestr(
+                f"{root}/docs/teacher/templates/{template_name}",
+                _render_template(template_path, template_context),
+            )
         archive.writestr(f"{root}/feedback.md", feedback_path.read_text(encoding="utf-8"))
         archive.writestr(f"{root}/samples/{score_path.name}", score_path.read_bytes())
         archive.writestr(f"{root}/output/{pdf_filename}", pdf_bytes)
@@ -80,6 +97,7 @@ def _packet_readme(
             "3. docs/teacher/checklist.md：核對 K7 五份 onboarding 材料都在",
             "4. docs/teacher_trial_sop.md：主持人觀察腳本、邀請信、追蹤模板",
             "5. feedback.md：5 題回饋表 + 主持人觀察欄位",
+            "6. docs/teacher/templates/*.txt：可直接貼出去的邀請 / 排程 / 提醒 / 追蹤模板",
             "",
             "15 分鐘流程 / Suggested flow:",
             "1. 打開試用網址，建立專案。",
@@ -105,6 +123,18 @@ def _safe_stem(value: str) -> str:
     normalized = _INVALID_STEM_CHARS.sub("_", value.strip())
     compact = re.sub(r"\s+", "_", normalized)
     return compact[:60].strip("._") or "teacher_trial"
+
+
+def _display_song_title(value: str) -> str:
+    collapsed = re.sub(r"[_-]+", " ", value).strip()
+    return collapsed.title() or "Sample Song"
+
+
+def _render_template(template_path: Path, context: dict[str, str]) -> str:
+    rendered = template_path.read_text(encoding="utf-8")
+    for key, value in context.items():
+        rendered = rendered.replace(f"{{{{{key}}}}}", value)
+    return rendered
 
 
 def _host_url_note(host_url: str) -> str:

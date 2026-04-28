@@ -1,0 +1,46 @@
+Traditional Chinese
+-------------------
+老師好，謝謝您願意試用 UkePack。
+
+- 試用時間：[日期 / 時間]
+- 試用網址：{{TRIAL_URL}}
+- 測試曲目：{{SONG_TITLE}}
+
+您只需要照這個順序操作：
+1. 建立專案
+2. 匯入 MusicXML
+3. 確認授權
+4. 預覽或下載 PDF
+5. 填 feedback.md
+
+附件 / 參考材料：
+- docs/teacher_guide.md
+- docs/teacher/checklist.md
+- feedback.md
+
+整段流程預計 15 分鐘。若中途卡住，請不要先猜，直接把卡住的畫面或原話留給我。
+
+English
+-------
+Hi [Teacher name],
+
+Thank you for agreeing to try UkePack.
+
+- Trial time: [date / time]
+- Trial URL: {{TRIAL_URL}}
+- Song for the trial: {{SONG_TITLE}}
+
+Please follow this sequence:
+1. Create a project
+2. Import the MusicXML file
+3. Confirm the license
+4. Preview or download the PDF
+5. Fill in feedback.md
+
+Materials:
+- docs/teacher_guide.md
+- docs/teacher/checklist.md
+- feedback.md
+
+The full flow should take about 15 minutes. If anything feels unclear, please
+capture the exact step or wording instead of trying to work around it.

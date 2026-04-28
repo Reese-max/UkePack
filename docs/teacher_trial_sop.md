@@ -13,7 +13,7 @@
 | 老師操作手冊 | 開好 [`docs/teacher_guide.md`](./teacher_guide.md) | 過程中可直接丟連結給老師自助看 |
 | K7 checklist | 開好 [`docs/teacher/checklist.md`](./teacher/checklist.md) | 5/5 onboarding 材料可直接驗收，不用靠記憶 |
 | 回饋表 | 準備 [`feedback.md`](../feedback.md) | 結束後 5 分鐘內可填完 |
-| 試用包 ZIP | `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out $env:TEMP\trial.pdf --trial-packet $env:TEMP\teacher-trial.zip` | 可直接附寄 PDF + teacher_guide + teacher_trial_sop + feedback + 範例曲譜 |
+| 試用包 ZIP | `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out $env:TEMP\trial.pdf --trial-packet $env:TEMP\teacher-trial.zip` | 可直接附寄 PDF + teacher_guide + teacher_trial_sop + feedback + outreach templates + 範例曲譜 |
 | 選用：練習音檔展示 | 若要 demo 音檔，先用 API 把 1 個 MIDI 補傳到測試專案 | 分析頁會出現「🎧 練習音檔」卡片 |
 
 > Windows PowerShell 可用 `Invoke-RestMethod http://localhost:8000/health` 做健康檢查；macOS / Linux 可用 `curl http://localhost:8000/health`。
@@ -22,6 +22,8 @@
 > `uv run python -m app.demo --input samples/public_domain/twinkle.musicxml --level 1 --out /tmp/trial.pdf --trial-packet /tmp/teacher-trial.zip`
 >
 > 若老師不在您這台電腦前操作，記得加 `--host-url https://<your-host>/new`。新的 ZIP README 會直接提醒 `localhost` 不能外寄。
+>
+> 新版試用包還會附 `docs/teacher/templates/`，把邀請信 / 排程確認 / 前一天提醒 / 24 小時追蹤模板一起打包，而且 `Trial URL` 與曲名已代入，可直接 copy-paste。
 
 ### 3 分鐘 demo 腳本
 
@@ -184,6 +186,7 @@ If you need to reschedule, just reply here. Thank you!
 
 ## Step 18b — 邀請與排程
 
+- 若您是從試用包 ZIP 開始寄，優先用 `docs/teacher/templates/` 內的 4 份 `.txt` 範本；裡面的 `Trial URL` 與曲名已先代入，不用再手改一次。
 - [ ] 先錄好 3 分鐘 demo，避免老師要等您現場摸索
 - [ ] 寄出邀請信給至少 1 位實際在教烏克麗麗的老師
 - [ ] 附上 [`docs/teacher_guide.md`](./teacher_guide.md) 與 `feedback.md`

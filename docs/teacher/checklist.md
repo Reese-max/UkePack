@@ -25,7 +25,7 @@
 | MIDI workflow | 明講 Web UI 沒有 MIDI 上傳按鈕；要用 API 補傳後才會出現音檔卡片 | [`README.md`](../../README.md#web-api-快速參考), [`docs/teacher_guide.md`](../teacher_guide.md#9-慢速練習音檔) |
 | Web UI guide | 老師能從 `/new` 走完建立專案 → 匯入 → 授權 → PDF → 審稿 → 分享 | [`docs/teacher_guide.md`](../teacher_guide.md) |
 | Feedback form | 問卷含 5 題、主持人觀察欄、Conclusion 區塊，可直接收回試用結果 | [`feedback.md`](../../feedback.md) |
-| 中文 invite email | 有繁體中文邀請信、排程確認、前一天提醒、24 小時追蹤模板 | [`docs/teacher_trial_sop.md`](../teacher_trial_sop.md#邀請信範本繁體中文版) |
+| 中文 invite email | 有繁體中文邀請信、排程確認、前一天提醒、24 小時追蹤模板，且試用包可直接附上 | [`docs/teacher/templates/invite_email.txt`](./templates/invite_email.txt), [`docs/teacher_trial_sop.md`](../teacher_trial_sop.md#step-18b--邀請與排程) |
 
 ---
 

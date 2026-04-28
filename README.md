@@ -24,7 +24,7 @@ uv run uvicorn app.main:app --reload
 # Windows PowerShell：CLI 產 PDF（北極星驗證）
 uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out $env:TEMP\demo.pdf
 
-# Windows PowerShell：產老師試用包（PDF + teacher_guide + SOP + feedback + score）
+# Windows PowerShell：產老師試用包（PDF + teacher docs + outreach templates + score）
 uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out $env:TEMP\trial.pdf --trial-packet $env:TEMP\teacher-trial.zip
 
 # Windows PowerShell：Discord bot（需設 DISCORD_BOT_TOKEN）
@@ -38,7 +38,7 @@ uv run python -m app.demo \
   --level 1 \
   --out /tmp/demo.pdf
 
-# macOS / Linux：產老師試用包（PDF + teacher_guide + SOP + feedback + score）
+# macOS / Linux：產老師試用包（PDF + teacher docs + outreach templates + score）
 uv run python -m app.demo \
   --input samples/public_domain/twinkle.musicxml \
   --level 1 \
@@ -49,7 +49,7 @@ uv run python -m app.demo \
 uv run python -m app.discord_bot
 ```
 
-> 要把試用包寄給外部老師時，記得加 `--host-url https://<your-host>/new`。不加時 ZIP 內 README 會標示 `localhost` 只限同機器使用。
+> 要把試用包寄給外部老師時，記得加 `--host-url https://<your-host>/new`。不加時 ZIP 內 README 會標示 `localhost` 只限同機器使用；新版 ZIP 也會附上可直接 copy-paste 的邀請 / 排程 / 提醒 / 追蹤模板。
 
 ## 功能一覽
 
@@ -162,6 +162,7 @@ curl http://localhost:8000/health
 | [BACKLOG.md](./BACKLOG.md) | 任務清單（依 Phase 排列） |
 | [docs/teacher_guide.md](./docs/teacher_guide.md) | 老師操作手冊（建立專案 → 審稿 → 分享，30 分鐘上手） |
 | [docs/teacher/checklist.md](./docs/teacher/checklist.md) | K7 onboarding 5/5 驗收表（Windows setup / MIDI workflow / web UI / feedback / 中文 invite） |
+| [docs/teacher/templates/](./docs/teacher/templates/) | 試用邀請 / 排程確認 / 前一天提醒 / 24 小時追蹤範本（ZIP 也會附上） |
 | [openspec/specs/](./openspec/specs/) | 各模組 API / 行為規格（15 份） |
 | [docs/teacher_trial_sop.md](./docs/teacher_trial_sop.md) | 老師試用 SOP（15 分鐘流程、邀請信、驗收清單） |
 | [feedback.md](./feedback.md) | 老師試用回饋問卷 |

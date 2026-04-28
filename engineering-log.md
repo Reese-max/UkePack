@@ -3,6 +3,21 @@
 > AI 自主開發 agent 每輪在此追加：做了什麼 / 失敗原因 / 換的策略 / 量測數據。
 > 格式：`## YYYY-MM-DD HH:MM | <agent> | <task-id>`
 
+## 2026-04-28 12:55 | copilot | P1-18 external blocker recheck
+
+**目標**：確認本輪是否仍有 repo 內可推進的 M0/M1 工作
+**結果**：🟡
+**量測**：
+- pytest -q / ruff check . / mypy app：PASS
+- coverage：N/A
+- 北極星（demo 秒數）：N/A
+**失敗根因**（若有）：
+- 重新盤點 `MISSION.md`、`BACKLOG.md`、`program.md`、`openspec/changes/` 後，未完成項仍只剩 `P1-18b/P1-18c/P1-18d`，性質是外部真人邀請與試用，不是 repo 內可自行完成的工程工作。
+- `feedback.md`、`docs/teacher_trial_sop.md`、`docs/teacher_guide.md` 已把 repo 內可補的試用材料補齊；再繼續做文件微調，對 KPI 邊際幫助接近零，且會落入治理 treadmill。
+- 此環境沒有可合法使用的外寄通道，也沒有已授權的老師聯絡名單；若硬造邀請或回饋，流程紀錄會失真。
+**下一步**：
+- 由專案擁有者依 `docs/teacher_trial_sop.md` 寄出邀請信給至少 1 位老師，拿到試用時段後再執行 `P1-18c/P1-18d`。
+
 ## 2026-04-28 01:54 | copilot | P2-05 incident
 
 **目標**：收 P2-05 Discord bot 初版（讀檔 → 回 PDF）

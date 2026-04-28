@@ -48,3 +48,4 @@
 [2026-04-28T11:05:47+08:00] | M1 | PASS | KPI-impact: 北極星 <30 分鐘 降低 Windows 本機啟動與老師試用摩擦 | 修 README、docs/teacher_trial_sop.md、docs/teacher_guide.md 的平台指令漂移：補 Windows PowerShell 的 demo / .env 複製 / 健康檢查 / ffmpeg 安裝寫法，避免首輪 setup 卡在 Unix-only 指令
 [2026-04-28T11:42:18+08:00] | M1 | PASS | KPI-impact: 北極星 <30 分鐘 降低 P1-18c/18d 試用觀察遺漏 | 補 feedback.md 的主持人觀察欄位（metadata / 第一次卡住 / 原話 / 稱讚 / 結論模板），並同步 docs/teacher_trial_sop.md 指向新欄位；pytest/ruff/mypy 全綠
 [2026-04-28T12:24:00+08:00] | M1 | PASS | KPI-impact: 北極星 <30 分鐘 降低 P1-18b/c 老師試用往返溝通成本 | 擴充 docs/teacher_trial_sop.md：新增排程確認試用包、前一天提醒、試用後 24 小時追蹤模板（中英雙語），並把 Step 18b checklist 補到可直接照抄執行；pytest/ruff/mypy 全綠
+[2026-04-28T12:55:36+08:00] | M1 | FAIL | KPI-impact: 北極星 <30 分鐘 剩 P1-18 真人試用外部阻塞 | baseline pytest -q + ruff check . + mypy app 全綠；重新盤點 MISSION/BACKLOG/program/openspec 後，repo 內未完成項仍只剩 P1-18b/c/d，且試用材料已齊（feedback.md、docs/teacher_trial_sop.md、docs/teacher_guide.md）；本環境無合法外寄通道與老師名單，故只記 blocker、不再做低效 docs/H0

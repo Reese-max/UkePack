@@ -8,6 +8,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 _INVALID_STEM_CHARS = re.compile(r"[^A-Za-z0-9._-]+")
+_UNRESOLVED_TEMPLATE_TOKEN = re.compile(r"\{\{[A-Z0-9_]+\}\}")
 _OUTREACH_TEMPLATES = (
     "invite_email.txt",
     "scheduling_confirmation.txt",
@@ -134,6 +135,11 @@ def _render_template(template_path: Path, context: dict[str, str]) -> str:
     rendered = template_path.read_text(encoding="utf-8")
     for key, value in context.items():
         rendered = rendered.replace(f"{{{{{key}}}}}", value)
+    unresolved = sorted(set(_UNRESOLVED_TEMPLATE_TOKEN.findall(rendered)))
+    if unresolved:
+        raise ValueError(
+            f"unresolved template placeholders in {template_path.name}: {', '.join(unresolved)}"
+        )
     return rendered
 
 

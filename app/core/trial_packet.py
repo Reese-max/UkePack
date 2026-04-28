@@ -29,6 +29,7 @@ def create_teacher_trial_packet(
     root = f"{_safe_stem(score_path.stem)}_teacher_trial_packet"
     guide_path = _repo_root() / "docs" / "teacher_guide.md"
     sop_path = _repo_root() / "docs" / "teacher_trial_sop.md"
+    checklist_path = _repo_root() / "docs" / "teacher" / "checklist.md"
     feedback_path = _repo_root() / "feedback.md"
     readme_body = _packet_readme(
         host_url=host_url,
@@ -41,6 +42,10 @@ def create_teacher_trial_packet(
         archive.writestr(f"{root}/README.txt", readme_body)
         archive.writestr(f"{root}/docs/teacher_guide.md", guide_path.read_text(encoding="utf-8"))
         archive.writestr(f"{root}/docs/teacher_trial_sop.md", sop_path.read_text(encoding="utf-8"))
+        archive.writestr(
+            f"{root}/docs/teacher/checklist.md",
+            checklist_path.read_text(encoding="utf-8"),
+        )
         archive.writestr(f"{root}/feedback.md", feedback_path.read_text(encoding="utf-8"))
         archive.writestr(f"{root}/samples/{score_path.name}", score_path.read_bytes())
         archive.writestr(f"{root}/output/{pdf_filename}", pdf_bytes)
@@ -72,8 +77,9 @@ def _packet_readme(
             "先開哪幾個檔案 / Open these first:",
             "1. README.txt：看這份 15 分鐘流程與網址提醒",
             "2. docs/teacher_guide.md：老師實際操作的 5 步",
-            "3. docs/teacher_trial_sop.md：主持人觀察腳本、邀請信、追蹤模板",
-            "4. feedback.md：5 題回饋表 + 主持人觀察欄位",
+            "3. docs/teacher/checklist.md：核對 K7 五份 onboarding 材料都在",
+            "4. docs/teacher_trial_sop.md：主持人觀察腳本、邀請信、追蹤模板",
+            "5. feedback.md：5 題回饋表 + 主持人觀察欄位",
             "",
             "15 分鐘流程 / Suggested flow:",
             "1. 打開試用網址，建立專案。",

@@ -161,6 +161,7 @@ curl http://localhost:8000/health
 | [PRD.md](./PRD.md) | 完整產品需求文件 v1.0 |
 | [BACKLOG.md](./BACKLOG.md) | 任務清單（依 Phase 排列） |
 | [docs/teacher_guide.md](./docs/teacher_guide.md) | 老師操作手冊（建立專案 → 審稿 → 分享，30 分鐘上手） |
+| [docs/teacher/checklist.md](./docs/teacher/checklist.md) | K7 onboarding 5/5 驗收表（Windows setup / MIDI workflow / web UI / feedback / 中文 invite） |
 | [openspec/specs/](./openspec/specs/) | 各模組 API / 行為規格（15 份） |
 | [docs/teacher_trial_sop.md](./docs/teacher_trial_sop.md) | 老師試用 SOP（15 分鐘流程、邀請信、驗收清單） |
 | [feedback.md](./feedback.md) | 老師試用回饋問卷 |

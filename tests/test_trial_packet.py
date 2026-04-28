@@ -25,10 +25,12 @@ def test_trial_packet_includes_sender_docs_and_localhost_warning(tmp_path: Path)
         readme = archive.read(readme_name).decode("utf-8")
 
     assert any(name.endswith("/docs/teacher_guide.md") for name in names)
+    assert any(name.endswith("/docs/teacher/checklist.md") for name in names)
     assert any(name.endswith("/docs/teacher_trial_sop.md") for name in names)
     assert "localhost" in readme
     assert "--host-url" in readme
     assert "15 分鐘流程" in readme
+    assert "docs/teacher/checklist.md" in readme
 
 
 def test_trial_packet_marks_public_host_url_as_sendable(tmp_path: Path) -> None:

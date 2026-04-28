@@ -11,6 +11,7 @@
 | App 已啟動 | `uv run uvicorn app.main:app --host 0.0.0.0 --port 8000` | `http://localhost:8000/health` 回 `{"status":"ok"}` |
 | 範例曲譜 | 準備 `samples/public_domain/twinkle.musicxml` | 老師不用等您臨時找檔案 |
 | 老師操作手冊 | 開好 [`docs/teacher_guide.md`](./teacher_guide.md) | 過程中可直接丟連結給老師自助看 |
+| K7 checklist | 開好 [`docs/teacher/checklist.md`](./teacher/checklist.md) | 5/5 onboarding 材料可直接驗收，不用靠記憶 |
 | 回饋表 | 準備 [`feedback.md`](../feedback.md) | 結束後 5 分鐘內可填完 |
 | 試用包 ZIP | `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out $env:TEMP\trial.pdf --trial-packet $env:TEMP\teacher-trial.zip` | 可直接附寄 PDF + teacher_guide + teacher_trial_sop + feedback + 範例曲譜 |
 | 選用：練習音檔展示 | 若要 demo 音檔，先用 API 把 1 個 MIDI 補傳到測試專案 | 分析頁會出現「🎧 練習音檔」卡片 |
@@ -90,9 +91,10 @@ Thank you!
 
 1. `http://<host>/new` 或實際部署網址
 2. [`docs/teacher_guide.md`](./teacher_guide.md)
-3. [`feedback.md`](../feedback.md)
-4. 指定試用曲目（或直接附上 1 份 `.musicxml` / `.mxl`）
-5. 明確告知「預計 15 分鐘、目標是做出第 1 份 PDF」
+3. [`docs/teacher/checklist.md`](./teacher/checklist.md)
+4. [`feedback.md`](../feedback.md)
+5. 指定試用曲目（或直接附上 1 份 `.musicxml` / `.mxl`）
+6. 明確告知「預計 15 分鐘、目標是做出第 1 份 PDF」
 
 **排程確認訊息範本（繁體中文版）**
 
@@ -112,6 +114,7 @@ Thank you!
 
 操作手冊：
 - docs/teacher_guide.md
+- docs/teacher/checklist.md
 - feedback.md
 
 整段流程預計 15 分鐘。若中途卡住，請不要先猜，直接把卡住的畫面或原話留給我。
@@ -137,6 +140,7 @@ Please follow this sequence:
 
 Materials:
 - docs/teacher_guide.md
+- docs/teacher/checklist.md
 - feedback.md
 
 The full flow should take about 15 minutes. If anything feels unclear, please

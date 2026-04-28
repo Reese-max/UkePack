@@ -75,6 +75,7 @@ def test_main_can_export_teacher_trial_packet(
         names = archive.namelist()
         assert any(name.endswith("/README.txt") for name in names)
         assert any(name.endswith("/docs/teacher_guide.md") for name in names)
+        assert any(name.endswith("/docs/teacher/checklist.md") for name in names)
         assert any(name.endswith("/docs/teacher_trial_sop.md") for name in names)
         assert any(name.endswith("/feedback.md") for name in names)
         assert any(name.endswith("/samples/twinkle_twinkle_little_star.musicxml") for name in names)

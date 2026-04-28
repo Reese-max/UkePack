@@ -342,6 +342,38 @@ F | G | C | C |"
     </div>
     {% endif %}
 
+    {# ── Edit chords (only for manual-entry projects, not MusicXML imports) ── #}
+    {% if project.chords_text and not project.musicxml_path %}
+    <div class="card">
+        <details>
+            <summary style="cursor:pointer; font-weight:700; user-select:none; list-style:none; display:flex; align-items:center; gap:0.4rem">
+                ✏️ 修改和弦輸入
+            </summary>
+            <div style="margin-top:1rem">
+                <p style="color:var(--muted); font-size:0.9rem; margin:0 0 0.75rem">
+                    修改後按「更新和弦」，分析結果會自動重新計算。
+                </p>
+                <form method="POST" action="/projects/{{ project.id }}/save-chords">
+                    <div class="field" style="margin:0 0 0.75rem">
+                        <label for="edit-chords-text">
+                            和弦文字
+                            <small style="font-weight:400; color:var(--muted)">（每行用 | 分隔；可用 <code>主歌:</code> / <code>副歌:</code> 段落標記）</small>
+                        </label>
+                        <textarea
+                            id="edit-chords-text"
+                            name="chords_text"
+                            rows="6"
+                            style="font-family:monospace; font-size:0.95rem; padding:0.6rem 0.75rem; border:1px solid var(--border); border-radius:var(--radius-sm); resize:vertical; width:100%"
+                            required
+                        >{{ project.chords_text }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-ghost btn-sm">🔄 更新和弦</button>
+                </form>
+            </div>
+        </details>
+    </div>
+    {% endif %}
+
     {# ── Level selector + strum patterns ── #}
     <div class="card">
         <p class="section-title">🥁 刷法建議</p>

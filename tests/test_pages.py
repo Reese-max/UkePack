@@ -551,3 +551,46 @@ def test_analysis_page_shows_chord_textarea_when_no_score(db_client: TestClient)
     assert "尚未匯入曲譜" in resp.text
     assert 'name="chords_text"' in resp.text
     assert f'action="/projects/{pid}/save-chords"' in resp.text
+
+
+def test_analysis_page_shows_edit_chords_section_when_chords_text_set(
+    db_client: TestClient,
+) -> None:
+    """After manual chord entry, an edit section appears for correction."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Edit Chords Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    db_client.post(
+        f"/projects/{pid}/save-chords",
+        data={"chords_text": "C | Am | F | G"},
+    )
+
+    resp = db_client.get(f"/projects/{pid}")
+    assert resp.status_code == 200
+    assert "修改和弦輸入" in resp.text
+    assert "edit-chords-text" in resp.text
+    assert "C | Am | F | G" in resp.text
+
+
+def test_analysis_page_edit_chords_hidden_after_musicxml_import(
+    db_client: TestClient,
+) -> None:
+    """Edit-chords section must NOT appear when score comes from MusicXML."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "XML Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    with TWINKLE.open("rb") as fh:
+        db_client.post(
+            f"/api/projects/{pid}/import",
+            files={"file": ("twinkle.musicxml", fh, "application/xml")},
+        )
+
+    resp = db_client.get(f"/projects/{pid}")
+    assert resp.status_code == 200
+    assert "分析結果" in resp.text
+    assert "修改和弦輸入" not in resp.text
+

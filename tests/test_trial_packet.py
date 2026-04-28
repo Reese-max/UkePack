@@ -53,6 +53,8 @@ def test_trial_packet_includes_sender_docs_and_localhost_warning(tmp_path: Path)
     assert "docs/teacher/templates/*.txt" in readme
     assert "5/5 全綠" in checklist
     assert "中文 invite email" in checklist
+    assert "[`README.txt`](../../README.txt#安裝詳細步驟)" in checklist
+    assert "README.md" not in checklist
     assert "http://localhost:8000/new" in guide
     assert "只適合同一台電腦現場示範" in guide
     assert "`/new`" not in guide

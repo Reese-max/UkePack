@@ -58,15 +58,15 @@ def create_teacher_trial_packet(
         sop_path.read_text(encoding="utf-8"),
         host_url=host_url,
     )
+    checklist_body = _render_teacher_checklist(
+        checklist_path.read_text(encoding="utf-8"),
+    )
 
     with zipfile.ZipFile(packet_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         archive.writestr(f"{root}/README.txt", readme_body)
         archive.writestr(f"{root}/docs/teacher_guide.md", guide_body)
         archive.writestr(f"{root}/docs/teacher_trial_sop.md", sop_body)
-        archive.writestr(
-            f"{root}/docs/teacher/checklist.md",
-            checklist_path.read_text(encoding="utf-8"),
-        )
+        archive.writestr(f"{root}/docs/teacher/checklist.md", checklist_body)
         for template_name in _OUTREACH_TEMPLATES:
             template_path = templates_dir / template_name
             archive.writestr(
@@ -192,6 +192,10 @@ def _render_teacher_guide(guide_body: str, *, host_url: str) -> str:
 def _render_teacher_trial_sop(sop_body: str, *, host_url: str) -> str:
     rendered = sop_body.replace("https://<your-host>/new", host_url)
     return _render_entry_url_tokens(rendered, host_url=host_url)
+
+
+def _render_teacher_checklist(checklist_body: str) -> str:
+    return checklist_body.replace("[`README.md`](../../README.md", "[`README.txt`](../../README.txt")
 
 
 def _join_rendered_lines(lines: list[str], original: str) -> str:

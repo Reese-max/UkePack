@@ -12,7 +12,7 @@
 | 範例曲譜 | 準備 `samples/public_domain/twinkle.musicxml` | 老師不用等您臨時找檔案 |
 | 老師操作手冊 | 開好 [`docs/teacher_guide.md`](./teacher_guide.md) | 過程中可直接丟連結給老師自助看 |
 | 回饋表 | 準備 [`feedback.md`](../feedback.md) | 結束後 5 分鐘內可填完 |
-| 選用：練習音檔展示 | 若要 demo 音檔，先準備 1 個 MIDI 專案 | 分析頁會出現「🎧 練習音檔」卡片 |
+| 選用：練習音檔展示 | 若要 demo 音檔，先用 API 把 1 個 MIDI 補傳到測試專案 | 分析頁會出現「🎧 練習音檔」卡片 |
 
 ### 3 分鐘 demo 腳本
 
@@ -112,7 +112,7 @@ Thank you!
 
 ### 可選延伸（有時間再做）
 
-- **🎧 練習音檔**：若專案已上傳 MIDI，點 **🎧 產生練習音檔**
+- **🎧 練習音檔**：若已先用 API 上傳 MIDI，再點 **🎧 產生練習音檔**
 - **🔗 分享連結**：點 **🔗 建立分享連結**，確認手機可開分享頁
 - **Discord Bot**：若老師本來就用 Discord，再 demo `/ukepack`
 

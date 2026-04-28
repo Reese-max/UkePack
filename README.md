@@ -39,7 +39,7 @@ uv run python -m app.discord_bot
 | **刷法配對** | 5 種刷法（Down / DU / DDU / DUDU / Calypso）依難度建議 |
 | **段落偵測** | Intro / Verse / Chorus 自動辨識（支援手動 header） |
 | **PDF 輸出** | 4 頁 A4：練習總覽、刷法說明、段落地圖、老師備註；含授權聲明 |
-| **慢速練習音檔** | 產 50 BPM / 70% / 100% 三種 MIDI+MP3 variant，含 1 小節 count-in |
+| **慢速練習音檔** | 先透過 API 上傳 MIDI，再產 50 BPM / 70% / 100% 三種 MIDI+MP3 variant，含 1 小節 count-in |
 | **老師審稿模式** | 修改和弦 / 刷法 / 練習說明；比較 / 復原；儲存並套用模板 |
 | **Discord bot** | `/ukepack` 上傳 MusicXML，直接回傳 PDF 練習包 |
 | **Web UI** | HTMX 表單，兒童友善大字體（18px / 52px 按鈕） |
@@ -65,6 +65,9 @@ GET    /share/{code}                     開啟短碼分享頁
 
 完整 API 規格見 [`openspec/specs/projects-api.md`](./openspec/specs/projects-api.md)。
 啟動後也可訪問 `http://localhost:8000/docs` 取得 interactive Swagger UI。
+
+> **目前 Web UI 主流程**：建立專案、匯入 MusicXML、手動輸入和弦、PDF 預覽/分享都可直接在頁面完成。  
+> **MIDI 上傳**目前走 API `POST /api/projects/{id}/midi`，主要用於後續產生練習音檔。
 
 ## 安裝詳細步驟
 

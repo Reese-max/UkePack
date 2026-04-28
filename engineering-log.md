@@ -3,6 +3,23 @@
 > AI 自主開發 agent 每輪在此追加：做了什麼 / 失敗原因 / 換的策略 / 量測數據。
 > 格式：`## YYYY-MM-DD HH:MM | <agent> | <task-id>`
 
+## 2026-04-28 17:42 | copilot | P1-18 external blocker recheck 3
+
+**目標**：確認 host-url 修正後，repo 內是否還有能直接推進 K6/K7 的工作
+**結果**：🟡
+**量測**：
+- pytest -q / ruff check . / mypy app：PASS
+- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out $env:TEMP\teacher-trial-check.pdf --trial-packet $env:TEMP\teacher-trial-check.zip --host-url https://example.com/new`：PASS（demo 0.84s，trial packet ZIP 26,135 bytes）
+- K7 onboarding checklist：5/5 全綠（Windows setup / MIDI workflow / web UI guide / feedback form / 中文 invite email）
+- coverage：N/A
+**失敗根因**（若有）：
+- `BACKLOG.md` 與 `program.md` 未完成項仍只剩 `P1-18b/P1-18c/P1-18d`，都是外部真人邀請、排程、收 feedback，不是 repo 內可單機完成的工程工作。
+- host-url 驗證修正已把 sender-safe handoff 的最後一個 repo 內風險補掉；再做文件或工具微調，對 K6/K7 沒有實質新增。
+- 本環境仍無合法外寄通道與已授權老師名單；若硬造邀請或回饋，會讓 teacher-trial 紀錄失真。
+**下一步**：
+- 由專案擁有者用現成試用包與範本完成 `P1-18b`：`uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out $env:TEMP\trial.pdf --trial-packet $env:TEMP\teacher-trial.zip --host-url https://<your-host>/new`
+- 寄出 ZIP 內 `docs\teacher\templates\` 範本給至少 1 位真實老師，拿到時段後再執行 `P1-18c/P1-18d`。
+
 ## 2026-04-28 16:22 | copilot | P1-18 external blocker recheck 2
 
 **目標**：確認本輪是否還有能直接推進 K6/K7 的 repo 內工作

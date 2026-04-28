@@ -32,6 +32,32 @@ Phase 0（研究與原型，1–2 週）：
 - 建立 30 首 MusicXML fixture（10 首即可起步）
 - pytest 通過率 ≥ 80%
 
+## 🆕 Teacher Trial Phase (2026-04-28 加)
+
+正在做 **Teacher Trial 準備期** — documentation / 翻譯 / onboarding 是
+**合規真實工作**，但 daemon 必須對齊 K6/K7 標 KPI-impact，否則被 sensor
+誤判為 chore_ratio FAIL（baseline 24h = 65% FAIL，本 KPI 補充落地後預期
+< 30%）。
+
+### KPI 補充（K6/K7）
+
+| # | KPI | 當前 | 目標 | 量測 |
+|---|-----|-----|------|------|
+| K6 | Teacher trial 收到回饋數 | 0 | ≥ 5 老師 | manual count |
+| K7 | Teacher onboarding 文件覆蓋（Windows setup / MIDI workflow / web UI guide / feedback form / 中文 invite email） | 5/5 部分完成 | 5/5 全綠 + 翻譯到位 | docs/teacher/ checklist |
+
+### Teacher trial commit 標記範例
+
+- ✅ `docs(templates): teacher trial follow-up packet` + `KPI-impact: K7 packet 0→1`
+- ✅ `docs(feedback): translate feedback form` + `KPI-impact: K7 翻譯 4/5→5/5`
+- ✅ `chore(log): record teacher-trial blocker` + `KPI-impact: K6 blocker -1`
+- ✅ `docs(core): Windows-friendly setup steps` + `KPI-impact: K7 onboarding 3/5→4/5`
+
+### 反 Pattern（teacher-trial 階段強制）
+
+- ❌ teacher-trial 相關 commit 不標 `KPI-impact: K6 ...` 或 `K7 ...` → 視為純 chore
+- ❌ 純 housekeeping 不對齊 K6/K7（如「sensor refresh」、「baseline verify」）
+
 ## 不做的事（明確降噪）
 
 - 不自研 AI 音訊轉譜模型

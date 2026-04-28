@@ -2,7 +2,7 @@
 
 **Status**: Accepted  
 **Scope**: `app/api/pages.py`, `app/api/review_pages.py`, `app/api/share_pages.py`  
-**Implements**: BACKLOG P1-12 – P1-15, practice-audio page flow for P2-02, teacher review mode for P2-03, and private share links for P2-04
+**Implements**: BACKLOG P1-12 – P1-15, P1-04 manual chord input UI, practice-audio page flow for P2-02, teacher review mode for P2-03, and private share links for P2-04
 
 ---
 
@@ -223,6 +223,26 @@ Stores the current teacher review draft as a named template and redirects `303` 
 
 Applies a saved template and redirects `303` →
 `/projects/{id}/review?template_applied=1`.
+
+---
+
+### 2.20 POST `/projects/{id}/save-chords` — Save manual chord sheet (P1-04 UI)
+
+**Form fields**:
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `chords_text` | yes | Pipe-delimited chord text; may include section headers ending in `:` (e.g. `Verse:`, `副歌:`) |
+
+**Behaviour**:
+1. Parse `chords_text` via `parse_chord_sheet` (always succeeds — malformed tokens become raw chord symbols).
+2. Persist `Project.chords_text`, `Project.score_json`, and `Project.original_key`.
+3. Redirect `303` → `GET /projects/{id}`.
+
+`404` if project not found.
+
+No dedicated success/error query-string flag — the analysis page reloads with the
+updated score data as confirmation.
 
 ---
 

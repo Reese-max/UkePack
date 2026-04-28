@@ -24,8 +24,8 @@ def _homepage_cards() -> list[dict[str, str]]:
         },
         {
             "title": "匯入 MusicXML",
-            "description": "直接看匯入 API 說明，立刻把 MusicXML 丟進專案。",
-            "href": "/docs#/default/import_musicxml_api_projects__project_id__import_post",
+            "description": "在建立專案表單中上傳 .musicxml 或 .mxl 檔，系統自動分析 Key、BPM 與和弦進行。",
+            "href": "/new",
         },
         {
             "title": "看範例",

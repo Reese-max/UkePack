@@ -15,6 +15,18 @@ def test_homepage_renders_message_and_ctas(client: TestClient) -> None:
     assert "老師審稿模式" in response.text
 
 
+def test_homepage_hero_cta_links_to_new_project_form(client: TestClient) -> None:
+    """Hero 'start' button must lead to the teacher-friendly form, not Swagger docs.
+
+    # K6: teachers clicking '開始建立' must reach /new, not /docs# (Swagger confusion)
+    """
+    response = client.get("/")
+
+    assert 'href="/new"' in response.text
+    # Swagger API docs should NOT be the target of any CTA on the homepage
+    assert "/docs#" not in response.text
+
+
 def test_public_sample_route_serves_twinkle_fixture(client: TestClient) -> None:
     response = client.get("/samples/public_domain/twinkle.musicxml")
 

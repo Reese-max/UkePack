@@ -14,9 +14,21 @@ from app.models.score import Score
 from app.render.pdf import render_pdf
 
 
-def pdf_filename(title: str) -> str:
-    """Return a filesystem-friendly PDF filename stem."""
-    return title[:50].replace(" ", "_") + ".pdf"
+def pdf_filename(title: str, level: int | None = None, key: str | None = None) -> str:
+    """Return PRD §11.1 compliant filename: {title}_UkePack_Level{N}_{Key}_{date}.pdf."""
+    from datetime import UTC, datetime
+
+    date_str = datetime.now(UTC).strftime("%Y-%m-%d")
+    safe_title = title[:50].replace(" ", "_")
+    # Keep only the tonic (e.g. "C major" → "C", "F# minor" → "F#")
+    clean_key = key.split()[0].replace("#", "s") if key else None
+    parts: list[str] = [safe_title, "UkePack"]
+    if level is not None:
+        parts.append(f"Level{level}")
+    if clean_key:
+        parts.append(clean_key)
+    parts.append(date_str)
+    return "_".join(parts) + ".pdf"
 
 
 def render_project_pdf(project: Project) -> bytes:

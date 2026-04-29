@@ -98,7 +98,7 @@ def shared_project_pdf(code: str, session: SessionDep) -> Response:
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
-        headers={"Content-Disposition": f'inline; filename="{pdf_filename(project.title)}"'},
+        headers={"Content-Disposition": f'inline; filename="{pdf_filename(project.title, project.arrangement_level, project.target_key or project.original_key)}"'},
     )
 
 

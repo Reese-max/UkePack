@@ -33,7 +33,7 @@ def export_pdf(project_id: int, session: SessionDep) -> Response:
     return Response(
         content=render_project_pdf(project),
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{pdf_filename(project.title)}"'},
+        headers={"Content-Disposition": f'attachment; filename="{pdf_filename(project.title, project.arrangement_level, project.target_key or project.original_key)}"'},
     )
 
 

@@ -86,9 +86,13 @@ def test_trial_packet_marks_public_host_url_as_sendable(tmp_path: Path) -> None:
         readme_name = next(name for name in archive.namelist() if name.endswith("/README.txt"))
         guide_name = next(name for name in archive.namelist() if name.endswith("/docs/teacher_guide.md"))
         sop_name = next(name for name in archive.namelist() if name.endswith("/docs/teacher_trial_sop.md"))
+        checklist_name = next(
+            name for name in archive.namelist() if name.endswith("/docs/teacher/checklist.md")
+        )
         readme = archive.read(readme_name).decode("utf-8")
         guide = archive.read(guide_name).decode("utf-8")
         sop = archive.read(sop_name).decode("utf-8")
+        checklist = archive.read(checklist_name).decode("utf-8")
         reminder_name = next(
             name
             for name in archive.namelist()
@@ -105,8 +109,16 @@ def test_trial_packet_marks_public_host_url_as_sendable(tmp_path: Path) -> None:
     assert "<your-host>" not in guide
     assert "`/new`" not in guide
     assert "https://trial.example/new" in sop
+    assert "https://trial.example/health" in sop
+    assert "http://localhost:8000/new" not in sop
+    assert "http://localhost:8000/health" not in sop
+    assert "{{TRIAL_URL}}" not in sop
+    assert "{{SONG_TITLE}}" not in sop
     assert "<your-host>" not in sop
     assert "`/new`" not in sop
+    assert "https://trial.example/new" in checklist
+    assert "{{TRIAL_URL}}" not in checklist
+    assert "{{SONG_TITLE}}" not in checklist
 
 
 def test_trial_packet_normalizes_bare_host_to_new_project_path(tmp_path: Path) -> None:

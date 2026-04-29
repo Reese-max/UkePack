@@ -60,6 +60,7 @@ def create_teacher_trial_packet(
     )
     checklist_body = _render_teacher_checklist(
         checklist_path.read_text(encoding="utf-8"),
+        host_url=host_url,
     )
 
     with zipfile.ZipFile(packet_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
@@ -191,11 +192,54 @@ def _render_teacher_guide(guide_body: str, *, host_url: str) -> str:
 
 def _render_teacher_trial_sop(sop_body: str, *, host_url: str) -> str:
     rendered = sop_body.replace("https://<your-host>/new", host_url)
-    return _render_entry_url_tokens(rendered, host_url=host_url)
+    rendered = _render_entry_url_tokens(rendered, host_url=host_url)
+    if _is_localhost_url(host_url):
+        return rendered
+
+    health_url = _healthcheck_url(host_url)
+    lines = rendered.splitlines()
+    rendered_lines: list[str] = []
+    for line in lines:
+        line = line.replace("http://localhost:8000/health", health_url)
+        line = line.replace("`http://localhost:8000/new`", "`localhost`")
+        if line.startswith("> 若老師不在您這台電腦前操作"):
+            rendered_lines.append(_teacher_trial_sop_packet_note(host_url))
+            continue
+        if line.startswith("> 新版試用包還會附 `docs/teacher/templates/`"):
+            rendered_lines.append(_teacher_trial_sop_template_note(host_url))
+            continue
+        if line.startswith("   打開試用網址（本機 demo 可用 "):
+            rendered_lines.append(
+                f"   打開試用網址（{host_url}）→ 輸入曲名 → 選「授權來源」→ 點 **下一步：分析 →**。"
+            )
+            continue
+        if line.startswith("- 若您是從試用包 ZIP 開始寄，優先用 `docs/teacher/templates/` 內的 4 份 `.txt` 範本"):
+            rendered_lines.append(
+                "- 若您是從這份試用包 ZIP 開始寄，直接用 `docs/teacher/templates/` 內的 4 份 "
+                "`.txt` 範本即可；裡面的 `Trial URL` 與曲名已經代入。"
+            )
+            continue
+        rendered_lines.append(line)
+    return _join_rendered_lines(rendered_lines, rendered)
 
 
-def _render_teacher_checklist(checklist_body: str) -> str:
-    return checklist_body.replace("[`README.md`](../../README.md", "[`README.txt`](../../README.txt")
+def _render_teacher_checklist(checklist_body: str, *, host_url: str) -> str:
+    rendered = checklist_body.replace("[`README.md`](../../README.md", "[`README.txt`](../../README.txt")
+    if _is_localhost_url(host_url):
+        return rendered
+
+    lines = rendered.splitlines()
+    rendered_lines: list[str] = []
+    for line in lines:
+        if line.startswith("1. 打開 `docs/teacher_trial_sop.md`，確認本輪要寄的試用網址、分享短碼示意、信件範本都不是 `localhost`"):
+            rendered_lines.append(
+                "1. 打開 `docs/teacher_trial_sop.md`，確認這份 ZIP 內的試用網址已是 "
+                f"`{host_url}`，分享短碼示意也指向同一個站台；ZIP 內 "
+                "`docs/teacher/templates/` 已代入網址與曲名，不用再手改一次。"
+            )
+            continue
+        rendered_lines.append(line)
+    return _join_rendered_lines(rendered_lines, rendered)
 
 
 def _join_rendered_lines(lines: list[str], original: str) -> str:
@@ -224,6 +268,11 @@ def _share_example_url(host_url: str) -> str:
     return urlunparse(parsed._replace(path="/share/8H4Q7K2M", query="", fragment=""))
 
 
+def _healthcheck_url(host_url: str) -> str:
+    parsed = urlparse(host_url)
+    return urlunparse(parsed._replace(path="/health", query="", fragment=""))
+
+
 def _render_entry_url_tokens(body: str, *, host_url: str) -> str:
     return body.replace("`/new`", f"`{host_url}`")
 
@@ -241,3 +290,17 @@ def _host_url_note(host_url: str) -> str:
             " 若要寄給外部老師，請先用 --host-url 換成可連線網址後再重產一次。"
         )
     return "✅ 這個 Trial URL 看起來可外寄；正式寄出前仍建議先自己點一次確認可連線。"
+
+
+def _teacher_trial_sop_packet_note(host_url: str) -> str:
+    return (
+        f"> 這份試用包已把外寄用 Trial URL 代成 `{host_url}`。"
+        " 若主機網址改了，請重新產生一次試用包再寄出。"
+    )
+
+
+def _teacher_trial_sop_template_note(host_url: str) -> str:
+    return (
+        "> 這份 ZIP 內的 `docs/teacher/templates/` 已把邀請信 / 排程確認 / 前一天提醒 / "
+        f"24 小時追蹤模板的 `Trial URL` 與曲名代入；目前指向 `{host_url}`。"
+    )

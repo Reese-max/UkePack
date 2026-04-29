@@ -67,7 +67,9 @@ target.
 2. Successful runs write non-empty files whose bytes start with `%PDF-`.
 3. The CLI success path prints both `Processing:` and `Done:`.
 4. Trial-packet runs write README/template URLs that point at `/new`, even when
-   the caller passes only the host/root URL.
+   the caller passes only the host/root URL, and public-host packets do not
+   leak `http://localhost:8000/...` setup links or raw `{{TOKEN}}` placeholders
+   into the generated docs.
 5. Invalid trial-packet URLs exit cleanly with code `1` and an understandable
    error.
 6. Missing input exits cleanly with code `1` and an understandable error.

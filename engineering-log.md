@@ -3,6 +3,24 @@
 > AI 自主開發 agent 每輪在此追加：做了什麼 / 失敗原因 / 換的策略 / 量測數據。
 > 格式：`## YYYY-MM-DD HH:MM | <agent> | <task-id>`
 
+## 2026-05-04 08:14 | copilot | P1-18 external blocker recheck 10
+
+**目標**：確認 baseline、北極星 demo、K7 onboarding checklist 後，判斷本輪是否還有 repo 內可直接推進 K6/K7 的 M0-M3 工作
+**結果**：🟡
+**量測**：
+- `uv run pytest -q`：PASS
+- `uv run ruff check .`：PASS
+- `uv run mypy app`：PASS
+- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out C:\Users\Administrator\.copilot\session-state\730c69d5-6f80-4f09-b3da-7306c661cf71\files\ukepack-blocker-check.pdf --trial-packet C:\Users\Administrator\.copilot\session-state\730c69d5-6f80-4f09-b3da-7306c661cf71\files\ukepack-blocker-check.zip --host-url https://example.com/new`：PASS（PDF 0.10s）
+- `docs\teacher\checklist.md`：K7 onboarding 5/5 全綠（Windows setup / MIDI workflow / web UI guide / feedback form / 中文 invite email）
+**失敗根因**（若有）：
+- `BACKLOG.md` 與 `program.md` 未完成項仍只剩 `P1-18b/P1-18c/P1-18d`，本質是外部真人邀請、試用、整理回饋，不是 repo 內可單機完成的工程工作。
+- 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或 feedback，會讓 teacher-trial 紀錄失真。
+- K7 文件已全綠；此時再做 docs 微調或其他 H0，不會新增 K6/K7 實質進度。
+**下一步**：
+- 由專案擁有者使用現成 trial packet 與 `docs\teacher\templates\` 完成 `P1-18b`
+- 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`
+
 ## 2026-04-29 05:19 | copilot | P1-18 external blocker recheck 8
 
 **目標**：確認本輪 baseline 仍綠，並判斷是否還有 repo 內可直接推進 K6/K7 的 M0-M3 工作
@@ -16,6 +34,24 @@
 - `BACKLOG.md` 與 `program.md` 未完成項仍只剩 `P1-18b/P1-18c/P1-18d`，本質是外部真人邀請、試用、整理回饋，不是 repo 內可單機完成的工程工作。
 - 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或 feedback，會讓 teacher-trial 紀錄失真。
 - 既有 K7 文件與試用包已可直接交接；此時再做 docs 微調或其他 repo 內改動，不會新增 K6/K7 實質進度。
+**下一步**：
+- 由專案擁有者使用現成 trial packet 與 `docs\teacher\templates\` 完成 `P1-18b`
+- 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`
+
+## 2026-04-29 08:21 | copilot | P1-18 external blocker recheck 9
+
+**目標**：確認 baseline、北極星 demo、K7 onboarding checklist 後，判斷是否還有 repo 內可直接推進 K6/K7 的 M0-M3 工作
+**結果**：🟡
+**量測**：
+- `uv run pytest -q`：PASS
+- `uv run ruff check .`：PASS
+- `uv run mypy app`：PASS
+- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out C:\Users\Administrator\.copilot\session-state\42528d61-4460-418b-b099-51f246e9ea34\files\ukepack-kpi-check.pdf --trial-packet C:\Users\Administrator\.copilot\session-state\42528d61-4460-418b-b099-51f246e9ea34\files\ukepack-kpi-check.zip --host-url https://example.com/new`：PASS（PDF 0.06s）
+- `docs\teacher\checklist.md`：K7 onboarding 5/5 全綠（Windows setup / MIDI workflow / web UI guide / feedback form / 中文 invite email）
+**失敗根因**（若有）：
+- `BACKLOG.md` 與 `program.md` 未完成項仍只剩 `P1-18b/P1-18c/P1-18d`，本質是外部真人邀請、試用、整理回饋，不是 repo 內可單機完成的工程工作。
+- 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或 feedback，會讓 teacher-trial 紀錄失真。
+- 24h 內 docs/chore 比例已偏高；此時再做 docs 微調或 log-only commit，只會增加治理噪音，對 K6/K7 沒有實質新增。
 **下一步**：
 - 由專案擁有者使用現成 trial packet 與 `docs\teacher\templates\` 完成 `P1-18b`
 - 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`

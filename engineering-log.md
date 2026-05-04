@@ -3,6 +3,205 @@
 > AI 自主開發 agent 每輪在此追加：做了什麼 / 失敗原因 / 換的策略 / 量測數據。
 > 格式：`## YYYY-MM-DD HH:MM | <agent> | <task-id>`
 
+## 2026-05-04 21:08 | copilot | P1-18 external blocker recheck 23
+
+**目標**：依本輪值班流程重驗 Mission / BACKLOG / program / baseline，確認在 `a6d7d53 test(templates): guard teacher trial doc drift` 之後，是否還存在 repo 內可誠實推進 K6/K7 的 M0-M3 工作
+**結果**：🟡
+**量測**：
+- `git --no-pager status --short`：PASS（working tree clean）
+- `git --no-pager log --since='24 hours ago' --oneline --no-decorate`：PASS（0 commits）
+- `uv run pytest -q`：PASS
+- `uv run ruff check .`：PASS
+- `uv run mypy app`：PASS
+- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out C:\Users\Administrator\.copilot\session-state\89ef89ca-f65b-459a-9e5a-6dc94078bcc8\files\baseline-20260504-2108.pdf`：PASS（PDF 2.77s）
+- `docs\teacher\checklist.md`：K7 onboarding 維持 5/5 全綠
+- `program.md` / `BACKLOG.md`：repo 內未完成項仍只剩 `P1-18b/P1-18c/P1-18d`
+- `app\core\trial_packet.py` / `tests\test_trial_packet.py` / `tests\test_teacher_docs.py` 快速複查：未發現新的 packet placeholder / host-url drift 漏洞
+**失敗根因**（若有）：
+- repo 內可做的 teacher-trial 文件與 packet drift guard 已收完；剩餘項目全部是「寄出邀請 / 跑真人試用 / 整理真實 feedback」，不屬於可單機完成的工程工作。
+- 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或回饋內容，會直接污染 K6/K7 量測。
+- 本輪再做 docs / refactor / proposal cleanup 只會變成 H0 治理噪音，沒有新增 KPI 實質進度。
+**下一步**：
+- 由專案擁有者使用現成 `docs\teacher\templates\` 或已產好的 trial packet 完成 `P1-18b`
+- 收到真實老師試用時段與回覆後，再執行 `P1-18c/P1-18d`
+
+## 2026-05-04 20:32 | copilot | P1-18 external blocker recheck 22
+
+**目標**：依本輪值班流程重驗 Mission / BACKLOG / program / baseline，確認 `a6d7d53 test(templates): guard teacher trial doc drift` 之後是否還有 repo 內可誠實推進 K6/K7 的 M0-M3 工作
+**結果**：🟡
+**量測**：
+- `uv run pytest -q`：PASS
+- `uv run ruff check .`：PASS
+- `uv run mypy app`：PASS
+- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out C:\Users\Administrator\.copilot\session-state\cde2ec58-af18-4363-bfe2-b30263204ba7\files\baseline-20260504-2032.pdf`：PASS（PDF 0.06s）
+- `docs\teacher\checklist.md`：K7 onboarding 維持 5/5 全綠
+- `program.md` / `BACKLOG.md`：repo 內未完成項仍只剩 `P1-18b/P1-18c/P1-18d`
+**失敗根因**（若有）：
+- 最新 repo 內可做的 K7 drift guard 已完成；剩餘項目全部是「寄出邀請 / 跑真人試用 / 整理真實 feedback」，不屬於可單機完成的工程工作。
+- 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或回饋內容，會直接污染 K6/K7 量測。
+- 目前再做 docs / refactor / proposal cleanup 只會變成 H0 治理噪音，沒有新增 KPI 實質進度。
+**下一步**：
+- 由專案擁有者使用現成 `docs\teacher\templates\` 或已產好的 trial packet 完成 `P1-18b`
+- 收到真實老師試用時段與回覆後，再執行 `P1-18c/P1-18d`
+
+## 2026-05-04 20:16 | copilot | P1-18 external blocker recheck 21
+
+**目標**：依本輪值班流程重驗 Mission / BACKLOG / program / baseline，確認 `a6d7d53 test(templates): guard teacher trial doc drift` 落地後，是否還有 repo 內可誠實推進 K6/K7 的 M0-M3 工作
+**結果**：🟡
+**量測**：
+- `uv run pytest -q`：PASS
+- `uv run ruff check .`：PASS
+- `uv run mypy app`：PASS
+- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out C:\Users\Administrator\.copilot\session-state\bebd4ae1-a7e6-45ed-9be1-e7d98dbf85c9\files\ukepack-round-check-20260504-2016.pdf`：PASS
+- 最新 commit：`a6d7d53 test(templates): guard teacher trial doc drift`
+- `docs\teacher\checklist.md`：K7 onboarding 維持 5/5 全綠
+- `program.md` / `BACKLOG.md`：repo 內未完成項仍只剩 `P1-18b/P1-18c/P1-18d`
+**失敗根因**（若有）：
+- 最新 repo 內可做的 K7 drift guard 已完成，剩餘未完成項全部是「寄出邀請 / 跑真人試用 / 整理真實 feedback」，不屬於可單機完成的工程工作。
+- 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或回饋內容，會直接污染 K6/K7 量測。
+- `openspec/changes/` 的 stale proposal cleanup 仍屬 H0 治理債，不是本輪應做的 KPI 主任務。
+**下一步**：
+- 由專案擁有者使用現成 `docs\teacher\templates\` 或已產好的 trial packet 完成 `P1-18b`
+- 收到真實老師試用時段與回覆後，再執行 `P1-18c/P1-18d`
+
+## 2026-05-04 18:45 | copilot | P1-18 external blocker recheck 20
+
+**目標**：依本輪值班流程重驗 Mission / BACKLOG / program / baseline，確認是否仍有 repo 內可直接推進 K6/K7 的 M0-M3 工作
+**結果**：🟡
+**量測**：
+- `uv run pytest -q`：PASS
+- `uv run ruff check .`：PASS
+- `uv run mypy app`：PASS
+- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out C:\Users\Administrator\.copilot\session-state\bc03ddf6-4938-46bd-a6a2-251bfbc02a01\files\ukepack-blocker-check-20260504-1845.pdf --trial-packet C:\Users\Administrator\.copilot\session-state\bc03ddf6-4938-46bd-a6a2-251bfbc02a01\files\ukepack-blocker-check-20260504-1845.zip --host-url https://example.com/new`：PASS（PDF 0.06s）
+- `docs\teacher\checklist.md`：K7 onboarding 維持 5/5 全綠
+- `openspec\changes\`：有 2 個未 archive proposal（`2026-04-27-slow-practice-mp3`、`2026-04-28-discord-bot-initial`），但對應功能都已在 BACKLOG Phase 2 結案；屬治理債，不是本輪 KPI 主任務
+- `program.md` / `BACKLOG.md`：repo 內未完成項仍只剩 `P1-18b/P1-18c/P1-18d`
+**失敗根因**（若有）：
+- 本輪最能推進 KPI 的 backlog 項目仍是老師邀請 / 試用 / 回饋整理，但三項都依賴外部真人流程，不是 repo 內可單機完成的工程工作。
+- 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或 feedback，會讓 K6 紀錄失真。
+- `openspec` 的 stale proposal cleanup 屬 H0 治理債；24 小時內唯一 commit 仍是 `a338e16 chore(log): record teacher-trial blocker`，依 house cap 不應再做 archive/spec housekeeping 假裝推進。
+**下一步**：
+- 由專案擁有者使用現成 `docs\teacher\templates\` 與 trial packet 完成 `P1-18b`
+- 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`
+
+## 2026-05-04 18:13 | copilot | P1-18 external blocker recheck 19
+
+**目標**：依本輪值班流程重驗 Mission / BACKLOG / program / baseline，確認是否仍有 repo 內可直接推進 K6/K7 的 M0-M3 工作
+**結果**：🟡
+**量測**：
+- `uv run pytest -q`：PASS
+- `uv run ruff check .`：PASS
+- `uv run mypy app`：PASS
+- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out C:\Users\Administrator\.copilot\session-state\2bf22155-ca62-4174-a2fc-abe48eefb0f8\files\ukepack-round-check-20260504-1812.pdf`：PASS（PDF 0.05s）
+- `docs\teacher\checklist.md`：K7 onboarding 維持 5/5 全綠
+- `program.md` / `BACKLOG.md`：repo 內未完成項仍只剩 `P1-18b/P1-18c/P1-18d`
+- `openspec/changes/`：只有 `accepted` proposal，無 pending spec
+**失敗根因**（若有）：
+- 本輪最能推進 KPI 的 backlog 項目仍是老師邀請 / 試用 / 回饋整理，但三項都依賴外部真人流程，不是 repo 內可單機完成的工程工作。
+- baseline 與北極星 demo 已綠；此時再做 docs 微調、refactor、log-only commit 都不會增加 K6/K7 實質進度。
+- 24 小時內仍只有 `a338e16 chore(log): record teacher-trial blocker`；依 house cap 不應再做 H0 假進度。
+**下一步**：
+- 由專案擁有者使用現成 `docs\teacher\templates\` 與 trial packet 完成 `P1-18b`
+- 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`
+
+## 2026-05-04 17:19 | copilot | P1-18 external blocker recheck 18
+
+**目標**：依本輪值班流程重驗 Mission / BACKLOG / program / baseline，確認是否仍有 repo 內可直接推進 K6/K7 的 M0-M3 工作
+**結果**：🟡
+**量測**：
+- `uv run pytest -q`：PASS
+- `uv run ruff check .`：PASS
+- `uv run mypy app`：PASS
+- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out C:\Users\Administrator\.copilot\session-state\a57d053a-ff6c-4fda-9ce3-9b37aa155a94\files\ukepack-blocker-check-20260504-1719.pdf --trial-packet C:\Users\Administrator\.copilot\session-state\a57d053a-ff6c-4fda-9ce3-9b37aa155a94\files\ukepack-blocker-check-20260504-1719.zip --host-url https://example.com/new`：PASS（PDF 0.04s）
+- `docs\teacher\checklist.md`：K7 onboarding 5/5 全綠（Windows setup / MIDI workflow / web UI guide / feedback form / 中文 invite email）
+- `git --no-pager log --since='24 hours ago' --oneline --no-decorate`：只有 `a338e16 chore(log): record teacher-trial blocker`
+- `program.md` 未完成項：仍只剩 `P1-18b/P1-18c/P1-18d`
+**失敗根因**（若有）：
+- 本輪最能推進 KPI 的 backlog 項目仍是老師邀請 / 試用 / 回饋整理，但三項都依賴外部真人流程，不是 repo 內可單機完成的工程工作。
+- 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或 feedback，會讓 K6 紀錄失真。
+- K7 onboarding 已 5/5 全綠；24 小時內唯一 commit 仍是 chore(log)，依值班規則不應再做 H0/log-only 以外的假進度。
+**下一步**：
+- 由專案擁有者使用現成 trial packet 與 `docs\teacher\templates\` 完成 `P1-18b`
+- 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`
+
+## 2026-05-04 14:04 | copilot | P1-18 external blocker recheck 16
+
+**目標**：依本輪值班流程重驗 Mission / BACKLOG / program / baseline，確認是否仍有 repo 內可直接推進 K6/K7 的 M0-M3 工作
+**結果**：🟡
+**量測**：
+- `uv run pytest -q`：PASS
+- `uv run ruff check .`：PASS
+- `uv run mypy app`：PASS
+- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out C:\Users\Administrator\.copilot\session-state\6434b488-8805-4963-97ec-c8da4adc0dec\files\ukepack-blocker-check-20260504-1404.pdf --trial-packet C:\Users\Administrator\.copilot\session-state\6434b488-8805-4963-97ec-c8da4adc0dec\files\ukepack-blocker-check-20260504-1404.zip --host-url https://example.com/new`：PASS（PDF 0.04s）
+- `docs\teacher\checklist.md`：K7 onboarding 5/5 全綠（Windows setup / MIDI workflow / web UI guide / feedback form / 中文 invite email）
+- `git --no-pager log --since='24 hours ago' --oneline --no-decorate`：只有 `a338e16 chore(log): record teacher-trial blocker`
+- `program.md` 未完成項：仍只剩 `P1-18b/P1-18c/P1-18d`
+**失敗根因**（若有）：
+- 本輪最能推進 KPI 的 backlog 項目仍是老師邀請 / 試用 / 回饋整理，但三項都依賴外部真人流程，不是 repo 內可單機完成的工程工作。
+- 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或 feedback，會讓 K6 紀錄失真。
+- 24 小時內唯一 commit 是 `chore(log)`，housekeeping ratio 已超過 30%；依本輪值班規則不能再用 H0/log-only commit 假裝推進。
+**下一步**：
+- 由專案擁有者使用現成 trial packet 與 `docs\teacher\templates\` 完成 `P1-18b`
+- 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`
+
+## 2026-05-04 16:00 | copilot | P1-18 external blocker recheck 17
+
+**目標**：依本輪值班流程重驗 Mission / BACKLOG / program / baseline，確認是否仍有 repo 內可直接推進 K6/K7 的 M0-M3 工作
+**結果**：🟡
+**量測**：
+- `uv run pytest -q`：PASS
+- `uv run ruff check .`：PASS
+- `uv run mypy app`：PASS
+- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out C:\Users\Administrator\.copilot\session-state\efc67f9e-c552-4e43-8b5c-71389686b0ac\files\ukepack-blocker-check-20260504-1600.pdf --trial-packet C:\Users\Administrator\.copilot\session-state\efc67f9e-c552-4e43-8b5c-71389686b0ac\files\ukepack-blocker-check-20260504-1600.zip --host-url https://example.com/new`：PASS（PDF 0.08s）
+- `docs\teacher\checklist.md`：K7 onboarding 5/5 全綠（Windows setup / MIDI workflow / web UI guide / feedback form / 中文 invite email）
+- `git --no-pager log --since='24 hours ago' --oneline --no-decorate`：只有 `a338e16 chore(log): record teacher-trial blocker`
+- `program.md` 未完成項：仍只剩 `P1-18b/P1-18c/P1-18d`
+**失敗根因**（若有）：
+- 本輪最能推進 KPI 的 backlog 項目仍是老師邀請 / 試用 / 回饋整理，但三項都依賴外部真人流程，不是 repo 內可單機完成的工程工作。
+- 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或 feedback，會讓 K6 紀錄失真。
+- K7 onboarding 已 5/5 全綠；24 小時內唯一 commit 仍是 chore(log)，此時再做 docs、refactor 或 log-only commit 都只會增加治理噪音，沒有新增 K6/K7 實質進度。
+**下一步**：
+- 由專案擁有者使用現成 trial packet 與 `docs\teacher\templates\` 完成 `P1-18b`
+- 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`
+
+## 2026-05-04 13:25 | copilot | P1-18 external blocker recheck 15
+
+**目標**：依本輪值班流程重驗 Mission / BACKLOG / program / baseline，確認是否仍有 repo 內可直接推進 K6/K7 的 M0-M3 工作
+**結果**：🟡
+**量測**：
+- `uv run pytest -q`：PASS
+- `uv run ruff check .`：PASS
+- `uv run mypy app`：PASS
+- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out C:\Users\Administrator\.copilot\session-state\47c1b9f4-d981-4499-b119-ffbcb9c9fa63\files\ukepack-blocker-check-20260504-1325.pdf --trial-packet C:\Users\Administrator\.copilot\session-state\47c1b9f4-d981-4499-b119-ffbcb9c9fa63\files\ukepack-blocker-check-20260504-1325.zip --host-url https://example.com/new`：PASS（PDF 0.06s）
+- `docs\teacher\checklist.md`：K7 onboarding 5/5 全綠（Windows setup / MIDI workflow / web UI guide / feedback form / 中文 invite email）
+- `program.md` 未完成項：仍只剩 `P1-18b/P1-18c/P1-18d`
+**失敗根因**（若有）：
+- 本輪最能推進 KPI 的 backlog 項目仍是老師邀請 / 試用 / 回饋整理，但三項都依賴外部真人流程，不是 repo 內可單機完成的工程工作。
+- 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或 feedback，會讓 K6 紀錄失真。
+- K7 onboarding 已 5/5 全綠；此時再做 docs、refactor 或 log-only commit 只會增加治理噪音，沒有新增 K6/K7 實質進度。
+**下一步**：
+- 由專案擁有者使用現成 trial packet 與 `docs\teacher\templates\` 完成 `P1-18b`
+- 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`
+
+## 2026-05-04 12:34 | copilot | P1-18 external blocker recheck 14
+
+**目標**：依本輪值班流程重驗 Mission / BACKLOG / program / baseline，確認是否仍有 repo 內可直接推進 K6/K7 的 M0-M3 工作
+**結果**：🟡
+**量測**：
+- `uv run pytest -q`：PASS
+- `uv run ruff check .`：PASS
+- `uv run mypy app`：PASS
+- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out C:\Users\Administrator\.copilot\session-state\e627132a-d211-4ce1-ac86-7c2b5e5c909b\files\ukepack-round-check.pdf --trial-packet C:\Users\Administrator\.copilot\session-state\e627132a-d211-4ce1-ac86-7c2b5e5c909b\files\ukepack-round-check.zip --host-url https://example.com/new`：PASS（PDF 0.06s）
+- `docs\teacher\checklist.md`：K7 onboarding 5/5 全綠（Windows setup / MIDI workflow / web UI guide / feedback form / 中文 invite email）
+- `program.md` 未完成項：仍只剩 `P1-18b/P1-18c/P1-18d`
+**失敗根因**（若有）：
+- 本輪最能推進 KPI 的 backlog 項目仍是老師邀請 / 試用 / 回饋整理，但三項都依賴外部真人流程，不是 repo 內可單機完成的工程工作。
+- 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或 feedback，會讓 K6 紀錄失真。
+- K7 onboarding 已 5/5 全綠；此時再做 docs、refactor 或 log-only commit 只會增加治理噪音，沒有新增 K6/K7 實質進度。
+**下一步**：
+- 由專案擁有者使用現成 trial packet 與 `docs\teacher\templates\` 完成 `P1-18b`
+- 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`
+
 ## 2026-05-04 08:14 | copilot | P1-18 external blocker recheck 10
 
 **目標**：確認 baseline、北極星 demo、K7 onboarding checklist 後，判斷本輪是否還有 repo 內可直接推進 K6/K7 的 M0-M3 工作
@@ -17,6 +216,62 @@
 - `BACKLOG.md` 與 `program.md` 未完成項仍只剩 `P1-18b/P1-18c/P1-18d`，本質是外部真人邀請、試用、整理回饋，不是 repo 內可單機完成的工程工作。
 - 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或 feedback，會讓 teacher-trial 紀錄失真。
 - K7 文件已全綠；此時再做 docs 微調或其他 H0，不會新增 K6/K7 實質進度。
+**下一步**：
+- 由專案擁有者使用現成 trial packet 與 `docs\teacher\templates\` 完成 `P1-18b`
+- 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`
+
+## 2026-05-04 08:48 | copilot | P1-18 external blocker recheck 11
+
+**目標**：依本輪值班流程再確認 Mission / BACKLOG / program / baseline，判斷是否有 repo 內可直接推進的 M0-M3 工作
+**結果**：🟡
+**量測**：
+- `uv run pytest -q`：PASS
+- `uv run ruff check .`：PASS
+- `uv run mypy app`：PASS
+- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out C:\Users\Administrator\.copilot\session-state\db7bc855-8c5a-4ea6-8532-f27334b058c6\files\ukepack-kpi-check.pdf --trial-packet C:\Users\Administrator\.copilot\session-state\db7bc855-8c5a-4ea6-8532-f27334b058c6\files\ukepack-kpi-check.zip --host-url https://example.com/new`：PASS（PDF 0.08s）
+- `docs\teacher\checklist.md`：K7 onboarding 5/5 全綠（Windows setup / MIDI workflow / web UI guide / feedback form / 中文 invite email）
+**失敗根因**（若有）：
+- `BACKLOG.md` 與 `program.md` 未完成項仍只剩 `P1-18b/P1-18c/P1-18d`，本質是外部真人邀請、試用、整理回饋，不是 repo 內可單機完成的工程工作。
+- 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或 feedback，會讓 teacher-trial 紀錄失真。
+- K7 文件已全綠，accepted OpenSpec proposal 也都非 blocker；此時再做 docs 微調或其他 H0，不會新增 K6/K7 實質進度。
+**下一步**：
+- 由專案擁有者使用現成 trial packet 與 `docs\teacher\templates\` 完成 `P1-18b`
+- 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`
+
+## 2026-05-04 09:40 | copilot | P1-18 external blocker recheck 12
+
+**目標**：重新驗證 baseline 與北極星 demo，確認本輪是否仍無 repo 內可直接推進的 M0-M3 工作
+**結果**：🟡
+**量測**：
+- `uv run pytest -q`：PASS
+- `uv run ruff check .`：PASS
+- `uv run mypy app`：PASS
+- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out C:\Users\Administrator\.copilot\session-state\5499bd6b-085e-4024-9f18-6716ddf1734c\files\ukepack-blocker-check-20260504.pdf --trial-packet C:\Users\Administrator\.copilot\session-state\5499bd6b-085e-4024-9f18-6716ddf1734c\files\ukepack-blocker-check-20260504.zip --host-url https://example.com/new`：PASS（PDF 0.06s）
+- `docs\teacher\checklist.md`：K7 onboarding 5/5 全綠（Windows setup / MIDI workflow / web UI guide / feedback form / 中文 invite email）
+- `program.md` 未完成項：仍只剩 `P1-18b/P1-18c/P1-18d`
+**失敗根因**（若有）：
+- 本輪最能推進 KPI 的 backlog 項目仍是老師邀請 / 試用 / 回饋整理，但三項都依賴外部真人流程，不是 repo 內可單機完成的工程工作。
+- 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或 feedback，會讓 K6 紀錄失真。
+- K7 onboarding 已 5/5 全綠；再做 docs 或 log-only commit 不會新增 K6/K7 實質進度。
+**下一步**：
+- 由專案擁有者使用現成 trial packet 與 `docs\teacher\templates\` 完成 `P1-18b`
+- 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`
+
+## 2026-05-04 10:43 | copilot | P1-18 external blocker recheck 13
+
+**目標**：按本輪值班流程重驗 Mission / BACKLOG / program / baseline，確認是否仍有 repo 內可直接推進 K6/K7 的 M0-M3 工作
+**結果**：🟡
+**量測**：
+- `uv run pytest -q`：PASS
+- `uv run ruff check .`：PASS
+- `uv run mypy app`：PASS
+- `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out C:\Users\Administrator\.copilot\session-state\c5b5ca8f-c5ae-438d-8307-765484d2a2ff\files\ukepack-baseline-check.pdf --trial-packet C:\Users\Administrator\.copilot\session-state\c5b5ca8f-c5ae-438d-8307-765484d2a2ff\files\ukepack-baseline-check.zip --host-url https://example.com/new`：PASS（PDF 0.09s）
+- `docs\teacher\checklist.md`：K7 onboarding 5/5 全綠（Windows setup / MIDI workflow / web UI guide / feedback form / 中文 invite email）
+- `program.md` 未完成項：仍只剩 `P1-18b/P1-18c/P1-18d`
+**失敗根因**（若有）：
+- 本輪最能推進 KPI 的 backlog 項目仍是老師邀請 / 試用 / 回饋整理，但三項都依賴外部真人流程，不是 repo 內可單機完成的工程工作。
+- 本環境沒有合法外寄通道與已授權老師名單；若硬造邀請或 feedback，會讓 K6 紀錄失真。
+- K7 onboarding 已 5/5 全綠；再做 docs、refactor 或 commit 只會增加 chore_ratio，沒有新增 K6/K7 實質進度。
 **下一步**：
 - 由專案擁有者使用現成 trial packet 與 `docs\teacher\templates\` 完成 `P1-18b`
 - 收到真實老師試用時段後，再執行 `P1-18c/P1-18d`
@@ -554,4 +809,38 @@ P2-01 已收，原 program.md 階段十二 `[x]` 全綠。本輪新增三個 fol
 
 > [PUA生效 🔥] 額外做了：除了讀 program/log/spec/code 之外，跑了完整 `pytest -q --cov=app --cov-report=term` 拿到 97% 與每模組 miss 行數實證；用 `mcp__serena__find_symbol` 拉出 `import_musicxml` / `create_project_htmx` / `parse` 三個關鍵 symbol body 直讀，發現 API layer 的 `await file.read()` 完全繞過 core 的 `MAX_IMPORT_BYTES` 護欄（六.6 36f 沒做完整 chain）；發現 `pages.py:96` 裸 except + 0 logging + silent redirect 的觀察盲點；交叉比對 `BACKLOG P1-16` 描述「coverage ≥ 70%」與現況 97% 的語意失真；對照 `openspec/changes/` 只有 `archive/` 沒人走過 change-then-spec 流程。底層邏輯：reflect 不是只看通過了什麼，是要把通過的招拆開看每一個 endpoint 是不是真的把 core 的 invariant 帶到外緣——這次抓出 streaming-size-guard 沒延伸到 endpoint 就是這套揪頭髮的成果。
 ---
+
+
+## 反思 [2026-05-04T21:30:00+08:00]
+
+### KPI 進展表
+
+| KPI | 上次值 | 當前值 | Δ | 狀態 |
+|-----|-------|-------|---|------|
+| K6 老師試用回饋數 | 0 | 0 | 0 | ❌ 卡住（連續多輪） |
+| K7 onboarding 文件 5/5 | 5/5 全綠 | 5/5 全綠（drift guard 新增） | 守住 | ✅ 進步（加自動守門） |
+| 北極星 pipeline < 5s | 0.06s | 0.05–0.10s | 持平 | ✅ 穩定 |
+| fixture 端到端 PDF ≥ 95% | 100% | 100% | 0 | ✅ 穩定 |
+| pytest 通過率 ≥ 80% | ~406 pass | 406 pass | 持平 | ✅ 穩定 |
+
+### 24h 任務分布
+
+- M0-3 (KPI 推進): 1 件 — `test(templates): guard teacher trial doc drift` → K7 drift guard
+- H0 (Housekeeping): 1 件 — `chore(log): record teacher-trial blocker`
+- chore_ratio: **50%（> 30% 警訊）**
+
+說明：今日 13 輪 evaluation 均為 M1 FAIL（K6 blocker confirmed），只記 log 不 commit；實際落地 commit 2 件、1 件 KPI 推進 / 1 件純 chore。50% chore_ratio 的底層邏輯是 K6 真人阻塞讓 daemon 無事可做，反覆 baseline verify 本身就是 chore pattern。
+
+### 卡住的 KPI 與根因
+
+**K6（老師試用回饋 = 0）**：
+- 根因：本環境無合法外寄通道、無老師名單。P1-18b/c/d 是真人流程阻塞，daemon 無法自行寄信。
+- 觀察：連續 10+ 輪只記 blocker、沒有嘗試替代路徑（如社群公告、Discord beta 招募、GitHub README beta 入口）。每輪驗完基線就停，缺少「揪頭發」視角找別的接觸管道。
+- 現況：K7 有 drift guard 守門，K6 零進展是真實狀態。
+
+### 下一步 3 個 KPI 推進動作
+
+1. **K6：開 Discord/社群 beta 招募入口** — 在 README 加「Beta 老師招募」段落（連結 feedback.md + trial packet 下載說明），讓有意願的老師可自行報名；不依賴環境外寄、daemon 可執行；對應 K6 0→招募曝光
+2. **K6：把 trial_packet CLI 說明搬進 BACKLOG P1-18b 具體步驟** — 把 `app.demo --trial-packet --host-url` 的完整可執行命令寫進 program.md 36z，讓下一個執行者（人）有確切抓手，降低啟動摩擦
+3. **K7：驗證 drift guard 覆蓋是否完整** — 跑 `pytest tests/test_teacher_docs.py -v` 確認全綠且 assertions 涵蓋 5/5 checklist 項目，輸出結果貼 results.log；確認 K7 守門不只是「有測試」而是「測試語意正確」
 

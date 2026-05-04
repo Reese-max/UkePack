@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-04-29T17:20:03",
+  "total_24h": 24,
+  "chore_count": 14,
+  "ratio_percent": 58,
+  "severity": "pass",
+  "warn_threshold": 30,
+  "fail_threshold": 50,
+  "chore_treadmill_pure": 2,
+  "chore_treadmill_ratio": 8,
+  "treadmill_note": "pure chore = chore type AND no K-tag in body",
+  "micro_polish_total": 10,
+  "micro_polish_count": 2,
+  "micro_polish_ratio": 20,
+  "micro_polish_severity": "pass",
+  "micro_polish_threshold": 40,
+  "has_directive": false
+}

@@ -178,11 +178,14 @@
 
 ---
 
-## 階段十三-優先：本輪反思排出的 3 條 KPI-推進動作（2026-05-05 reflect，daemon 可執行；阻塞 36z 真人流程之前）
+## 階段十三-優先：本輪反思排出的 3 條 KPI-推進動作（2026-05-06 reflect，daemon 可執行；阻塞 36z 真人流程之前）
 
-> 動機：本輪反思（engineering-log 2026-05-05T21:37:40）抓出 3 條 KPI 上可推 1 公里、daemon 自己能做的動作。先做完才有資格進真人流程（36z）或加新治理任務。
+> 動機：本輪反思（engineering-log 2026-05-06T14:30:00）抓出 3 條 KPI 上可推、daemon 邊界內能做的動作。前輪 36z-push 假設 origin 存在，事實上 `git remote -v` 空、103 commit 都沒 remote 可推；本輪改寫拆兩半。
 
-- [ ] 36z-push. **[KPI-impact: K6 招募曝光 1→真實可達，daemon 可執行]** `git push -u origin master`（或當前分支）把 5+ 個本地 commit（含 678f272 README beta 招募）推上 remote；驗證 `git log --branches --not --remotes` 為空；commit 不必新增（這是 publish 動作）
+- [ ] 36z-flake. **[KPI-impact: 北極星 < 5s deterministic 守門，daemon 可執行]** 修 `tests/test_corpus_e2e_pdf.py::test_e2e_pdf_single_fixture` 在批次壓力下 `elapsed > 5s` 間歇失敗（首次 run `are_you_sleeping` line 82）；改 cold/warm 雙斷言或 p95 < 5s + p100 < 7s 守門；commit `test(perf): stabilise corpus polaris gate (cold-vs-warm)`
+- [x] 36z-remote-prep. **[KPI-impact: K6 招募曝光 publish-ready，daemon 可執行]** 產出 `docs/publish_ready_checklist.md`：GitHub repo description draft + README badge clean check + LICENSE/CC 標示確認 + `git remote add origin ...` 範例命令清單；補 `tests/test_publish_ready.py` 守門 checklist 不腐蝕；commit `docs(publish): publish-ready checklist for K6 K7 release`
+- [ ] 36z-template-sync. **[KPI-impact: K7 onboarding 跨檔一致性守門，daemon 可執行]** 在 `tests/test_teacher_docs.py` 加 1 條測試：抓 `docs/teacher/templates/*.txt` 中 invite email 版本字串、與 `docs/teacher/checklist.md` / `docs/teacher_trial_sop.md` 引用版本對齊；commit `test(docs): guard teacher invite template version drift`
+- [~] 36z-push. **[降級為真人流程]** 原本「daemon push master 到 origin」前輪假設錯誤——repo 無 remote，103 commit 全部無處可推。**改標 placeholder 流程**：人工執行 `git remote add origin <github-url> && git push -u origin master`；daemon 不再嘗試
 - [x] 36z-e2e. **[KPI-impact: 北極星 < 5s，自動守門]** 加 `tests/test_polaris_timer.py`：對 `samples/public_domain/twinkle.musicxml` 跑 `app.demo.run` 全程，斷言 elapsed < 5.0s（CI 環境）；補上後 commit `test(perf): polaris single-song <5s gate`
 - [x] 36z-link. **[KPI-impact: K7 5/5 真語意守門，daemon 可執行]** 在 `tests/test_teacher_docs.py` 加 1 條測試：parse README 招募段所有相對連結 target，斷言檔案皆存在；commit `test(docs): guard readme teacher recruitment links`
 
@@ -195,7 +198,11 @@
 - [ ] 36zz. P1-18c 跑試用 + 收 feedback，整理進 `feedback.md`（**真人流程**）
 - [ ] 36zzz. P1-18d 寫結論：根據 feedback 排 Phase 2 backlog 調整或標 known issue（**真人流程**）
 
-> **本輪反思禁止候補**（2026-05-05）：不准再加 sensor refresh / baseline verify / archive epic / blocker log 類治理任務進 program.md，daemon 已連續 13 輪空轉這類任務（meta-learn 已存）。
+> **本輪反思禁止候補**（2026-05-06 更新，含 2026-05-05 條）：
+> - 不准再加 sensor refresh / baseline verify / archive epic / blocker log 類治理任務進 program.md（daemon 已連續 14 輪空轉）
+> - 不再以「openspec proposal archive」算 KPI 推進；屬 H0 治理債
+> - 不再 24h 內跑第 2 次 evolve（避免 c6b91a9 + d4d4593 重複）
+> - daemon 不再嘗試 `git push`，repo 無 remote；改交人工流程
 
 ## 階段十四：projects.py 拆檔 + P2-01 觀察池一次清（reflect 第六輪新增，與階段十三可並行；阻塞 P2-03）
 

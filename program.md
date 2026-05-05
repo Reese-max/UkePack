@@ -178,14 +178,24 @@
 
 ---
 
+## 階段十三-優先：本輪反思排出的 3 條 KPI-推進動作（2026-05-05 reflect，daemon 可執行；阻塞 36z 真人流程之前）
+
+> 動機：本輪反思（engineering-log 2026-05-05T21:37:40）抓出 3 條 KPI 上可推 1 公里、daemon 自己能做的動作。先做完才有資格進真人流程（36z）或加新治理任務。
+
+- [ ] 36z-push. **[KPI-impact: K6 招募曝光 1→真實可達，daemon 可執行]** `git push -u origin master`（或當前分支）把 5+ 個本地 commit（含 678f272 README beta 招募）推上 remote；驗證 `git log --branches --not --remotes` 為空；commit 不必新增（這是 publish 動作）
+- [x] 36z-e2e. **[KPI-impact: 北極星 < 5s，自動守門]** 加 `tests/test_polaris_timer.py`：對 `samples/public_domain/twinkle.musicxml` 跑 `app.demo.run` 全程，斷言 elapsed < 5.0s（CI 環境）；補上後 commit `test(perf): polaris single-song <5s gate`
+- [ ] 36z-link. **[KPI-impact: K7 5/5 真語意守門，daemon 可執行]** 在 `tests/test_teacher_docs.py` 加 1 條測試：parse README 招募段所有相對連結 target，斷言檔案皆存在；commit `test(docs): guard readme teacher recruitment links`
+
 ## 階段十三：MVP DoD §3 老師試用收尾（reflect 2026-04-27 第六輪新增，純流程阻塞 MVP 收官）
 
 > 動機：MVP 三條 DoD 中，§1（北極星 < 5s）+ §2（30 fixture 端到端 ≥ 95%）已自動化守門。§3「找 1 位老師試用 + 寫 feedback」連續 2 輪反思未動：P1-18a 材料齊（feedback.md template + docs/teacher_trial_sop.md），但 18b/c/d 全 `[ ]`。再拖一輪就是反思第三輪同一條，且這不是工程能解、靠的是「現在就寄」。
 
 - [x] 36z-pre. **[KPI-impact: K6 招募曝光 0→1，daemon 可執行]** 在 `README.md` 加「Beta 老師招募」段落：說明 trial packet 用途、附 `app.demo --trial-packet --host-url <你的網址>` 指令範例、連結 `docs/teacher/checklist.md` 與 `feedback.md`，讓有意願的老師自行聯繫；補 `tests/test_teacher_docs.py` 驗 README 含招募段落；commit `docs(readme): add beta teacher recruitment section KPI-impact: K6`
-- [ ] 36z. 寄出 P1-18b 邀請信給 ≥1 位實際在教烏克麗麗的老師（用 `docs/teacher_trial_sop.md` 的範本）；在 engineering-log 記日期 + 收件人匿名代號 + 預期試用時間
-- [ ] 36zz. P1-18c 跑試用 + 收 feedback，整理進 `feedback.md`
-- [ ] 36zzz. P1-18d 寫結論：根據 feedback 排 Phase 2 backlog 調整或標 known issue
+- [ ] 36z. 寄出 P1-18b 邀請信給 ≥1 位實際在教烏克麗麗的老師（用 `docs/teacher_trial_sop.md` 的範本）；在 engineering-log 記日期 + 收件人匿名代號 + 預期試用時間（**真人流程，待 36z-push 完成後才有意義**）
+- [ ] 36zz. P1-18c 跑試用 + 收 feedback，整理進 `feedback.md`（**真人流程**）
+- [ ] 36zzz. P1-18d 寫結論：根據 feedback 排 Phase 2 backlog 調整或標 known issue（**真人流程**）
+
+> **本輪反思禁止候補**（2026-05-05）：不准再加 sensor refresh / baseline verify / archive epic / blocker log 類治理任務進 program.md，daemon 已連續 13 輪空轉這類任務（meta-learn 已存）。
 
 ## 階段十四：projects.py 拆檔 + P2-01 觀察池一次清（reflect 第六輪新增，與階段十三可並行；阻塞 P2-03）
 

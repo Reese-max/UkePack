@@ -82,3 +82,19 @@ def test_publish_ready_description_stays_short_and_keyword_complete() -> None:
 
     for keyword in ("MusicXML", "ukulele", "PDF", "5 seconds"):
         assert keyword in description
+
+
+def test_readme_links_to_publish_ready_checklist() -> None:
+    readme = _read_text(README)
+    match = re.search(r"## 📦 Publish 準備\n(.*?)(?=\n## |\Z)", readme, re.DOTALL)
+    assert match, "README.md must expose a publish-ready section"
+
+    section_text = match.group(1)
+    link_match = re.search(
+        r"\[docs/publish_ready_checklist\.md\]\((?P<link>\./docs/publish_ready_checklist\.md)\)",
+        section_text,
+    )
+    assert link_match, "publish-ready section must link to docs/publish_ready_checklist.md"
+
+    target = ROOT / link_match.group("link").lstrip("./")
+    assert target.exists()

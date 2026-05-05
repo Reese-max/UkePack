@@ -104,8 +104,10 @@ def test_readme_and_feedback_preserve_teacher_trial_operator_flow() -> None:
 
     for snippet in (
         "## Beta 老師招募",
+        "## 📦 Publish 準備",
         "15 分鐘 Beta 試用",
         "老師試用包用途",
+        "docs/publish_ready_checklist.md",
         "Copy-Item .env.example .env",
         "Invoke-RestMethod http://localhost:8000/health",
         # Server-start command must appear in 安裝詳細步驟 — K7 checklist
@@ -166,6 +168,16 @@ def test_teacher_outreach_template_version_matches_checklist_and_sop() -> None:
     for path in (CHECKLIST, TRIAL_SOP):
         document = _read_text(path)
         assert f"`{shared_version}`" in document
+
+
+def test_readme_publish_ready_section_links_to_checklist() -> None:
+    readme = _read_text(README)
+    match = re.search(r"## 📦 Publish 準備\n(.*?)(?=\n## |\Z)", readme, re.DOTALL)
+    assert match, "README.md must contain a '## 📦 Publish 準備' section"
+
+    section_text = match.group(1)
+    assert "[docs/publish_ready_checklist.md](./docs/publish_ready_checklist.md)" in section_text
+    assert "git remote add origin" in section_text
 
 
 @pytest.mark.parametrize(

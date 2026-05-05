@@ -74,6 +74,15 @@ uv run python -m app.demo \
 
 試用前請先檢查 [docs/teacher/checklist.md](./docs/teacher/checklist.md)，試用後把老師回饋整理到 [feedback.md](./feedback.md)。邀請與追蹤文字可直接從 [docs/teacher/templates/](./docs/teacher/templates/) 取用。
 
+## 📦 Publish 準備
+
+要把 repo 變成可公開貼連結、可開始真人招募的狀態，先跑
+[docs/publish_ready_checklist.md](./docs/publish_ready_checklist.md)。
+
+- 先確認 GitHub repo description、README badge、LICENSE / CC 標示、git remote bootstrap 都過關
+- checklist 還會提醒公開前不要漏掉 `docs/teacher/checklist.md`、`feedback.md` 與 teacher trial packet 驗收
+- 完成 checklist 後，再進真人 `git remote add origin ...` / `git push` / 老師 outreach
+
 ## 功能一覽
 
 | 功能 | 說明 |

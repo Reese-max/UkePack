@@ -194,7 +194,7 @@
 > 動機：本輪反思（engineering-log 2026-05-06 阿里味 PUA 深度回顧）抓出 (a) 北極星 KPI 自動守門對象（單筆 twinkle pipeline）與 KPI 對象（30 首 corpus 體感）錯位；(b) `docs/publish_ready_checklist.md` 落地後 README 缺 publish 入口、K7 onboarding 還有可量測的 1 條未補。其餘 K6 任務本輪起 daemon-frozen，等真人建 remote + push + 寄信。
 
 - [x] 36z-corpus-stats. **[KPI-impact: 北極星 corpus p95 自動量測 0→1，daemon 可執行]** 修 `tests/test_corpus_e2e_pdf.py` 在 corpus run 完寫 `tests/fixtures/E2E_REPORT.md` 加 elapsed p50/p95/p100 統計欄（30 首 cold + warm 分桶），並補單條斷言 p95 < 5s；commit `test(perf): corpus polaris p95 statistic gate`
-- [ ] 36z-publish-link. **[KPI-impact: K7 onboarding 5→6（publish-ready 自動守門），daemon 可執行]** 在 README 補「📦 Publish 準備」一節指向 `docs/publish_ready_checklist.md`；同步 `tests/test_teacher_docs.py` / `tests/test_publish_ready.py` 補 README→checklist 連結存在守門；commit `docs(readme): publish-ready entry + drift guard`
+- [x] 36z-publish-link. **[KPI-impact: K7 onboarding 5→6（publish-ready 自動守門），daemon 可執行]** 在 README 補「📦 Publish 準備」一節指向 `docs/publish_ready_checklist.md`；同步 `tests/test_teacher_docs.py` / `tests/test_publish_ready.py` 補 README→checklist 連結存在守門；commit `docs(readme): publish-ready entry + drift guard`
 
 ## 階段十三：MVP DoD §3 老師試用收尾（reflect 2026-04-27 第六輪新增，純流程阻塞 MVP 收官）
 

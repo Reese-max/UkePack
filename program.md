@@ -196,6 +196,14 @@
 - [x] 36z-corpus-stats. **[KPI-impact: 北極星 corpus p95 自動量測 0→1，daemon 可執行]** 修 `tests/test_corpus_e2e_pdf.py` 在 corpus run 完寫 `tests/fixtures/E2E_REPORT.md` 加 elapsed p50/p95/p100 統計欄（30 首 cold + warm 分桶），並補單條斷言 p95 < 5s；commit `test(perf): corpus polaris p95 statistic gate`
 - [x] 36z-publish-link. **[KPI-impact: K7 onboarding 5→6（publish-ready 自動守門），daemon 可執行]** 在 README 補「📦 Publish 準備」一節指向 `docs/publish_ready_checklist.md`；同步 `tests/test_teacher_docs.py` / `tests/test_publish_ready.py` 補 README→checklist 連結存在守門；commit `docs(readme): publish-ready entry + drift guard`
 
+## 階段十三-優先-pua-retro-2026-05-06：本輪 KPI 反思排出的 3 條（2026-05-06T04:30 reflect，daemon 邊界內可執行）
+
+> 動機：本輪反思（engineering-log 2026-05-06T04:30）抓出 (a) 北極星 KPI 守門對象（pipeline 0.10s）與 KPI 對象（人類體感 30 min）持續錯位、(b) corpus p95 只有單次 snapshot 沒歷史趨勢、(c) 24h 內 2 次 evolve 違反前輪禁令但 hook 未落地。三條都是 daemon 邊界內可推的真 KPI 動作（非 K6 邊際刷）。
+
+- [x] 36zα-polaris-human-template. **[KPI-impact: 北極星 KPI 從 pipeline elapsed → human-perceived 30 min 量測準備 0→1，daemon 可執行]** 新增 `docs/teacher/polaris_measurement.md`：寫「人類體感 30 分鐘」量測模板（packet 寄出 timestamp / 老師打開 timestamp / 學生試彈第一段 timestamp / 卡關事件分類），讓 P1-18c 真人試用時可填；同步在 `feedback.md` 加對應 metadata 欄位、`tests/test_teacher_docs.py` 加新檔存在守門 + feedback.md 欄位守門；commit `docs(teacher): polaris human-perceived measurement template`
+- [x] 36zβ-corpus-history. **[KPI-impact: 北極星 corpus 統計分布從單次 snapshot → 歷史趨勢守門，daemon 可執行]** 在 `tests/fixtures/` 旁新增 `E2E_HISTORY.csv`：每跑一次 corpus e2e append `(timestamp, p50, p95, p100, success_rate)` 一行；補 `tests/test_corpus_e2e_pdf.py::test_p95_no_regression` 守門「最新 p95 不可比歷史最近 5 次平均高 2x」；commit `test(perf): corpus p95 historical regression gate`
+- [x] 36zγ-evolve-cooldown. **[KPI-impact: 結構性防 chore_ratio 失控，daemon-edge]** 把前輪 SOP「24h 內最多 1 次 evolve」轉為 commit-time 守門：新增 `tests/test_evolve_cooldown.py` 檢查 `git log --since='24 hours ago' --grep='chore(evolve)'` 數量 ≤ 1；本輪 c6b91a9+d4d4593（24h 內 2 次 evolve）為反例，hook 化後可主動攔截；commit `test(governance): evolve cooldown 24h guard`
+
 ## 階段十三：MVP DoD §3 老師試用收尾（reflect 2026-04-27 第六輪新增，純流程阻塞 MVP 收官）
 
 > 動機：MVP 三條 DoD 中，§1（北極星 < 5s）+ §2（30 fixture 端到端 ≥ 95%）已自動化守門。§3「找 1 位老師試用 + 寫 feedback」連續 2 輪反思未動：P1-18a 材料齊（feedback.md template + docs/teacher_trial_sop.md），但 18b/c/d 全 `[ ]`。再拖一輪就是反思第三輪同一條，且這不是工程能解、靠的是「現在就寄」。

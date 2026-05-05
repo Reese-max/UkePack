@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import configparser
 import re
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -39,6 +40,30 @@ def test_license_file_exists_and_is_mit() -> None:
     assert "MIT License" in text
     assert "UkePack Contributors" in text
     assert "Permission is hereby granted" in text
+
+
+def test_pyproject_license_field_references_license_file() -> None:
+    pyproject = ROOT / "pyproject.toml"
+    with pyproject.open("rb") as f:
+        data = tomllib.load(f)
+    project = data.get("project", {})
+    # PEP 621: license must be a table with either "file" or "text" key
+    lic = project.get("license")
+    assert lic is not None, "pyproject.toml [project] must declare a license field"
+    assert isinstance(lic, dict), "license must be a PEP-621 table {file=...} or {text=...}"
+    if "file" in lic:
+        assert (ROOT / lic["file"]).exists(), f"license file '{lic['file']}' referenced in pyproject.toml must exist"
+    elif "text" in lic:
+        assert "MIT" in lic["text"]
+    else:
+        raise AssertionError("license table must have 'file' or 'text' key")
+
+
+def test_readme_has_license_section() -> None:
+    readme = _read_text(README)
+    assert "## 授權" in readme, "README.md must have a license section for GitHub discoverability"
+    assert "MIT" in readme
+    assert "LICENSE" in readme
 
 
 def test_publish_ready_checklist_covers_release_fields() -> None:

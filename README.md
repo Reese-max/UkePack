@@ -224,3 +224,7 @@ uv run pytest -q
 ## 貢獻
 
 工程規範見 [AGENTS.md](./AGENTS.md)：技術棧、目錄結構、程式風格、測試門檻、commit 格式皆在其中。
+
+## 授權
+
+[MIT License](./LICENSE) — Copyright © 2026 UkePack Contributors

@@ -14,6 +14,7 @@ TEACHER_GUIDE = ROOT / "docs" / "teacher_guide.md"
 TRIAL_SOP = ROOT / "docs" / "teacher_trial_sop.md"
 CHECKLIST = ROOT / "docs" / "teacher" / "checklist.md"
 TEMPLATE_DIR = ROOT / "docs" / "teacher" / "templates"
+POLARIS_MEASUREMENT = ROOT / "docs" / "teacher" / "polaris_measurement.md"
 UI_TEMPLATE_PATHS = (
     ROOT / "app" / "templates" / "new_project.html",
     ROOT / "app" / "templates" / "analysis.html",
@@ -208,3 +209,34 @@ def test_teacher_outreach_templates_stay_bilingual_and_actionable(
 
     for snippet in required_snippets:
         assert snippet in template
+
+
+def test_polaris_measurement_template_exists_and_has_required_fields() -> None:
+    """docs/teacher/polaris_measurement.md must exist and contain all timestamp fields."""
+    assert POLARIS_MEASUREMENT.exists(), "polaris_measurement.md must exist"
+    text = _read_text(POLARIS_MEASUREMENT)
+
+    for field in (
+        "試用包寄出",
+        "老師開啟",
+        "學生",
+        "卡關事件分類",
+        "< 30 分鐘",
+        "feedback.md",
+    ):
+        assert field in text, f"polaris_measurement.md must contain: {field!r}"
+
+
+def test_feedback_md_has_polaris_metadata_section() -> None:
+    """feedback.md must contain the polaris measurement metadata fields (36z-alpha)."""
+    feedback = _read_text(FEEDBACK)
+
+    for field in (
+        "## 量測 Metadata",
+        "Packet 寄出 / 分享 Timestamp",
+        "老師打開 Web UI Timestamp",
+        "學生試彈第一段 Timestamp",
+        "是否達標",
+    ):
+        assert field in feedback, f"feedback.md must contain: {field!r}"
+

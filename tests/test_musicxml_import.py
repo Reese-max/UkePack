@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
 
@@ -5,6 +6,7 @@ import pytest
 from music21 import chord, harmony, key, metadata, meter, note, stream
 
 from app.core.musicxml import parse
+from app.models.score import Score
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 EXPECTED_XFAIL_FIXTURES: dict[str, str] = {}
@@ -24,6 +26,25 @@ CORPUS_FIXTURE_PARAMS = [
     )
     for fixture_path in ALL_FIXTURE_PATHS
 ]
+
+
+@dataclass
+class _CorpusParseResult:
+    score: Score | None
+    error: BaseException | None
+
+
+@pytest.fixture(scope="session")
+def corpus_parse_cache() -> dict[str, _CorpusParseResult]:
+    """Parse all corpus fixtures once per test session to avoid duplicate work."""
+    cache: dict[str, _CorpusParseResult] = {}
+    for fixture_path in ALL_FIXTURE_PATHS:
+        try:
+            score = parse(fixture_path)
+            cache[fixture_path.stem] = _CorpusParseResult(score=score, error=None)
+        except Exception as exc:
+            cache[fixture_path.stem] = _CorpusParseResult(score=None, error=exc)
+    return cache
 
 
 def _new_part() -> stream.Part:
@@ -309,9 +330,15 @@ def test_parse_rejects_mxl_with_oversized_zip_member(
 
 
 @pytest.mark.parametrize("fixture_path", CORPUS_FIXTURE_PARAMS)
-def test_parse_fixture_corpus(fixture_path: Path) -> None:
-    score = parse(fixture_path)
-
+def test_parse_fixture_corpus(
+    fixture_path: Path,
+    corpus_parse_cache: dict[str, _CorpusParseResult],
+) -> None:
+    result = corpus_parse_cache[fixture_path.stem]
+    if result.error is not None:
+        raise result.error
+    score = result.score
+    assert score is not None
     assert score.title
     assert score.key
     assert score.time_signature
@@ -324,18 +351,21 @@ def test_fixture_inventory_reaches_thirty_scores() -> None:
     assert len(ALL_FIXTURE_PATHS) == 30
 
 
-def test_fixture_corpus_success_rate() -> None:
+def test_fixture_corpus_success_rate(
+    corpus_parse_cache: dict[str, _CorpusParseResult],
+) -> None:
     successes = 0
     unexpected_failures: list[str] = []
 
     for fixture_path in ALL_FIXTURE_PATHS:
-        try:
-            score = parse(fixture_path)
-        except Exception as exc:
+        result = corpus_parse_cache[fixture_path.stem]
+        if result.error is not None:
             if fixture_path.name not in EXPECTED_XFAIL_FIXTURES:
-                unexpected_failures.append(f"{fixture_path.name}: {exc}")
+                unexpected_failures.append(f"{fixture_path.name}: {result.error}")
             continue
 
+        score = result.score
+        assert score is not None
         assert score.title
         assert score.key
         successes += 1

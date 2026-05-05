@@ -6,6 +6,7 @@ Writes a deterministic tests/fixtures/E2E_REPORT.md snapshot.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
@@ -38,18 +39,54 @@ CORPUS_PARAMS = [
 ]
 
 
+@dataclass
+class _CorpusPdfResult:
+    pdf_bytes: bytes
+    elapsed: float
+    error: BaseException | None
+
+
+@pytest.fixture(scope="session")
+def corpus_pdf_cache(
+    tmp_path_factory: pytest.TempPathFactory,
+) -> dict[str, _CorpusPdfResult]:
+    """Render all corpus fixtures once per test session to avoid duplicate work."""
+    tmp_path = tmp_path_factory.mktemp("corpus_e2e")
+    cache: dict[str, _CorpusPdfResult] = {}
+    for fixture_path in ALL_FIXTURE_PATHS:
+        out_pdf = tmp_path / f"{fixture_path.stem}.pdf"
+        try:
+            elapsed = run(fixture_path, 1, out_pdf, "public_domain")
+            pdf_bytes = out_pdf.read_bytes()
+            cache[fixture_path.stem] = _CorpusPdfResult(
+                pdf_bytes=pdf_bytes, elapsed=elapsed, error=None
+            )
+        except Exception as exc:
+            cache[fixture_path.stem] = _CorpusPdfResult(
+                pdf_bytes=b"", elapsed=0.0, error=exc
+            )
+    return cache
+
+
 @pytest.mark.parametrize("fixture_path", CORPUS_PARAMS)
-def test_e2e_pdf_single_fixture(fixture_path: Path, tmp_path: Path) -> None:
+def test_e2e_pdf_single_fixture(
+    fixture_path: Path,
+    corpus_pdf_cache: dict[str, _CorpusPdfResult],
+) -> None:
     """Each fixture must produce a valid PDF within 5 s."""
-    out_pdf = tmp_path / f"{fixture_path.stem}.pdf"
-    elapsed = run(fixture_path, 1, out_pdf, "public_domain")
-    pdf_bytes = out_pdf.read_bytes()
-    assert pdf_bytes.startswith(b"%PDF-"), f"{fixture_path.stem}: invalid PDF magic"
-    assert len(pdf_bytes) > 0, f"{fixture_path.stem}: empty PDF"
-    assert elapsed < 5.0, f"{fixture_path.stem}: render took {elapsed:.2f}s (> 5 s north-star)"
+    result = corpus_pdf_cache[fixture_path.stem]
+    if result.error is not None:
+        raise result.error
+    assert result.pdf_bytes.startswith(b"%PDF-"), f"{fixture_path.stem}: invalid PDF magic"
+    assert len(result.pdf_bytes) > 0, f"{fixture_path.stem}: empty PDF"
+    assert result.elapsed < 5.0, (
+        f"{fixture_path.stem}: render took {result.elapsed:.2f}s (> 5 s north-star)"
+    )
 
 
-def test_corpus_success_rate_and_write_report(tmp_path: Path) -> None:
+def test_corpus_success_rate_and_write_report(
+    corpus_pdf_cache: dict[str, _CorpusPdfResult],
+) -> None:
     """Aggregate gate: ≥ 95% of the 30-song corpus must reach valid PDF output.
 
     Writes tests/fixtures/E2E_REPORT.md regardless of pass/fail so the checked-in
@@ -58,23 +95,18 @@ def test_corpus_success_rate_and_write_report(tmp_path: Path) -> None:
     results: list[dict[str, object]] = []
 
     for fixture_path in ALL_FIXTURE_PATHS:
-        out_pdf = tmp_path / f"{fixture_path.stem}.pdf"
-        try:
-            run(fixture_path, 1, out_pdf, "public_domain")
-            pdf_bytes = out_pdf.read_bytes()
-            ok = pdf_bytes.startswith(b"%PDF-") and len(pdf_bytes) > 0
-            status = "PASS" if ok else "FAIL (bad magic)"
-        except Exception as exc:
-            status = f"FAIL ({type(exc).__name__}: {exc})"
+        stem = fixture_path.stem
+        result = corpus_pdf_cache[stem]
+        if result.error is not None:
+            status = f"FAIL ({type(result.error).__name__}: {result.error})"
+            ok: bool = False
+        elif result.pdf_bytes.startswith(b"%PDF-") and len(result.pdf_bytes) > 0:
+            status = "PASS"
+            ok = True
+        else:
+            status = "FAIL (bad magic)"
             ok = False
-
-        results.append(
-            {
-                "name": fixture_path.stem,
-                "status": status,
-                "ok": ok,
-            }
-        )
+        results.append({"name": stem, "status": status, "ok": ok})
 
     passed = sum(1 for r in results if r["ok"])
     total = len(results)

@@ -123,6 +123,32 @@ def test_readme_and_feedback_preserve_teacher_trial_operator_flow() -> None:
         assert snippet in feedback
 
 
+def test_readme_teacher_recruitment_links_all_exist() -> None:
+    """All relative links in the Beta 老師招募 section must resolve to real files/dirs."""
+    import re
+
+    readme = _read_text(README)
+
+    # Extract just the Beta recruitment section (up to the next ##-level heading).
+    match = re.search(r"## Beta 老師招募\n(.*?)(?=\n## |\Z)", readme, re.DOTALL)
+    assert match, "README.md must contain a '## Beta 老師招募' section"
+    section_text = match.group(1)
+
+    # Find all Markdown links whose URL is relative (starts with ./ or does not have ://).
+    link_urls = re.findall(r"\[.*?\]\((.*?)\)", section_text)
+    relative_links = [u for u in link_urls if not re.match(r"https?://", u)]
+
+    assert relative_links, "Beta 老師招募 section must have at least one relative link"
+
+    for raw_link in relative_links:
+        # Strip leading ./
+        clean = raw_link.lstrip("./").strip("/")
+        target = ROOT / clean
+        assert target.exists(), (
+            f"README Beta 老師招募 relative link '{raw_link}' → '{clean}' does not exist"
+        )
+
+
 @pytest.mark.parametrize(
     ("template_name", "required_snippets"),
     [

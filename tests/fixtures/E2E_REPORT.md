@@ -3,7 +3,7 @@
 **Pipeline**: `parse -> suggest_key -> classify -> suggest_strum -> render_pdf`  
 **Level**: 1  
 **Source type**: public_domain  
-**Timing gate**: each fixture must render within 5.0 s (`test_e2e_pdf_single_fixture`)  
+**Timing gate**: steady-state render must stay < 5.0 s; first cold start may use one warm retry and must stay < 7.0 s (`test_e2e_pdf_single_fixture`)  
 
 ## Summary
 

@@ -182,7 +182,7 @@
 
 > 動機：本輪反思（engineering-log 2026-05-06T14:30:00）抓出 3 條 KPI 上可推、daemon 邊界內能做的動作。前輪 36z-push 假設 origin 存在，事實上 `git remote -v` 空、103 commit 都沒 remote 可推；本輪改寫拆兩半。
 
-- [ ] 36z-flake. **[KPI-impact: 北極星 < 5s deterministic 守門，daemon 可執行]** 修 `tests/test_corpus_e2e_pdf.py::test_e2e_pdf_single_fixture` 在批次壓力下 `elapsed > 5s` 間歇失敗（首次 run `are_you_sleeping` line 82）；改 cold/warm 雙斷言或 p95 < 5s + p100 < 7s 守門；commit `test(perf): stabilise corpus polaris gate (cold-vs-warm)`
+- [x] 36z-flake. **[KPI-impact: 北極星 < 5s deterministic 守門，daemon 可執行]** 修 `tests/test_corpus_e2e_pdf.py::test_e2e_pdf_single_fixture` 在批次壓力下 `elapsed > 5s` 間歇失敗（首次 run `are_you_sleeping` line 82）；改 cold/warm 雙斷言或 p95 < 5s + p100 < 7s 守門；commit `test(perf): stabilise corpus polaris gate (cold-vs-warm)`
 - [x] 36z-remote-prep. **[KPI-impact: K6 招募曝光 publish-ready，daemon 可執行]** 產出 `docs/publish_ready_checklist.md`：GitHub repo description draft + README badge clean check + LICENSE/CC 標示確認 + `git remote add origin ...` 範例命令清單；補 `tests/test_publish_ready.py` 守門 checklist 不腐蝕；commit `docs(publish): publish-ready checklist for K6 K7 release`
 - [ ] 36z-template-sync. **[KPI-impact: K7 onboarding 跨檔一致性守門，daemon 可執行]** 在 `tests/test_teacher_docs.py` 加 1 條測試：抓 `docs/teacher/templates/*.txt` 中 invite email 版本字串、與 `docs/teacher/checklist.md` / `docs/teacher_trial_sop.md` 引用版本對齊；commit `test(docs): guard teacher invite template version drift`
 - [~] 36z-push. **[降級為真人流程]** 原本「daemon push master 到 origin」前輪假設錯誤——repo 無 remote，103 commit 全部無處可推。**改標 placeholder 流程**：人工執行 `git remote add origin <github-url> && git push -u origin master`；daemon 不再嘗試

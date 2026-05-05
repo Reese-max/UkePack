@@ -59,6 +59,7 @@ samples/private_research/
 .coverage
 .coverage.*
 htmlcov/
+.tmp-test/
 
 # Runtime data directories
 data/

@@ -51,6 +51,29 @@ uv run python -m app.discord_bot
 
 > 要把試用包寄給外部老師時，記得加 `--host-url https://<your-host>/new`，而且要用完整 `http://` 或 `https://` 網址。不加時 ZIP 內 README 會標示 `localhost` 只限同機器使用；新版 ZIP 也會附上可直接 copy-paste 的邀請 / 排程 / 提醒 / 追蹤模板，且 `teacher_guide.md` / `teacher_trial_sop.md` 內的外寄網址示意會一起代成實際 host URL。本文與 repo 內原始 teacher docs 則維持 `https://<your-host>` 佔位，避免把 `localhost` 誤寄出去。
 
+## Beta 老師招募
+
+UkePack 正在徵求烏克麗麗老師協助 15 分鐘 Beta 試用。目標是確認一首歌從匯入到產出可練 PDF、老師審稿、分享給學生的流程，是否能降低第一堂課準備時間。
+
+老師試用包用途：一次附上 PDF 練習包、老師操作手冊、K7 onboarding checklist、回饋問卷、邀請 / 排程 / 提醒 / 追蹤範本，以及測試用 MusicXML。產包時請使用可公開開啟的 trial URL，不要把 `localhost` 連結寄給外部老師。
+
+```powershell
+# Windows PowerShell：產外寄用老師試用包
+uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out $env:TEMP\trial.pdf --trial-packet $env:TEMP\teacher-trial.zip --host-url https://<your-host>/new
+```
+
+```bash
+# macOS / Linux：產外寄用老師試用包
+uv run python -m app.demo \
+  --input samples/public_domain/twinkle.musicxml \
+  --level 1 \
+  --out /tmp/trial.pdf \
+  --trial-packet /tmp/teacher-trial.zip \
+  --host-url https://<your-host>/new
+```
+
+試用前請先檢查 [docs/teacher/checklist.md](./docs/teacher/checklist.md)，試用後把老師回饋整理到 [feedback.md](./feedback.md)。邀請與追蹤文字可直接從 [docs/teacher/templates/](./docs/teacher/templates/) 取用。
+
 ## 功能一覽
 
 | 功能 | 說明 |

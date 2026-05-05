@@ -844,3 +844,32 @@ P2-01 已收，原 program.md 階段十二 `[x]` 全綠。本輪新增三個 fol
 2. **K6：把 trial_packet CLI 說明搬進 BACKLOG P1-18b 具體步驟** — 把 `app.demo --trial-packet --host-url` 的完整可執行命令寫進 program.md 36z，讓下一個執行者（人）有確切抓手，降低啟動摩擦
 3. **K7：驗證 drift guard 覆蓋是否完整** — 跑 `pytest tests/test_teacher_docs.py -v` 確認全綠且 assertions 涵蓋 5/5 checklist 項目，輸出結果貼 results.log；確認 K7 守門不只是「有測試」而是「測試語意正確」
 
+## Incident [2026-05-04T22:20:21+08:00]
+
+- 根因：本輪 K6 README 招募入口與測試守門已完成，但 `git add` / `git commit` 無法建立 `.git/index.lock`，Windows 回 `Permission denied`。未發現既存 `.git/index.lock` 檔案，判定是 `.git` metadata 寫入權限問題。
+- 已驗證：`tests/test_teacher_docs.py -q` 通過 8 tests；`ruff check .` 通過；`mypy app` 通過。全套 pytest 另受 Windows Temp / SQLite `disk I/O error` 權限阻塞，與本輪 README/docs 變更無直接關聯。
+- 下一步：修復 `.git` 目錄寫入權限後，提交目前 staged 前的 5 個檔案變更：`.gitignore`、`README.md`、`program.md`、`results.log`、`tests/test_teacher_docs.py`。
+
+## Incident [2026-05-05T13:33:07+08:00]
+
+- 根因：接手前輪 K6 README 招募入口 dirty worktree 後，`git add .gitignore README.md program.md results.log engineering-log.md tests/test_teacher_docs.py` 仍無法建立 `.git/index.lock`，Windows 回 `Permission denied`。`Get-Acl .git` 顯示 `.git` 目錄含 explicit Deny ACE（Write/Delete/Synchronize），且 `.git/index.lock` 不存在。
+- 已驗證：`python -m pytest tests/test_teacher_docs.py -q --basetemp=.tmp-test\pytest-docs -p no:cacheprovider` 通過 8 tests；`python -m ruff check .` 通過；`python -m mypy app` 通過。`uv run` 受全域 uv cache ACL 阻塞；全套 pytest 受 Windows Temp / SQLite `disk I/O error` 阻塞，與 README/docs 變更無直接關聯。
+- 下一步：修復 `.git` 目錄 ACL 的 explicit Deny 後，提交目前 6 個檔案變更；本輪嘗試用 `Set-Acl` 移除該 Deny ACE，但 Windows 回 `Attempted to perform an unauthorized operation`。0 byte 未追蹤檔 `tmpinbfk_vu` 是測試/暫存殘留，刪除被安全政策擋，未納入 stage。
+
+## Incident [2026-05-05T13:56:37+08:00]
+
+- 根因：本輪再次嘗試提交 K6 README 招募入口，`git add .gitignore README.md program.md results.log engineering-log.md tests/test_teacher_docs.py` 仍無法建立 `.git/index.lock`，Windows 回 `Permission denied`。`Get-Acl .git` 仍顯示 explicit Deny ACE；非 code/test 問題。
+- 已驗證：`.venv\Scripts\python.exe -m pytest tests/test_teacher_docs.py -q --basetemp=.tmp-test\pytest-docs -p no:cacheprovider` 通過 8 tests；`.venv\Scripts\python.exe -m ruff check .` 通過；`.venv\Scripts\python.exe -m mypy app --no-incremental --no-sqlite-cache --cache-dir .tmp-test\mypy-cache` 通過。`uv run` 仍受 cache ACL 阻塞；系統 `python` 不是專案環境，缺 `sqlmodel`，不可當 baseline。
+- 下一步：需由具備檔案系統權限的一方修復 `.git` 目錄 Deny ACE 後，執行 `git add .gitignore README.md program.md results.log engineering-log.md tests/test_teacher_docs.py && git commit -m "docs(readme): add beta teacher recruitment section" -m "KPI-impact: K6 招募曝光 0→1"`。
+
+## Incident [2026-05-05T14:20:00+08:00]
+
+- 根因：第三次嘗試收斂 K6 README 招募入口，`git add .gitignore README.md program.md results.log engineering-log.md tests/test_teacher_docs.py` 仍無法建立 `.git/index.lock`，Windows 回 `Permission denied`。`Get-Acl .git` 顯示 explicit Deny ACE 仍在；不是 conventional commit message 或測試問題。
+- 已驗證：`.venv\Scripts\python.exe -m pytest tests/test_teacher_docs.py -q --basetemp=.tmp-test\pytest-docs -p no:cacheprovider` 通過 8 tests；`.venv\Scripts\python.exe -m ruff check .` 通過；`.venv\Scripts\python.exe -m mypy app --no-incremental --no-sqlite-cache --cache-dir .tmp-test\mypy-cache-2` 通過。全套 pytest 嘗試使用 `.tmp-test\pytest-full` 後仍在 pytest session cleanup 發生 `PermissionError: [WinError 5] 存取被拒`，與本輪 README/docs/test 變更無直接關聯。
+- 下一步：需先移除 `.git` 目錄的 explicit Deny ACE，並清掉 `tmpinbfk_vu` / `.tmp-test` 這類權限殘留；之後提交既有變更，commit message 使用 `docs(readme): add beta teacher recruitment section` 與 `KPI-impact: K6 招募曝光 0→1`。
+
+## Incident [2026-05-05T14:40:57+08:00]
+
+- 根因：第四次嘗試提交 36z-pre K6 README 招募入口，`git add .gitignore README.md program.md results.log engineering-log.md tests/test_teacher_docs.py && git commit ...` 仍無法建立 `.git/index.lock`，Windows 回 `Permission denied`。`Get-Acl .git` 仍顯示 explicit Deny ACE；`C:\Windows\System32\whoami.exe /user` 顯示目前使用者 SID 為 `S-1-5-21-1271297351-773185924-864452041-500`，Deny ACE 指向另一個 SID，但 Git 寫 metadata 仍被拒。
+- 已驗證：`.venv\Scripts\python.exe -m pytest tests/test_teacher_docs.py -q --basetemp=.tmp-test\pytest-docs -p no:cacheprovider` 通過 8 tests；`.venv\Scripts\python.exe -m ruff check .` 通過；`.venv\Scripts\python.exe -m mypy app --no-incremental --no-sqlite-cache --cache-dir .tmp-test\mypy-cache-4` 通過。`ruff` 另回報 cache 寫入 `.ruff_cache` 被拒，但 lint 本身通過。
+- 下一步：由具備檔案系統權限的一方移除 `.git` 目錄 Deny ACE，並清理 `tmpinbfk_vu` / `.tmp-test` / `.ruff_cache` 權限殘留；之後執行 `git add .gitignore README.md program.md results.log engineering-log.md tests/test_teacher_docs.py && git commit -m "docs(readme): add beta teacher recruitment section" -m "KPI-impact: K6 招募曝光 0→1"`。

@@ -182,7 +182,7 @@
 
 > 動機：MVP 三條 DoD 中，§1（北極星 < 5s）+ §2（30 fixture 端到端 ≥ 95%）已自動化守門。§3「找 1 位老師試用 + 寫 feedback」連續 2 輪反思未動：P1-18a 材料齊（feedback.md template + docs/teacher_trial_sop.md），但 18b/c/d 全 `[ ]`。再拖一輪就是反思第三輪同一條，且這不是工程能解、靠的是「現在就寄」。
 
-- [ ] 36z-pre. **[KPI-impact: K6 招募曝光 0→1，daemon 可執行]** 在 `README.md` 加「Beta 老師招募」段落：說明 trial packet 用途、附 `app.demo --trial-packet --host-url <你的網址>` 指令範例、連結 `docs/teacher/checklist.md` 與 `feedback.md`，讓有意願的老師自行聯繫；補 `tests/test_teacher_docs.py` 驗 README 含招募段落；commit `docs(readme): add beta teacher recruitment section KPI-impact: K6`
+- [x] 36z-pre. **[KPI-impact: K6 招募曝光 0→1，daemon 可執行]** 在 `README.md` 加「Beta 老師招募」段落：說明 trial packet 用途、附 `app.demo --trial-packet --host-url <你的網址>` 指令範例、連結 `docs/teacher/checklist.md` 與 `feedback.md`，讓有意願的老師自行聯繫；補 `tests/test_teacher_docs.py` 驗 README 含招募段落；commit `docs(readme): add beta teacher recruitment section KPI-impact: K6`
 - [ ] 36z. 寄出 P1-18b 邀請信給 ≥1 位實際在教烏克麗麗的老師（用 `docs/teacher_trial_sop.md` 的範本）；在 engineering-log 記日期 + 收件人匿名代號 + 預期試用時間
 - [ ] 36zz. P1-18c 跑試用 + 收 feedback，整理進 `feedback.md`
 - [ ] 36zzz. P1-18d 寫結論：根據 feedback 排 Phase 2 backlog 調整或標 known issue

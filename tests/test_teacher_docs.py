@@ -96,11 +96,17 @@ def test_readme_and_feedback_preserve_teacher_trial_operator_flow() -> None:
     feedback = _read_text(FEEDBACK)
 
     for snippet in (
+        "## Beta 老師招募",
+        "15 分鐘 Beta 試用",
+        "老師試用包用途",
         "Copy-Item .env.example .env",
         "Invoke-RestMethod http://localhost:8000/health",
         "winget install Gyan.FFmpeg",
         "/api/projects/{id}/midi",
         "--host-url https://<your-host>/new",
+        "docs/teacher/checklist.md",
+        "feedback.md",
+        "docs/teacher/templates/",
     ):
         assert snippet in readme
 

@@ -117,16 +117,17 @@ GET    /share/{code}                     開啟短碼分享頁
 
 ## 安裝詳細步驟
 
+**步驟 1：Clone**
+
 ```bash
-# 1. clone
 git clone <repo-url>
 cd UkePack
+```
 
-# 2. 安裝 Python 依賴（含 dev 工具）
+**步驟 2：安裝 Python 依賴**
+
+```bash
 uv sync --extra dev
-
-# 5. 跑測試確認環境正確
-uv run pytest -q
 ```
 
 **步驟 3：複製環境設定**（可選，預設值可直接啟動）
@@ -141,7 +142,21 @@ Copy-Item .env.example .env
 cp .env.example .env
 ```
 
-**步驟 4：健康檢查**
+**步驟 4：啟動 Web Server**
+
+```powershell
+# Windows PowerShell
+uv run uvicorn app.main:app --reload
+# 瀏覽器打開 http://localhost:8000
+```
+
+```bash
+# macOS / Linux
+uv run uvicorn app.main:app --reload
+# 瀏覽器打開 http://localhost:8000
+```
+
+**步驟 5：健康檢查**（另開終端視窗，確認 server 已啟動）
 
 ```powershell
 # Windows PowerShell
@@ -151,6 +166,12 @@ Invoke-RestMethod http://localhost:8000/health
 ```bash
 # macOS / Linux
 curl http://localhost:8000/health
+```
+
+**步驟 6：跑測試確認環境正確**
+
+```bash
+uv run pytest -q
 ```
 
 **ffmpeg**（practice audio MP3 轉檔）：Windows 可用 `winget install Gyan.FFmpeg`，macOS 用 `brew install ffmpeg`，Ubuntu / Debian 用 `apt install ffmpeg`，或直接[下載 Windows 版](https://ffmpeg.org/download.html)。

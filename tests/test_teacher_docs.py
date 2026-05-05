@@ -101,6 +101,9 @@ def test_readme_and_feedback_preserve_teacher_trial_operator_flow() -> None:
         "老師試用包用途",
         "Copy-Item .env.example .env",
         "Invoke-RestMethod http://localhost:8000/health",
+        # Server-start command must appear in 安裝詳細步驟 — K7 checklist
+        # requires "啟動" to be in the detailed steps, not just Quick Start.
+        "uv run uvicorn app.main:app --reload",
         "winget install Gyan.FFmpeg",
         "/api/projects/{id}/midi",
         "--host-url https://<your-host>/new",

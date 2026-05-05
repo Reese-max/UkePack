@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -23,6 +24,12 @@ UI_TEMPLATE_PATHS = (
 
 def _read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+def _extract_template_version(text: str) -> str:
+    match = re.search(r"Template version / 範本版本:\s*([A-Za-z0-9._-]+)", text)
+    assert match, "teacher outreach templates must declare a shared version string"
+    return match.group(1)
 
 
 def test_k7_checklist_keeps_all_onboarding_tracks_green() -> None:
@@ -125,8 +132,6 @@ def test_readme_and_feedback_preserve_teacher_trial_operator_flow() -> None:
 
 def test_readme_teacher_recruitment_links_all_exist() -> None:
     """All relative links in the Beta 老師招募 section must resolve to real files/dirs."""
-    import re
-
     readme = _read_text(README)
 
     # Extract just the Beta recruitment section (up to the next ##-level heading).
@@ -147,6 +152,20 @@ def test_readme_teacher_recruitment_links_all_exist() -> None:
         assert target.exists(), (
             f"README Beta 老師招募 relative link '{raw_link}' → '{clean}' does not exist"
         )
+
+
+def test_teacher_outreach_template_version_matches_checklist_and_sop() -> None:
+    template_versions = {
+        _extract_template_version(_read_text(path))
+        for path in sorted(TEMPLATE_DIR.glob("*.txt"))
+    }
+
+    assert len(template_versions) == 1
+    shared_version = next(iter(template_versions))
+
+    for path in (CHECKLIST, TRIAL_SOP):
+        document = _read_text(path)
+        assert f"`{shared_version}`" in document
 
 
 @pytest.mark.parametrize(

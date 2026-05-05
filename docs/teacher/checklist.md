@@ -27,6 +27,8 @@
 | Feedback form | 問卷含 5 題、主持人觀察欄、Conclusion 區塊，可直接收回試用結果 | [`feedback.md`](../../feedback.md) |
 | 中文 invite email | 有繁體中文邀請信、排程確認、前一天提醒、24 小時追蹤模板，且試用包可直接附上 | [`docs/teacher/templates/invite_email.txt`](./templates/invite_email.txt), [`docs/teacher_trial_sop.md`](../teacher_trial_sop.md#step-18b--邀請與排程) |
 
+> 目前 outreach template version：`teacher-trial-v2026-05-06`。若 `docs/teacher/templates/*.txt`、這份 checklist、或 `docs/teacher_trial_sop.md` 顯示的版本不一致，先修一致再寄。
+
 ---
 
 ## 每次寄試用包前，照這樣檢查

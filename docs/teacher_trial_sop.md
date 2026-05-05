@@ -186,6 +186,8 @@ If you need to reschedule, just reply here. Thank you!
 
 ## Step 18b — 邀請與排程
 
+> 目前 repo 內 outreach template version：`teacher-trial-v2026-05-06`。`docs/teacher/templates/*.txt`、`docs/teacher/checklist.md`、與本節引用必須同版後才可外寄。
+
 - 若您是從試用包 ZIP 開始寄，優先用 `docs/teacher/templates/` 內的 4 份 `.txt` 範本；ZIP 內版本的 `Trial URL` 與曲名已先代入，不用再手改一次。若直接開 repo 內原始範本，先把 `{{TRIAL_URL}}` / `{{SONG_TITLE}}` 換掉再寄。
 - [ ] 先錄好 3 分鐘 demo，避免老師要等您現場摸索
 - [ ] 寄出邀請信給至少 1 位實際在教烏克麗麗的老師

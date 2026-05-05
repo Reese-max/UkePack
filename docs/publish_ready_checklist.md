@@ -8,8 +8,7 @@
 - Current git remote count: 0
 - Configured remotes: none
 - Current README badge count: 0
-- Current repo license file: missing
-- Current CC/sample-label evidence: `AGENTS.md`, `docs/teacher_guide.md`, `app/render/_layout.py`
+- Current repo license file: LICENSE (MIT, 2026 UkePack Contributors)
 
 ## GitHub repo description draft
 
@@ -29,13 +28,13 @@
 
 ## LICENSE / CC labeling
 
-- Current repo license file: missing
+- Current repo license file: LICENSE (MIT, 2026 UkePack Contributors)
 - Current CC/sample-label evidence:
   - `AGENTS.md` limits new fixtures to public-domain / self-authored / CC0 material.
   - `docs/teacher_guide.md` explains `source_type` expectations for outreach use.
   - `app/render/_layout.py` enforces PDF footer labels by `source_type`.
 - Publish pass:
-  1. Add a top-level `LICENSE` file before public recruitment.
+  1. ✅ Top-level `LICENSE` file present (MIT).
   2. Keep sample provenance / public-domain wording visible in docs and PDF footers.
   3. Never publish `samples/private_research/`.
 
@@ -62,7 +61,7 @@ git remote -v
 
 ## Human publish sequence
 
-1. Add `LICENSE`.
+1. ✅ Add `LICENSE` — done (MIT, 2026 UkePack Contributors).
 2. Create the GitHub repository and paste the description draft above.
 3. Run the remote bootstrap commands and confirm `git remote -v` prints `origin`.
 4. Verify `README.md`, `docs/teacher/checklist.md`, and `feedback.md` all render/link correctly on GitHub.

@@ -32,6 +32,15 @@ def _license_files() -> tuple[str, ...]:
     return tuple(sorted(path.name for path in ROOT.glob("LICENSE*") if path.is_file()))
 
 
+def test_license_file_exists_and_is_mit() -> None:
+    license_path = ROOT / "LICENSE"
+    assert license_path.exists(), "top-level LICENSE file required before public recruitment"
+    text = license_path.read_text(encoding="utf-8")
+    assert "MIT License" in text
+    assert "UkePack Contributors" in text
+    assert "Permission is hereby granted" in text
+
+
 def test_publish_ready_checklist_covers_release_fields() -> None:
     checklist = _read_text(CHECKLIST)
 

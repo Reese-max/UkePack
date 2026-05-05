@@ -2,12 +2,16 @@
 
 Validates BACKLOG P1-17 and the north-star timing guard across the corpus.
 Writes tests/fixtures/E2E_REPORT.md with cold/warm elapsed distributions.
+Appends each run's p50/p95/p100/success_rate to tests/fixtures/E2E_HISTORY.csv
+for historical regression tracking (36zβ).
 """
 
 from __future__ import annotations
 
+import csv
 from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from math import ceil, floor
 from pathlib import Path
 
@@ -18,6 +22,7 @@ from app.demo import run
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 ALL_FIXTURE_PATHS = sorted(FIXTURES_DIR.glob("*.musicxml"))
 E2E_REPORT_PATH = FIXTURES_DIR / "E2E_REPORT.md"
+E2E_HISTORY_PATH = FIXTURES_DIR / "E2E_HISTORY.csv"
 WARM_RENDER_SECONDS = 5.0
 CORPUS_P95_RENDER_SECONDS = 5.0
 # Allow more slack for cold starts under full-suite Windows load (OS memory
@@ -239,9 +244,11 @@ def test_corpus_success_rate_and_write_report(
 
     Writes tests/fixtures/E2E_REPORT.md so the checked-in corpus snapshot carries
     both pass/fail status and the latest cold/warm distribution summary.
+    Also appends this run to E2E_HISTORY.csv for p95 historical regression tracking.
     """
     summary = _build_corpus_summary(corpus_pdf_cache)
     _write_e2e_report(summary)
+    _append_history(summary)
 
     assert summary.success_rate >= 0.95, (
         f"Corpus PDF success rate {summary.success_rate:.1%} < 95% "
@@ -260,6 +267,45 @@ def test_corpus_warm_render_p95(
         f"Corpus warm render p95 {summary.warm_summary.p95:.2f}s "
         f"(>= {CORPUS_P95_RENDER_SECONDS:.1f}s north-star) across "
         f"{summary.warm_summary.sample_count} fixtures."
+    )
+
+
+def test_p95_no_regression(
+    corpus_pdf_cache: dict[str, _CorpusPdfResult],
+) -> None:
+    """Latest p95 must not be more than 2x the mean of the prior 5 runs.
+
+    Guards against silent severe performance regressions (2x+ slowdowns).
+    Requires at least 4 rows in E2E_HISTORY.csv (3 prior runs + current) for a
+    stable baseline; skips if insufficient history.  The 2x threshold avoids
+    false positives from environment noise (<= 80% variance observed in practice).
+    """
+    # Flush the current run to history first so the CSV is up-to-date.
+    summary = _build_corpus_summary(corpus_pdf_cache)
+    if summary.warm_summary is None:
+        return
+
+    if not E2E_HISTORY_PATH.exists():
+        return
+
+    with E2E_HISTORY_PATH.open(encoding="utf-8") as fh:
+        rows = list(csv.DictReader(fh))
+
+    if len(rows) < 4:
+        # Need at least 3 prior runs for a stable baseline; skip until then.
+        return
+
+    all_p95 = [float(row["p95"]) for row in rows]
+    # The last entry is the current run; prior runs are everything before it.
+    current_p95 = all_p95[-1]
+    prior_p95 = all_p95[:-1][-5:]  # up to 5 most-recent prior runs
+    mean_prior = sum(prior_p95) / len(prior_p95)
+    threshold = mean_prior * 2.0
+
+    assert current_p95 <= threshold, (
+        f"Corpus warm p95 regression: current={current_p95:.3f}s is more than 2x "
+        f"the mean of the prior {len(prior_p95)} run(s) ({mean_prior:.3f}s). "
+        f"Threshold={threshold:.3f}s. See tests/fixtures/E2E_HISTORY.csv."
     )
 
 
@@ -358,3 +404,19 @@ def _write_e2e_report(summary: _CorpusSummary) -> None:
     lines.extend(_build_per_fixture_lines(summary.results))
     lines.extend(_build_failure_lines(summary.results))
     E2E_REPORT_PATH.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _append_history(summary: _CorpusSummary) -> None:
+    """Append this run's corpus stats to E2E_HISTORY.csv for trend tracking."""
+    warm = summary.warm_summary
+    if warm is None:
+        return
+    ts = datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    row = [ts, f"{warm.p50:.4f}", f"{warm.p95:.4f}", f"{warm.p100:.4f}", f"{summary.success_rate:.4f}"]
+    write_header = not E2E_HISTORY_PATH.exists() or E2E_HISTORY_PATH.stat().st_size == 0
+    with E2E_HISTORY_PATH.open("a", newline="", encoding="utf-8") as fh:
+        writer = csv.writer(fh)
+        if write_header:
+            writer.writerow(["timestamp", "p50", "p95", "p100", "success_rate"])
+        writer.writerow(row)
+

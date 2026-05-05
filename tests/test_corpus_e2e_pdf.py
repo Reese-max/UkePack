@@ -1,14 +1,9 @@
-"""End-to-end corpus test: 30 fixtures x Level 1 -> full PDF pipeline.
-
-Validates BACKLOG P1-17 and the north-star timing guard across the corpus.
-Writes tests/fixtures/E2E_REPORT.md with cold/warm elapsed distributions.
-Appends each run's p50/p95/p100/success_rate to tests/fixtures/E2E_HISTORY.csv
-for historical regression tracking (36zβ).
-"""
+"""End-to-end corpus test: 30 fixtures x Level 1 -> full PDF pipeline."""
 
 from __future__ import annotations
 
 import csv
+import os
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -23,6 +18,7 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
 ALL_FIXTURE_PATHS = sorted(FIXTURES_DIR.glob("*.musicxml"))
 E2E_REPORT_PATH = FIXTURES_DIR / "E2E_REPORT.md"
 E2E_HISTORY_PATH = FIXTURES_DIR / "E2E_HISTORY.csv"
+UPDATE_ARTIFACTS_ENV = "UKEPACK_UPDATE_E2E_ARTIFACTS"
 WARM_RENDER_SECONDS = 5.0
 CORPUS_P95_RENDER_SECONDS = 5.0
 # Allow more slack for cold starts under full-suite Windows load (OS memory
@@ -125,6 +121,11 @@ def _build_timing_summary(samples: Sequence[float]) -> _TimingSummary | None:
         p95=_percentile(samples, 0.95),
         p100=_percentile(samples, 1.0),
     )
+
+
+def _should_update_e2e_artifacts() -> bool:
+    value = os.getenv(UPDATE_ARTIFACTS_ENV, "")
+    return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _build_fixture_report_rows(
@@ -240,15 +241,11 @@ def test_e2e_pdf_single_fixture(
 def test_corpus_success_rate_and_write_report(
     corpus_pdf_cache: dict[str, _CorpusPdfResult],
 ) -> None:
-    """Aggregate gate: ≥ 95% of the 30-song corpus must reach valid PDF output.
-
-    Writes tests/fixtures/E2E_REPORT.md so the checked-in corpus snapshot carries
-    both pass/fail status and the latest cold/warm distribution summary.
-    Also appends this run to E2E_HISTORY.csv for p95 historical regression tracking.
-    """
+    """Aggregate gate: ≥ 95% of the 30-song corpus must reach valid PDF output."""
     summary = _build_corpus_summary(corpus_pdf_cache)
-    _write_e2e_report(summary)
-    _append_history(summary)
+    if _should_update_e2e_artifacts():
+        _write_e2e_report(summary)
+        _append_history(summary)
 
     assert summary.success_rate >= 0.95, (
         f"Corpus PDF success rate {summary.success_rate:.1%} < 95% "
@@ -273,14 +270,7 @@ def test_corpus_warm_render_p95(
 def test_p95_no_regression(
     corpus_pdf_cache: dict[str, _CorpusPdfResult],
 ) -> None:
-    """Latest p95 must not be more than 2x the mean of the prior 5 runs.
-
-    Guards against silent severe performance regressions (2x+ slowdowns).
-    Requires at least 4 rows in E2E_HISTORY.csv (3 prior runs + current) for a
-    stable baseline; skips if insufficient history.  The 2x threshold avoids
-    false positives from environment noise (<= 80% variance observed in practice).
-    """
-    # Flush the current run to history first so the CSV is up-to-date.
+    """Latest p95 must not be more than 2x the mean of the prior 5 runs."""
     summary = _build_corpus_summary(corpus_pdf_cache)
     if summary.warm_summary is None:
         return
@@ -291,14 +281,11 @@ def test_p95_no_regression(
     with E2E_HISTORY_PATH.open(encoding="utf-8") as fh:
         rows = list(csv.DictReader(fh))
 
-    if len(rows) < 4:
-        # Need at least 3 prior runs for a stable baseline; skip until then.
+    if len(rows) < 3:
         return
 
-    all_p95 = [float(row["p95"]) for row in rows]
-    # The last entry is the current run; prior runs are everything before it.
-    current_p95 = all_p95[-1]
-    prior_p95 = all_p95[:-1][-5:]  # up to 5 most-recent prior runs
+    current_p95 = summary.warm_summary.p95
+    prior_p95 = [float(row["p95"]) for row in rows][-5:]
     mean_prior = sum(prior_p95) / len(prior_p95)
     threshold = mean_prior * 2.0
 

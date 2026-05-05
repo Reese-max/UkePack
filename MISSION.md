@@ -57,6 +57,8 @@ Phase 0（研究與原型，1–2 週）：
 
 - ❌ teacher-trial 相關 commit 不標 `KPI-impact: K6 ...` 或 `K7 ...` → 視為純 chore
 - ❌ 純 housekeeping 不對齊 K6/K7（如「sensor refresh」、「baseline verify」）
+- ❌ `chore(log): record teacher-trial blocker` 無 KPI-impact 標記（純 chore 磨耗；同一阻塞點 log ≥2 次後不再 commit）(S2E-T4 meta-learn 2026-05-05)
+- ❌ 重複 FAIL log 替代實質 K6 推進（K6 blocker confirmed 連續 ≥10 輪記錄但 K6 無進展 → 停止 blocker log，等人工觸發）(S2E-T4 meta-learn 2026-05-05)
 
 ## 不做的事（明確降噪）
 

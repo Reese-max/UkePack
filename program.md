@@ -184,7 +184,7 @@
 
 - [ ] 36z-push. **[KPI-impact: K6 招募曝光 1→真實可達，daemon 可執行]** `git push -u origin master`（或當前分支）把 5+ 個本地 commit（含 678f272 README beta 招募）推上 remote；驗證 `git log --branches --not --remotes` 為空；commit 不必新增（這是 publish 動作）
 - [x] 36z-e2e. **[KPI-impact: 北極星 < 5s，自動守門]** 加 `tests/test_polaris_timer.py`：對 `samples/public_domain/twinkle.musicxml` 跑 `app.demo.run` 全程，斷言 elapsed < 5.0s（CI 環境）；補上後 commit `test(perf): polaris single-song <5s gate`
-- [ ] 36z-link. **[KPI-impact: K7 5/5 真語意守門，daemon 可執行]** 在 `tests/test_teacher_docs.py` 加 1 條測試：parse README 招募段所有相對連結 target，斷言檔案皆存在；commit `test(docs): guard readme teacher recruitment links`
+- [x] 36z-link. **[KPI-impact: K7 5/5 真語意守門，daemon 可執行]** 在 `tests/test_teacher_docs.py` 加 1 條測試：parse README 招募段所有相對連結 target，斷言檔案皆存在；commit `test(docs): guard readme teacher recruitment links`
 
 ## 階段十三：MVP DoD §3 老師試用收尾（reflect 2026-04-27 第六輪新增，純流程阻塞 MVP 收官）
 

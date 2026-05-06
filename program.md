@@ -218,7 +218,7 @@
 > - 不再以「openspec proposal archive」算 KPI 推進；屬 H0 治理債
 > - 不再 24h 內跑第 2 次 evolve（避免 c6b91a9 + d4d4593 重複）
 > - daemon 不再嘗試 `git push`，repo 無 remote；改交人工流程
-> - **2026-05-06 evolve 確認**：階段十三 + 下一輪所有 daemon task 已 [x]；K1-K5/K7 全綠，K6 frozen（0/5，等人工 `git remote add origin <url> && git push`）。Daemon 觀察等待態，無新可執行 task，不得再產生空轉 commit。
+> - **2026-05-06 evolve 確認 v2（22:30）**：`aefd1ab` practice speed suggestions 已落地（K6 teacher trial friction -1）。階段十三 + 下一輪所有 daemon task 已 [x]；K1-K5/K7 全綠，K6 frozen（0/5，等人工 `git remote add origin <url> && git push`）。Daemon 觀察等待態，無新可執行 task，不得再產生空轉 commit。
 
 ## 階段十四：projects.py 拆檔 + P2-01 觀察池一次清（reflect 第六輪新增，與階段十三可並行；阻塞 P2-03）
 

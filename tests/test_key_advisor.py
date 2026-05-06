@@ -12,7 +12,7 @@ def test_suggest_key_prefers_c_major_for_e_major_progressions() -> None:
     assert recommendation.target_key == "C major"
     assert recommendation.semitone_shift == -4
     assert recommendation.friendly_chords == ["C", "G", "Am", "F"]
-    assert "C major keeps the harmony approachable" in recommendation.reason
+    assert "選 C major" in recommendation.reason
 
 
 def test_suggest_key_prefers_g_major_when_c_major_requires_raising() -> None:
@@ -56,7 +56,7 @@ def test_suggest_key_falls_back_to_c_major_for_unsupported_modes() -> None:
     assert recommendation.target_key == "C major"
     assert recommendation.semitone_shift == -2
     assert recommendation.friendly_chords == ["C", "G", "Am", "F"]
-    assert "falls back to C major" in recommendation.reason
+    assert "改用 C major" in recommendation.reason
 
 
 def test_suggest_key_raises_for_unsupported_key_format() -> None:

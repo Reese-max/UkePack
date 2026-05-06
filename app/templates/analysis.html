@@ -216,6 +216,16 @@ F | G | C | C |"
             <div class="data-cell">
                 <small>建議 Key</small>
                 <strong>{{ analysis.key_recommendation.target_key }}</strong>
+                {% if analysis.key_recommendation.reason %}
+                <p style="margin:0.4rem 0 0; color:var(--muted); font-size:0.875rem">{{ analysis.key_recommendation.reason }}</p>
+                {% endif %}
+                {% if analysis.key_recommendation.friendly_chords %}
+                <div style="margin:0.5rem 0 0; display:flex; flex-wrap:wrap; gap:0.3rem">
+                    {% for ch in analysis.key_recommendation.friendly_chords %}
+                    <span class="badge badge-green" style="font-size:0.8rem">{{ ch }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
             {% if analysis.bpm %}
             <div class="data-cell">

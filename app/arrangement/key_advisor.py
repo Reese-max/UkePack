@@ -83,15 +83,16 @@ def _build_mode_fallback(score: Score, original_tonic: str, original_mode: str) 
     fallback_key = "C major"
     semitone_shift = signed_semitone_shift(original_tonic, "C")
     friendly_chords = _transpose_and_simplify_chords(score, semitone_shift, "C")
-    chord_preview = ", ".join(friendly_chords[:4])
+    chord_preview = "、".join(friendly_chords[:4])
     return KeyRecommendation(
         original_key=score.key,
         target_key=fallback_key,
         semitone_shift=semitone_shift,
         friendly_chords=friendly_chords,
+        # {original_mode} 調式不支援自動移調，fallback 到 C major
         reason=(
-            f"{score.key} uses unsupported {original_mode} mode, so the advisor falls back to "
-            f"{fallback_key} and centers chords like {chord_preview}."
+            f"{score.key} 使用 {original_mode} 調式（不支援自動移調），改用 "
+            f"{fallback_key} 為基礎，主要和弦為 {chord_preview}。"
         ),
     )
 
@@ -148,12 +149,12 @@ def _select_candidate(evaluations: tuple[_CandidateEvaluation, ...]) -> _Candida
 
 
 def _build_reason(candidate_key: str, semitone_shift: int, chords: list[str]) -> str:
-    """Explain the recommendation in product language."""
-    chord_preview = ", ".join(chords[:4])
+    """Explain the recommendation in Chinese for the teacher-facing analysis page."""
+    chord_preview = "、".join(chords[:4])
     if semitone_shift == 0:
-        movement = "already sits in a beginner-friendly range"
+        movement = "無需移調"
     elif semitone_shift < 0:
-        movement = f"lowers the song by {abs(semitone_shift)} semitone(s)"
+        movement = f"往下移 {abs(semitone_shift)} 個半音"
     else:
-        movement = f"raises the song by {semitone_shift} semitone(s)"
-    return f"{candidate_key} keeps the harmony approachable, {movement}, and centers chords like {chord_preview}."
+        movement = f"往上移 {semitone_shift} 個半音"
+    return f"選 {candidate_key}：{movement}，主要和弦變成 {chord_preview}，孩子比較容易跟上。"

@@ -76,6 +76,10 @@ def test_teacher_guide_matches_live_web_ui_labels() -> None:
     assert "http://localhost:8000/new" in guide
     assert "https://<your-host>/new" in guide
 
+    for usage_label in ("使用類型", "私人練習", "教學使用"):
+        assert usage_label in guide
+        assert usage_label in ui_text
+
 
 def test_teacher_trial_sop_keeps_invite_runbook_and_host_guard() -> None:
     sop = _read_text(TRIAL_SOP)

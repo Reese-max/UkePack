@@ -183,6 +183,14 @@ def test_analysis_page_shows_import_error_banner(db_client: TestClient) -> None:
     resp = db_client.get(f"/projects/{pid}?import_error=1")
     assert resp.status_code == 200
     assert "匯入失敗，請檢查檔案格式" in resp.text
+    # alert-danger must be rendered so teachers see a red error box, not unstyled text
+    assert "alert-danger" in resp.text
+
+
+def test_base_html_defines_alert_danger_css() -> None:
+    """base.html must define .alert-danger — used by 3 templates for error states."""
+    base = (Path(__file__).parent.parent / "app" / "templates" / "base.html").read_text(encoding="utf-8")
+    assert ".alert-danger" in base, "Missing .alert-danger CSS in base.html — teachers won't see red error boxes"
 
 
 def test_analysis_page_shows_download_when_licensed(db_client: TestClient) -> None:

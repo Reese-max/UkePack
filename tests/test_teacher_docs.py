@@ -122,6 +122,7 @@ def test_readme_and_feedback_preserve_teacher_trial_operator_flow() -> None:
         "/api/projects/{id}/midi",
         "--host-url https://<your-host>/new",
         "docs/teacher/checklist.md",
+        "docs/teacher/polaris_measurement.md",
         "feedback.md",
         "docs/teacher/templates/",
     ):

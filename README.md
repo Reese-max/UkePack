@@ -215,6 +215,7 @@ uv run pytest -q
 | [BACKLOG.md](./BACKLOG.md) | 任務清單（依 Phase 排列） |
 | [docs/teacher_guide.md](./docs/teacher_guide.md) | 老師操作手冊（建立專案 → 審稿 → 分享，30 分鐘上手） |
 | [docs/teacher/checklist.md](./docs/teacher/checklist.md) | K7 onboarding 5/5 驗收表（Windows setup / MIDI workflow / web UI / feedback / 中文 invite） |
+| [docs/teacher/polaris_measurement.md](./docs/teacher/polaris_measurement.md) | 北極星人類體感量測模板（試用當下填 timestamp，驗算「從匯入到學生試彈 < 30 分鐘」） |
 | [docs/teacher/templates/](./docs/teacher/templates/) | 試用邀請 / 排程確認 / 前一天提醒 / 24 小時追蹤範本（ZIP 也會附上） |
 | [openspec/specs/](./openspec/specs/) | 各模組 API / 行為規格（15 份） |
 | [docs/teacher_trial_sop.md](./docs/teacher_trial_sop.md) | 老師試用 SOP（15 分鐘流程、邀請信、驗收清單） |

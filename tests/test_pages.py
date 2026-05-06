@@ -193,6 +193,68 @@ def test_base_html_defines_alert_danger_css() -> None:
     assert ".alert-danger" in base, "Missing .alert-danger CSS in base.html — teachers won't see red error boxes"
 
 
+def test_page_import_redirects_on_success(db_client: TestClient) -> None:
+    """POST /projects/{id}/import (page route) should redirect back — not return JSON."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Page Import Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    with TWINKLE.open("rb") as f:
+        resp = db_client.post(
+            f"/projects/{pid}/import",
+            files={"file": ("twinkle.musicxml", f, "application/xml")},
+            follow_redirects=False,
+        )
+    assert resp.status_code == 303
+    assert resp.headers["location"] == f"/projects/{pid}"
+
+
+def test_page_import_redirects_on_bad_file(db_client: TestClient) -> None:
+    """POST /projects/{id}/import with invalid XML → redirect with import_error=1."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Broken Page Import", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    resp = db_client.post(
+        f"/projects/{pid}/import",
+        files={"file": ("bad.musicxml", io.BytesIO(b"<not-xml"), "application/xml")},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 303
+    assert "import_error=1" in resp.headers["location"]
+
+
+def test_page_import_rejects_wrong_extension(db_client: TestClient) -> None:
+    """POST /projects/{id}/import with .pdf file → redirect with import_error=1."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Wrong Ext Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    resp = db_client.post(
+        f"/projects/{pid}/import",
+        files={"file": ("song.pdf", io.BytesIO(b"%PDF-1.4"), "application/pdf")},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 303
+    assert "import_error=1" in resp.headers["location"]
+
+
+def test_analysis_page_form_points_to_page_route(db_client: TestClient) -> None:
+    """analysis.html import form must POST to /projects/{id}/import (page route), not API."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Form Route Check", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    resp = db_client.get(f"/projects/{pid}")
+    assert resp.status_code == 200
+    assert f'action="/projects/{pid}/import"' in resp.text
+    assert f'action="/api/projects/{pid}/import"' not in resp.text
+
+
 def test_analysis_page_shows_download_when_licensed(db_client: TestClient) -> None:
     create = db_client.post(
         "/api/projects",

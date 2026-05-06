@@ -210,6 +210,39 @@ def save_chords_page(
     return RedirectResponse(url=f"/projects/{project_id}", status_code=303)
 
 
+@router.post("/projects/{project_id}/import")
+async def import_musicxml_page(
+    project_id: int,
+    session: SessionDep,
+    file: Annotated[UploadFile, File()],
+) -> RedirectResponse:
+    """Upload MusicXML from analysis page and redirect back (browser-friendly wrapper)."""
+    project = session.get(Project, project_id)
+    if project is None:
+        raise HTTPException(404, "Project not found")
+
+    suffix = Path(file.filename or "").suffix.lower()
+    if suffix not in _MUSICXML_EXTS:
+        return RedirectResponse(url=f"/projects/{project_id}?import_error=1", status_code=303)
+
+    settings = get_settings()
+    save_path = settings.data_dir / "projects" / str(project_id) / f"original{suffix}"
+    relative_path = str(save_path.relative_to(settings.data_dir))
+
+    await save_upload_with_limit(file, save_path)
+
+    try:
+        import_musicxml_into_project(project, save_path, relative_path=relative_path)
+        session.add(project)
+        session.commit()
+    except (ValueError, RuntimeError) as exc:
+        logger.warning("page import failed: %s", exc, exc_info=True)
+        save_path.unlink(missing_ok=True)
+        return RedirectResponse(url=f"/projects/{project_id}?import_error=1", status_code=303)
+
+    return RedirectResponse(url=f"/projects/{project_id}", status_code=303)
+
+
 @router.post("/projects/{project_id}/generate-practice-audio")
 def generate_practice_audio_page(project_id: int, session: SessionDep) -> RedirectResponse:
     """Generate practice audio, then redirect back to analysis page."""

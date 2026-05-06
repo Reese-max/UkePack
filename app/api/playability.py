@@ -38,6 +38,7 @@ def build_playability_payload(score: Score, result: PlayabilityResult) -> dict[s
                 "label": label,
                 "weight": weight,
                 "score": round(result.factors[key], 1),
+                "description": _factor_description(key, result.factors[key], score),
             }
             for key, label, weight in _PLAYABILITY_FACTORS
         ],
@@ -118,6 +119,65 @@ def _classify_chord_hint(symbol: str, simplified: str) -> tuple[str, str, str, s
         "不是常見入門和弦，先慢速換和弦，必要時再降階。",
         None,
     )
+
+
+def _factor_description(key: str, factor_score: float, score: Score) -> str:
+    """Return a Chinese one-liner explaining why a factor has its score (PRD §10.4)."""
+    if key == "chord_difficulty":
+        if factor_score >= 90:
+            return "和弦以超基本的入門和弦為主，初學者直接上手！"
+        if factor_score >= 70:
+            return "大多數和弦屬初學友善，少數和弦需要多練。"
+        if factor_score >= 45:
+            return "有幾個較難的和弦，建議老師協助先行簡化。"
+        return "和弦難度偏高，需大幅簡化才適合初學練習。"
+
+    if key == "chord_change_freq":
+        if factor_score >= 90:
+            return "換和弦頻率很低（每小節 ≤1 次），孩子有充足時間準備。"
+        if factor_score >= 70:
+            return "換和弦頻率適中（每小節約 1–2 次），慢速練習可掌握。"
+        if factor_score >= 45:
+            return "換和弦頻率稍高（每小節 2–4 次），建議搭配節拍器慢練。"
+        return "換和弦非常頻繁（每小節 4 次以上），需反覆分段慢練。"
+
+    if key == "melody_position":
+        if factor_score >= 90:
+            return "旋律音域在烏克麗麗初學舒適區（C4–C5）內。"
+        if factor_score >= 60:
+            return "旋律音域稍高，撥弦把位需多加練習。"
+        return "旋律音域偏高，建議先從刷和弦版本入門。"
+
+    if key == "rhythm_complexity":
+        if factor_score >= 95:
+            return "4/4 拍，最直覺的節奏，孩子最容易跟上。"
+        if factor_score >= 85:
+            return "2/4 拍，節奏明快，適合童謠風格。"
+        if factor_score >= 70:
+            return "3/4 拍（華爾滋），稍需練習但旋律優美。"
+        return "6/8 拍，節奏型態較複雜，先掌握和弦再加節拍。"
+
+    if key == "bpm":
+        bpm_val = score.bpm
+        if bpm_val is None:
+            return "未偵測到速度，建議老師手動設定 BPM。"
+        bpm_str = f"（{bpm_val} BPM）"
+        if factor_score >= 90:
+            return f"速度{bpm_str}在初學最舒適的 60–90 BPM 範圍。"
+        if factor_score >= 75:
+            return f"速度{bpm_str}稍快，可先用 70% 速度練習。"
+        if factor_score >= 45:
+            return f"速度{bpm_str}偏快，建議從 50 BPM 開始慢慢加速。"
+        return f"速度{bpm_str}過快，務必搭配節拍器從慢速起步。"
+
+    if key == "layout_readability":
+        if factor_score >= 90:
+            return "需學和弦僅 1–4 個，版面簡潔好讀。"
+        if factor_score >= 60:
+            return "需學 5–8 個和弦，可分段依序教學。"
+        return "需學和弦較多（9 個以上），建議先從核心和弦入門。"
+
+    return ""
 
 
 def _highest_fret(chords: list[str]) -> int | None:

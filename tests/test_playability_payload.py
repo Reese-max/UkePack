@@ -29,6 +29,12 @@ def test_build_playability_payload_includes_summary_and_factors() -> None:
     }
     assert payload["factors"][0]["label"] == "和弦難度"
     assert payload["factors"][-1]["weight"] == 5
+    # Each factor now carries a Chinese description (PRD §10.4)
+    for factor in payload["factors"]:
+        assert "description" in factor
+        assert isinstance(factor["description"], str)
+    assert "初學" in payload["factors"][0]["description"]  # chord_difficulty is high → friendly msg
+    assert "BPM" in payload["factors"][4]["description"]   # bpm factor references the BPM value
     assert payload["chord_hints"][0]["symbol"] == "Cmaj7"
     assert payload["chord_hints"][0]["category"] == "simplify"
     assert payload["chord_hints"][0]["suggested_symbol"] == "C"

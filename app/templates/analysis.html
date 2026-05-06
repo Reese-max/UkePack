@@ -317,6 +317,9 @@ F | G | C | C |"
                     <div class="score-meter" aria-label="{{ factor.label }}">
                         <span class="score-meter-fill" style="width: {{ factor.score }}%"></span>
                     </div>
+                    {% if factor.description %}
+                    <p style="margin:0.5rem 0 0; color:var(--muted); font-size:0.875rem">{{ factor.description }}</p>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>

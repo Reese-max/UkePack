@@ -5,7 +5,12 @@
     <div class="strum-card">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem">
             <span style="font-weight:700">{{ pattern.name }}</span>
-            <span class="badge badge-orange">Level {{ level }}</span>
+            <div style="display:flex; gap:0.4rem; flex-wrap:wrap; align-items:center">
+                {% if pattern.bpm_range %}
+                <span class="badge badge-muted" title="此刷法自然感受的 BPM 範圍">{{ pattern.bpm_range[0] }}–{{ pattern.bpm_range[1] }} BPM</span>
+                {% endif %}
+                <span class="badge badge-orange">Level {{ level }}</span>
+            </div>
         </div>
         <div class="strum-notation" style="margin:0.5rem 0">{{ pattern.notation }}</div>
         <p style="margin:0; color:var(--muted); font-size:0.9rem">{{ pattern.description }}</p>

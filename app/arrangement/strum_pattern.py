@@ -17,6 +17,8 @@ class StrumPattern:
     strokes: tuple[str, ...]
     min_level: int
     description: str
+    # Recommended BPM range where this pattern feels natural (inclusive min, inclusive max)
+    bpm_range: tuple[int, int] = (60, 120)
 
     def notation(self) -> str:
         """Return a printable arrow notation string for the pattern."""
@@ -32,6 +34,7 @@ _ALL_PATTERNS: tuple[StrumPattern, ...] = (
         strokes=("D", "D", "D", "D"),
         min_level=1,
         description="每拍一下，適合 6-10 歲初學者",
+        bpm_range=(50, 90),
     ),
     StrumPattern(
         name="輕快刷法",
@@ -39,6 +42,7 @@ _ALL_PATTERNS: tuple[StrumPattern, ...] = (
         strokes=("D", "U", "D", "U"),
         min_level=2,
         description="每半拍一下，輕快流暢",
+        bpm_range=(80, 130),
     ),
     StrumPattern(
         name="常見流行刷法",
@@ -46,6 +50,7 @@ _ALL_PATTERNS: tuple[StrumPattern, ...] = (
         strokes=("D", "D", "U", "U", "D", "U"),
         min_level=2,
         description="常見流行歌伴奏節奏",
+        bpm_range=(90, 140),
     ),
     StrumPattern(
         name="華爾滋",
@@ -53,6 +58,7 @@ _ALL_PATTERNS: tuple[StrumPattern, ...] = (
         strokes=("D", "D", "D"),
         min_level=1,
         description="3/4 拍圓舞曲節奏",
+        bpm_range=(60, 100),
     ),
     StrumPattern(
         name="慢搖",
@@ -60,6 +66,7 @@ _ALL_PATTERNS: tuple[StrumPattern, ...] = (
         strokes=("D", "-", "U", "D", "-", "U"),
         min_level=2,
         description="6/8 搖擺感刷法",
+        bpm_range=(50, 85),
     ),
 )
 

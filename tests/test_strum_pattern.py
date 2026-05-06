@@ -107,6 +107,21 @@ class TestSuggest:
         assert len(popular.strokes) == 6
 
 
+class TestBpmRange:
+    def test_all_patterns_have_bpm_range(self) -> None:
+        for pattern in all_patterns():
+            assert hasattr(pattern, "bpm_range")
+            lo, hi = pattern.bpm_range
+            assert isinstance(lo, int) and isinstance(hi, int)
+            assert 0 < lo < hi, f"{pattern.name}: bpm_range {pattern.bpm_range} invalid"
+
+    def test_bpm_range_within_reasonable_bounds(self) -> None:
+        for pattern in all_patterns():
+            lo, hi = pattern.bpm_range
+            assert 30 <= lo <= 300, f"{pattern.name}: lo={lo} out of range"
+            assert 30 <= hi <= 300, f"{pattern.name}: hi={hi} out of range"
+
+
 class TestSuggestForLevel:
     def test_level_1_four_four_returns_only_intro_strum(self) -> None:
         patterns = suggest_for_level(_score_with_time_sig("4/4"), 1)

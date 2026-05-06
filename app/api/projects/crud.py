@@ -102,7 +102,12 @@ def arrange(project_id: int, body: ArrangeBody, session: SessionDep) -> dict[str
         "project_id": project_id,
         "level": body.level,
         "strum_patterns": [
-            {"name": pattern.name, "notation": pattern.notation(), "description": pattern.description}
+            {
+                "name": pattern.name,
+                "notation": pattern.notation(),
+                "description": pattern.description,
+                "bpm_range": pattern.bpm_range,
+            }
             for pattern in patterns
         ],
     }

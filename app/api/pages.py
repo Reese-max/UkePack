@@ -330,7 +330,12 @@ def _build_analysis(project: Project) -> dict[str, Any] | None:
         "key_recommendation": key_rec.model_dump(),
         "playability": build_playability_payload(score, playability),
         "strum_patterns": [
-            {"name": p.name, "notation": p.notation(), "description": p.description}
+            {
+                "name": p.name,
+                "notation": p.notation(),
+                "description": p.description,
+                "bpm_range": p.bpm_range,
+            }
             for p in patterns
         ],
     }
@@ -351,7 +356,12 @@ def _render_strum_partial(request: Request, project: Project, level: int) -> HTM
         name="partials/strum_patterns.html",
         context={
             "strum_patterns": [
-                {"name": p.name, "notation": p.notation(), "description": p.description}
+                {
+                    "name": p.name,
+                    "notation": p.notation(),
+                    "description": p.description,
+                    "bpm_range": p.bpm_range,
+                }
                 for p in patterns
             ],
             "level": level,

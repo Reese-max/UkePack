@@ -23,6 +23,7 @@ def _first_song_note_tick(midi_file: mido.MidiFile) -> int:
 def test_generate_practice_audio_creates_midis_mp3s_and_manifest(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
+    mock_ffmpeg_encode: None,
 ) -> None:
     project_dir = tmp_path / "projects" / "1"
     project_dir.mkdir(parents=True)

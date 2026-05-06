@@ -201,7 +201,7 @@ def test_practice_audio_generation_requires_license(db_client: TestClient) -> No
     assert resp.status_code == 403
 
 
-def test_practice_audio_generation_and_downloads(db_client: TestClient) -> None:
+def test_practice_audio_generation_and_downloads(db_client: TestClient, mock_ffmpeg_encode: None) -> None:
     pid = _create(db_client)
     db_client.post(
         f"/api/projects/{pid}/midi",

@@ -47,6 +47,27 @@ def corpus_parse_cache() -> dict[str, _CorpusParseResult]:
     return cache
 
 
+@pytest.fixture(scope="session")
+def section_song_parsed(tmp_path_factory: pytest.TempPathFactory) -> Score:
+    """Pre-parsed section song score — written+parsed once per session to avoid ~1s overhead."""
+    part = _new_part()
+    repeated = ["C", "G", "Am", "F"]
+    measures = ["Dm", "G", *repeated, "Em", "F", *repeated]
+    for number, chord_name in enumerate(measures, start=1):
+        measure = cast(Any, stream).Measure(number=number)
+        _insert_element(measure, 0, _time_signature("4/4"))
+        _insert_element(measure, 0, cast(Any, harmony).ChordSymbol(chord_name))
+        _insert_element(measure, 0, cast(Any, note).Note("C4", quarterLength=4.0))
+        _append_element(part, measure)
+    score_stream = cast(Any, stream).Score()
+    score_stream.metadata = cast(Any, metadata).Metadata(title="Section Song")
+    _append_element(score_stream, part)
+    tmp = tmp_path_factory.mktemp("section_song")
+    path = tmp / "section_song.musicxml"
+    _write_score_file(score_stream, "musicxml", path)
+    return parse(path)
+
+
 def _new_part() -> stream.Part:
     return cast(stream.Part, cast(Any, stream).Part())
 
@@ -241,25 +262,8 @@ def test_parse_extracts_highest_pitch_from_chord_melody(tmp_path: Path) -> None:
     assert score.melody[1].quarter_length == pytest.approx(2.0)
 
 
-def test_parse_detects_sections_from_repeated_chords(tmp_path: Path) -> None:
-    chord_section_path = tmp_path / "section_song.musicxml"
-    score_stream = stream.Score()
-    score_stream.metadata = metadata.Metadata(title="Section Song")
-    part = _new_part()
-    repeated = ["C", "G", "Am", "F"]
-    measures = ["Dm", "G", *repeated, "Em", "F", *repeated]
-    for number, chord_name in enumerate(measures, start=1):
-        measure = stream.Measure(number=number)
-        _insert_element(measure, 0, _time_signature("4/4"))
-        _insert_element(measure, 0, harmony.ChordSymbol(chord_name))
-        _insert_element(measure, 0, note.Note("C4", quarterLength=4.0))
-        _append_element(part, measure)
-    _append_element(score_stream, part)
-    _write_score_file(score_stream, "musicxml", chord_section_path)
-
-    score = parse(chord_section_path)
-
-    assert [(section.section, section.start_measure, section.end_measure) for section in score.sections] == [
+def test_parse_detects_sections_from_repeated_chords(section_song_parsed: Score) -> None:
+    assert [(section.section, section.start_measure, section.end_measure) for section in section_song_parsed.sections] == [
         ("intro", 1, 2),
         ("chorus", 3, 6),
         ("verse", 7, 8),
@@ -267,11 +271,9 @@ def test_parse_detects_sections_from_repeated_chords(tmp_path: Path) -> None:
     ]
 
 
-def test_parse_supports_compressed_mxl_scores(tmp_path: Path) -> None:
-    compressed_path = tmp_path / "compressed_score.mxl"
-    _write_single_part_score(compressed_path, title="Compressed Score", tonic="C", melody_pitch="C4")
-
-    score = parse(compressed_path)
+def test_parse_supports_compressed_mxl_scores(compressed_mxl_path: Path) -> None:
+    # Using a pre-built MXL fixture avoids music21.write("mxl") which takes ~14s on Windows
+    score = parse(compressed_mxl_path)
 
     assert score.title == "Compressed Score"
     assert score.key == "C major"

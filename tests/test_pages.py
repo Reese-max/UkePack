@@ -299,6 +299,7 @@ def test_analysis_page_shows_practice_audio_actions_with_midi(db_client: TestCli
 
 def test_analysis_page_shows_practice_audio_downloads_after_generation(
     db_client: TestClient,
+    mock_ffmpeg_encode: None,
 ) -> None:
     create = db_client.post(
         "/api/projects",

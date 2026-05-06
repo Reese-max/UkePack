@@ -69,3 +69,6 @@ report.*.json
 
 # Windows crash artifacts
 *.stackdump
+
+# KPI gate streak counter (pre-commit hook state)
+.kpi-gate-streak

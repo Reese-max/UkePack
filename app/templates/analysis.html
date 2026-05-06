@@ -336,22 +336,8 @@ F | G | C | C |"
     </div>
     {% endif %}
 
-    {% if analysis.chords %}
-    <div class="card">
-        <p class="section-title">🎸 和弦清單</p>
-        <div class="chord-grid" aria-label="和弦列表">
-            {% set seen = [] %}
-            {% for chord in analysis.chords %}
-                {% if chord.symbol not in seen %}
-                    {% set _ = seen.append(chord.symbol) %}
-                    <span class="chord-chip">{{ chord.symbol }}</span>
-                {% endif %}
-            {% endfor %}
-        </div>
-        {% if analysis.chords|length == 24 %}
-        <p style="margin:0.75rem 0 0; font-size:0.875rem; color:var(--muted)">（僅顯示前 24 個和弦）</p>
-        {% endif %}
-    </div>
+    {% if analysis.playability.chord_hints %}
+    {% include "partials/chord_hints.html" %}
     {% endif %}
 
     {# ── Edit chords (only for manual-entry projects, not MusicXML imports) ── #}

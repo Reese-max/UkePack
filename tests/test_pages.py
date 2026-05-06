@@ -155,6 +155,27 @@ def test_analysis_page_with_chords(db_client: TestClient) -> None:
     assert "副歌" in resp.text
 
 
+def test_analysis_page_shows_chord_teaching_hints(db_client: TestClient) -> None:
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Hint Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    db_client.post(
+        f"/api/projects/{pid}/chords",
+        json={"text": "Cmaj7 | G | F#m7b5 | Bb"},
+    )
+
+    resp = db_client.get(f"/projects/{pid}")
+
+    assert resp.status_code == 200
+    assert "綠色可直接教，橘色建議先簡化，灰色代表先慢速換和弦。" in resp.text
+    assert "建議先用 C" in resp.text
+    assert "建議先用 Dm" in resp.text
+    assert "可直接教" in resp.text
+    assert "先慢練" in resp.text
+
+
 def test_analysis_page_not_found(db_client: TestClient) -> None:
     resp = db_client.get("/projects/99999")
     assert resp.status_code == 404

@@ -29,6 +29,11 @@ def test_build_playability_payload_includes_summary_and_factors() -> None:
     }
     assert payload["factors"][0]["label"] == "和弦難度"
     assert payload["factors"][-1]["weight"] == 5
+    assert payload["chord_hints"][0]["symbol"] == "Cmaj7"
+    assert payload["chord_hints"][0]["category"] == "simplify"
+    assert payload["chord_hints"][0]["suggested_symbol"] == "C"
+    assert payload["chord_hints"][1]["symbol"] == "G"
+    assert payload["chord_hints"][1]["category"] == "friendly"
 
 
 def test_build_playability_payload_handles_unknown_chord_shapes() -> None:
@@ -48,3 +53,5 @@ def test_build_playability_payload_handles_unknown_chord_shapes() -> None:
 
     assert payload["summary"]["distinct_chord_count"] == 1
     assert payload["summary"]["highest_fret"] is None
+    assert payload["chord_hints"][0]["symbol"] == "C(add9)"
+    assert payload["chord_hints"][0]["category"] == "watch"

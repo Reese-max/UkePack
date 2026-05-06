@@ -1,0 +1,22 @@
+<div class="card">
+    <p class="section-title">🎸 和弦清單</p>
+    <p style="margin:0 0 0.75rem; color:var(--muted); font-size:0.95rem">
+        綠色可直接教，橘色建議先簡化，灰色代表先慢速換和弦。
+    </p>
+    <div class="chord-grid" aria-label="和弦列表">
+        {% for chord in analysis.playability.chord_hints %}
+        <div class="data-cell" style="min-width:220px; flex:1 1 220px">
+            <div style="display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap; align-items:flex-start">
+                <strong>{{ chord.symbol }}</strong>
+                <span class="badge {% if chord.category == 'friendly' %}badge-green{% elif chord.category == 'simplify' %}badge-orange{% else %}badge-muted{% endif %}">
+                    {{ chord.label }}
+                </span>
+            </div>
+            {% if chord.suggested_symbol %}
+            <p style="margin:0.5rem 0 0; font-weight:700">建議先用 {{ chord.suggested_symbol }}</p>
+            {% endif %}
+            <p style="margin:0.4rem 0 0; color:var(--muted); font-size:0.9rem">{{ chord.detail }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>

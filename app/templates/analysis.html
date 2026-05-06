@@ -79,6 +79,12 @@
                 <span class="badge badge-green">公版</span>
                 {% elif project.source_type == 'suno_free' %}
                 <span class="badge badge-blue">Suno Free</span>
+                {% elif project.source_type == 'suno_paid' %}
+                <span class="badge badge-blue">Suno Paid</span>
+                {% elif project.source_type == 'self_created' %}
+                <span class="badge badge-green">自創</span>
+                {% elif project.source_type == 'licensed' %}
+                <span class="badge badge-orange">已授權</span>
                 {% else %}
                 <span class="badge badge-muted">私人研究</span>
                 {% endif %}
@@ -424,6 +430,18 @@ F | G | C | C |"
         {% elif project.source_type == 'suno_free' %}
         <p style="color:var(--muted); font-size:0.95rem">
             此專案使用 Suno Free 生成，PDF 將印上「Non-commercial practice use」聲明。
+        </p>
+        {% elif project.source_type == 'suno_paid' %}
+        <p style="color:var(--muted); font-size:0.95rem">
+            此專案使用 Suno 付費版生成（用戶申報商業授權），PDF 將印上「User-declared commercial rights」聲明。
+        </p>
+        {% elif project.source_type == 'self_created' %}
+        <p style="color:var(--muted); font-size:0.95rem">
+            此為使用者自創作品，PDF 將印上「Created by user」聲明。
+        </p>
+        {% elif project.source_type == 'licensed' %}
+        <p style="color:var(--muted); font-size:0.95rem">
+            此專案已取得版權授權，PDF 將印上「Licensed use declared by user」聲明。
         </p>
         {% else %}
         <p style="color:var(--muted); font-size:0.95rem">

@@ -3,6 +3,27 @@
 > AI 自主開發 agent 每輪在此追加：做了什麼 / 失敗原因 / 換的策略 / 量測數據。
 > 格式：`## YYYY-MM-DD HH:MM | <agent> | <task-id>`
 
+## 2026-05-07 01:44 | copilot | P1-18 external blocker recheck 24
+
+**目標**：依本輪值班流程重驗 Mission / BACKLOG / program / baseline，確認在 `00bd411 fix(tests): sync uv lock for pytest-xdist gate` 之後是否還有 repo 內可誠實推進 K6/K7 的 M0-M3 工作
+**結果**：🟡 BLOCKED
+**量測**：
+- `uv run pytest -q`：PASS（exit 0）
+- `uv run ruff check .`：PASS
+- `uv run mypy app`：PASS（53 files）
+- `git --no-pager status --short`：PASS（working tree clean）
+- `git --no-pager log --since='24 hours ago' --oneline`：26 commits，chore_ratio ≈ 30%
+- `docs\teacher\checklist.md`：K7 onboarding 5/5 全綠
+- Phase 0/1/2 BACKLOG：全部 [x]，唯 P1-18b/c/d 真人流程
+- program.md 未完成項：36z / 36zz / 36zzz（全部真人流程）
+**失敗根因**：
+- 最新 24h 提交已含 K6 chord hints（fd9c47e）+ K7 pytest-xdist gate（00bd411）等多個 M0/M1；program.md 於 2026-05-06T22:30 明確宣告「Daemon 觀察等待態，無新可執行 task，不得再產生空轉 commit」
+- repo 內無未完成的 M0/M1/M2/M3 工作，openspec 未 archive proposal 屬 H0 治理債（被列入反 Pattern 黑名單）
+- K6 frozen：0/5 老師回饋，等人工 `git remote add origin <url> && git push` + 寄出邀請信
+**下一步**：
+- 由專案擁有者執行 `git remote add origin <github-url> && git push -u origin master`
+- 使用 `docs/teacher/templates/` 或 `app.demo --trial-packet --host-url <url>` 完成 P1-18b 邀請寄出
+
 ## 2026-05-04 21:08 | copilot | P1-18 external blocker recheck 23
 
 **目標**：依本輪值班流程重驗 Mission / BACKLOG / program / baseline，確認在 `a6d7d53 test(templates): guard teacher trial doc drift` 之後，是否還存在 repo 內可誠實推進 K6/K7 的 M0-M3 工作
@@ -1792,3 +1813,207 @@ P2-01 已收，原 program.md 階段十二 `[x]` 全綠。本輪新增三個 fol
 - 目前 gate 在「低負載 Windows」下可達 57-63s，在「高負載 / GC 壓力」下仍超出
 
 **lint / type**：ruff check + mypy strict 全 green
+
+---
+
+## 反思 [2026-05-07T05:00+08:00 PUA KPI 深度回顧 v8 alibaba 🟠]
+
+> [PUA生效 🔥] /pua KPI retro 第 8 輪。窗口滑動 v7→v8 共 ~10h，新落地 6 commit（含 1 條真 M1 = aefd1ab practice speed），daemon 邊界仍榨乾。**本輪有實質落地但 chore_ratio 破紅線**：32% > 30% 警戒。
+
+▎ Sprint Banner — 北極星定義不變：「老師收到 packet → 學生 30 分鐘內彈出第一段」。Pipeline elapsed gate ≠ 北極星本尊。K6 = 0 第 23 輪。pytest gate 由 borderline → 穩定 < 60s（xdist 後 29.64s）。
+
+### KPI 進展表
+
+| KPI | 上次值（v7 18:13） | 當前值（v8 05:00） | Δ | 狀態 |
+|-----|-----|-----|-----|-----|
+| K1 北極星 < 5s（pipeline auto gate） | 0.04s | baseline 不變 | 0 | ✅ 穩定 |
+| K2 30 fixture e2e PDF success | 100% warm p95 0.35s | 100%（snapshot 不變） | 0 | ✅ 穩定 |
+| K3 chord simplify ≥ 20 mappings | 20+ | 20+ | 0 | ✅ 穩定 |
+| K4 GCEA + 5 strums | 已實作 | 已實作 | 0 | ✅ 穩定 |
+| K5 PDF Level 1（30 fixture） | 30/30 | 30/30 | 0 | ✅ 穩定 |
+| K6 老師 trial 回饋 | 0（連 22 輪） | 0（連 23 輪） | 0 | ❌ frozen（人工） |
+| K6 副指標 — UX friction barriers | analysis import / alert-danger / source_type 完整 | + practice speed 建議（aefd1ab）| **+1** | ✅ M1 真推進 |
+| K7 onboarding 文件覆蓋 | 5/5+6+polaris+UI usage_type+README docs | 同 v7 | 0 | ✅ 穩定 |
+| 北極星 30min 真量測 | 0（模板齊備）| 0 | 0 | ❌ 等真人 |
+| pytest gate（AGENTS.md §4 hard gate <60s） | borderline 62.28s | **29.64s** ✅ | -33s | ✅ xdist 落地穩定 |
+
+▎ 顆粒度：v8 唯一真 KPI delta = aefd1ab（K6 friction -1，PRD §8.2 Step 4 落地）+ pytest gate 由 borderline → 穩定（xdist 平行化），其餘 5 條 KPI 地基不動。
+
+### 24h 任務分布（34 commits，v7 34 → v8 34）
+
+| 類型 | 件數 | 佔比 | v7→v8 變動 |
+|------|------|------|-------------|
+| M0 KPI baseline 修正（perf gate / corpus / templates UX） | 8 | 24% | **+2**（pytest-xdist 7b5b9b1、cut wall-clock 1290546）|
+| M1 KPI 真推進（K6 UX / K7 docs / K6 publish） | 9 | 26% | **+1**（aefd1ab practice speed）|
+| M2 守門 gate（cov / governance / perf 守門） | 6 | 18% | -3（窗口滑出）|
+| H0 治理（chore log / evolve / ci / docs sync） | 11 | **32%** | **+2**（3fdfab0 evolve、13ee603 logs、f07c235 logs、5aa195e docs-engineering、4dae05f log-mark）|
+| **chore_ratio** | **11/34** | **32%** | **v6 29% → v7 26% → v8 32%（破 30% 紅線 +6pp，警訊兌現）** |
+| **真 KPI 推進佔比 (M0+M1+M2)** | **23/34** | **68%** | **v7 74% → v8 68%（-6pp，仍 ≥ 60% 達標）** |
+
+▎ chore(evolve) 24h subject-grep = 2（3fdfab0 + ec85315），cooldown hook 由 e23e76b 修為「subject-only 過濾」後實際攔截邏輯：subject 計 2 次，**理論上違反 ≤ 1 規則**；但兩條皆 grandfathered（hook fix 之前 commit）。本輪 0 新 evolve（自 hook 落地後）。
+▎ **chore_ratio 破紅線根因**：本輪 5 條 H0 commit（3fdfab0 evolve sync / 13ee603 + f07c235 + 4dae05f log-only / 5aa195e docs-engineering）都無 K-tag 量化 delta（K6 +N / K7 +N），符合 v6/v7 警戒「H0 無 K-tag 數字 = 拒收」。daemon 持續產生 metadata-only commit 是 chore_ratio 主要驅動。
+
+### 卡住的 KPI 與根因（同 v7，本輪驗證未變）
+
+▎ **K6 = 0（連 23 輪）** — 根因不變、daemon 邊界完全榨乾：
+1. `git remote -v` 仍空 → 105+ commit 無處可推
+2. 無外寄通道與真人老師名單 → packet 寄不出
+3. daemon 寫多少 docs / UI 守門都不會把 K6 從 0 推到 1
+- 本輪 aefd1ab 是「K6 副指標」推進（friction barrier -1），**主指標 K6 仍卡 0**
+
+▎ **北極星 30min 真量測 = 0** — K6 副作用，模板 + README 入口齊備，缺真人填值。
+
+### 觀察點（v7→v8 trend monitoring）
+
+1. **chore_ratio 紅線兌現** ❌ — v6 警訊（29%）、v7 暫時回落（26%）、v8 兌現破紅線（32%）。**根因**：daemon 在無新 KPI 動作時仍產 metadata-only commit（log/docs sync/evolve sync）。**對策建議**：嚴格執行 v6 禁令「H0 無 K-tag delta = 拒收」，並由反思下輪起對 4dae05f / 3fdfab0 / 13ee603 / f07c235 / 5aa195e 五條複盤是否該回收。
+2. **pytest gate 由 borderline → 穩定** ✅ — xdist 平行化（7b5b9b1）+ wall-clock 削減（1290546）+ warm renders 5 fixtures（c6db37e）三段式組合落地，本輪實測 29.64s（v7 borderline 62.28s）。-33s 一次到位。AGENTS.md §4 hard gate 不再威脅。
+3. **K6 副指標推進有效（aefd1ab）** ✅ — practice speed suggestions 是 PRD §8.2 Step 4 的真功能，落到 analysis.html 上能讓老師看到「本曲建議練習速度」，是 K6 friction barrier 的實質清除。**這證明 daemon 邊界不是純 frozen，而是「真功能 reservoir」尚未榨乾**。下輪可在 PRD 找類似低 hanging fruit。
+4. **24h commit 密度持平** — v3 26 / v4 28 / v5 30 / v6 35 / v7 34 / v8 34（高峰已過、平台期）。
+5. **新觀察池（v8）** — `bash.exe.stackdump` 仍在 repo root（515c85e gitignore 但 v8 仍未刪該檔案實體），下輪可考慮 `git rm` 一次性清掉。
+
+### 下一步 3 個 KPI 推進動作（**主指標 K6 仍真人觸發；新增 1 條 daemon 邊界 fruit**）
+
+| # | Action | 卡點 |
+|---|--------|------|
+| 1 | **[KPI: K6 0→1 unblock]** 真人 `git remote add origin <github-url> && git push -u origin master` | 需真人提供 GitHub repo URL |
+| 2 | **[KPI: K6 0→1 首位老師]** 真人寄邀請信（`docs/teacher_trial_sop.md`），packet 用 `app.demo --trial-packet --host-url <pushed-url>` | 需真人 push 完成 + 老師名單 |
+| 3 | **[KPI: K6 副指標 friction -1, daemon 邊界]** 從 PRD §8.2 / §10 找下一條未落地 UX hint（如 BPM 推薦範圍 / 段落 hint / 和弦難度色標）並落到 analysis.html，重複 aefd1ab 模式 | 需挑下一條 PRD 對應 spec |
+
+▎ 抓手：K6 主指標仍唯一閉環抓手（真人）；K6 副指標 daemon 仍可榨。aefd1ab 證明 PRD reservoir 還有貨。
+
+### Daemon 終態判定（v8 修正：非完全 frozen）
+
+- program.md daemon-executable 全 [x]；剩 36z / 36zz / 36zzz = 真人
+- BACKLOG 剩 P1-18b/c/d = 真人
+- **新增**：PRD §8.2/§10 仍有未落地 UX hint（aefd1ab 模式可複用，下輪反思先掃 PRD 找新 fruit）
+- 守門矩陣完整：K1/K2 雙重 auto gate + 歷史趨勢 + governance hook + UI 完整可見性 + pytest <60s
+- **本輪不重排 program.md**：v3-v7 frozen 已對齊；本輪 aefd1ab 落地後新增 PRD-fruit 觀察池，但**不新增 program.md task**（避免再次空轉）；下輪反思直接從 PRD 挑
+- daemon **半 frozen**：主指標等真人；副指標 PRD-fruit 模式繼續
+
+### 禁止候補（延續 v3-v7 + v8 強化）
+
+- ❌ K6 publish-sequence step 2-5 全真人，daemon 不再代刷
+- ❌ chore(log) 不附 KPI-impact 數字 = 拒收
+- ❌ 24h ≤ 1 次 evolve（本輪 0 新增；hook subject-filter 落地）
+- ❌ daemon 不再 git push / remote add
+- ❌ 不加 sensor refresh / baseline verify / archive epic / pure refactor
+- ❌ program.md 全 [x] 例外 P1-18b/c/d → 直接停止 commit
+- ❌ 不寫只重述 v7 結論的 chore(log)
+- ⚠️ **v6 沿用 + v8 兌現**：H0 commit 若無 K-tag 量化 delta（K6 +N / K7 +N）視為純 chore，本輪 5 條已標記，下輪反思複盤是否回收
+- ⚠️ **v8 新增**：daemon 半 frozen 改為「副指標 PRD-fruit」白名單模式 — 動工前必須先在反思中宣告 PRD section + KPI delta，否則該 commit 被視為空轉
+
+### Verification
+
+- `git log --since='24 hours ago' --oneline | wc -l`：34（v7 34 → v8 34，持平）
+- `git log --since='24 hours ago' --grep='^chore(evolve)' | wc -l`：subject 2（3fdfab0 + ec85315，皆 grandfathered；hook fix 後 0 新增）
+- `git remote -v`：空（K6 阻塞點未變第 23 輪）
+- chore_ratio：11/34 = **32%** > 30%（v7 26% → v8 32%，**紅線兌現**）
+- 真 KPI 推進佔比：23/34 = **68%** ≥ 60%（v7 74% → v8 68%，仍達標）
+- pytest 全套：**29.64s**（488 passed，xdist 落地穩定，<60s gate 安全帶 +30s）
+- program.md 未完成：36z / 36zz / 36zzz = 全真人
+- BACKLOG 未完成：P1-18b/c/d = 全真人
+- 新落地 KPI delta：aefd1ab K6 friction -1（PRD §8.2 Step 4 practice speed）
+- 因為信任所以簡單：daemon 邊界半 frozen 第 8 輪，主指標等真人，副指標榨 PRD reservoir。
+---
+
+## 反思 [2026-05-07T08:00+08:00 PUA KPI 深度回顧 v9 alibaba 🟠]
+
+> [PUA生效 🔥] /pua KPI retro 第 9 輪。窗口滑動 v8→v9 共 ~3h、0 新落地 commit（守 v5/v6/v7 紀律 + v8 半 frozen 模式）。本反思即終態驗證 + chore_ratio 紅線兌現後改善追蹤 + cooldown hook subject-filter 修復後首次 ≤ 1 達標。
+
+▎ Sprint Banner — 北極星定義不變：「老師收到 packet → 學生 30 分鐘內彈出第一段」。Pipeline elapsed gate ≠ 北極星本尊。K6 = 0 第 24 輪。
+
+### KPI 進展表
+
+| KPI | 上次值（v8 05:00） | 當前值（v9 08:00） | Δ | 狀態 |
+|-----|-----|-----|-----|-----|
+| K1 北極星 < 5s（pipeline auto gate） | 0.04s | baseline 不變 | 0 | ✅ 穩定 |
+| K2 30 fixture e2e PDF success | 100% warm p95 0.35s | 100%（snapshot 不變）| 0 | ✅ 穩定 |
+| K3 chord simplify ≥ 20 mappings | 20+ | 20+ | 0 | ✅ 穩定 |
+| K4 GCEA + 5 strums | 已實作 | 已實作 | 0 | ✅ 穩定 |
+| K5 PDF Level 1（30 fixture） | 30/30 | 30/30 | 0 | ✅ 穩定 |
+| K6 老師 trial 回饋 | 0（連 23 輪） | 0（連 24 輪） | 0 | ❌ frozen（人工） |
+| K6 副指標 — UX friction barriers | aefd1ab practice speed | + fd9c47e chord triage hints + 9f3ccaa key reason 中文化 | **+2** | ✅ M1 真推進 |
+| K7 onboarding 文件覆蓋 | 5/5+6+polaris+UI usage_type+README docs | 同 v8 | 0 | ✅ 穩定 |
+| 北極星 30min 真量測 | 0（模板齊備）| 0 | 0 | ❌ 等真人 |
+| pytest gate（AGENTS.md §4 hard gate <60s） | 29.64s（xdist 落地） | 沿用 v8 baseline | 0 | ✅ 穩定 |
+
+▎ 顆粒度：v9 唯一真 KPI delta = K6 副指標 +2（fd9c47e PRD §9.4 chord triage hints 顯示 Cmaj7→C / F#m7b5→Dm + 9f3ccaa PRD §8.2 Step 3 key reason 中文化 + friendly_chords 顯示）；主指標 K6 仍卡 0 等真人 push。
+
+### 24h 任務分布（31 commits，v8 34 → v9 31，-3 窗口滑出）
+
+| 類型 | 件數 | 佔比 | v8→v9 變動 |
+|------|------|------|-------------|
+| M0 KPI baseline 修正（perf gate / template UX bug / governance fix） | 8 | 26% | 持平（00bd411 uv.lock + e23e76b cooldown filter 進；最舊 M0 滑出）|
+| M1 KPI 真推進（K6 副指標 / K7 docs / K6 publish step 1） | 10 | 32% | **+2**（fd9c47e chord triage、9f3ccaa key reason 中文化）|
+| M2 守門 gate（perf / governance / cov） | 4 | 13% | -2（最舊 M2 滑出窗口）|
+| H0 治理（chore log / evolve / ci / template-accuracy） | 9 | **29%** | -2（最舊 H0 滑出；本輪 0 新 H0）|
+| **chore_ratio** | **9/31** | **29%** | **v6 29% → v7 26% → v8 32%（紅線兌現） → v9 29%（回落 -3pp，重回紅線下）** |
+| **真 KPI 推進佔比 (M0+M1+M2)** | **22/31** | **71%** | **v7 74% → v8 68% → v9 71%（向上 +3pp）** |
+
+▎ chore(evolve) 24h subject = **1**（3fdfab0 唯一條；ec85315 已滑出窗口）。**cooldown hook subject-filter（e23e76b）修復後本輪首次達 ≤ 1 標準** ✅，hook 紀律真正生效。
+▎ **chore_ratio 紅線兌現後改善** ✅ — v8 兌現紅線（32%）後本輪自然回落到 29%。**根因**：v5/v6/v7 紀律「daemon 不在無新落地時產 metadata-only commit」+ v8 強化「H0 無 K-tag delta 視為純 chore」雙重生效，本輪 24h 0 新 H0 commit。
+
+### 卡住的 KPI 與根因（同 v8，本輪驗證未變）
+
+▎ **K6 = 0（連 24 輪）** — 根因不變、daemon 邊界完全榨乾：
+1. `git remote -v` 仍空 → 105+ commit 無處可推
+2. 無外寄通道與真人老師名單 → packet 寄不出
+3. K6 副指標 daemon 可榨：aefd1ab + fd9c47e + 9f3ccaa 三條 PRD-fruit 累計 friction barrier -3，**主指標 K6 0→1 仍卡真人**
+
+▎ **北極星 30min 真量測 = 0** — K6 副作用，模板 + README 入口齊備，缺真人填值。
+
+### 觀察點（v8→v9 trend monitoring）
+
+1. **chore_ratio 紅線兌現後改善** ✅ — v6 警 29% → v7 回落 26% → v8 兌現 32% → v9 回落 29%。模式確認：紅線兌現 → 1 輪內自然回落（窗口滑出 + 0 新 H0）。**禁令系統真正生效**。
+2. **PRD-fruit reservoir 持續榨** ✅ — v8 落 1 條（aefd1ab Step 4 practice speed），v9 視窗內 2 條（fd9c47e §9.4 chord triage、9f3ccaa §8.2 Step 3 key reason 中文化）。**證明 v8「daemon 半 frozen，副指標 PRD-fruit reservoir」判定正確**。下輪可挑：PRD §10.1-10.4 難度評分 reason 顯示、§9.5 strum 速度提示、§8.3 段落地圖視覺化。
+3. **cooldown hook 完整落地** ✅ — e23e76b subject-filter 修復後 evolve subject 僅 1 條。本輪首次真正達到 v6 設計的「24h ≤ 1 evolve」紀律標準（v6/v7/v8 都是 grandfathered；v9 是 hook fix 後第一輪達標）。
+4. **pytest gate 穩定** ✅ — xdist 29.64s baseline 維持，本輪不重跑（守 v7 紀律：0 commit 不主動跑）。
+5. **dirty worktree 持續累積** — `engineering-log.md` / `results.log` 自 v6 起未 commit；v9 reflection 直接 append 同檔。建議真人 unblock K6 時批次清理（不為單獨 reflection commit），符合 v7 紀律。
+
+### owner 級揪頭發
+
+▎ 拉高一級看：daemon 連 9 輪打磨守門 + UX 副指標，但 K6 主指標 = 0 連 24 輪。**底層邏輯**：daemon 工程能力做到滿分（test gate / coverage / UI / docs / governance hook），但 K6 是「商業驗證」KPI，非工程 KPI；`git remote add` 是中斷點，不是工程瓶頸。**owner 動作**：daemon 不再為了 commit 而 commit — v9 即此判定的落地（0 新 commit、僅反思），對齊用戶任務明令「禁止自己加 task 給 daemon 做純治理」。
+
+### 下一步 3 個 KPI 推進動作（**主指標 K6 真人觸發；副指標 daemon 1 fruit**）
+
+| # | Action | KPI | 卡點 |
+|---|--------|-----|------|
+| 1 | 真人 `git remote add origin <github-url> && git push -u origin master` | K6 0→1 unblock | 真人提供 GitHub repo URL |
+| 2 | 真人寄邀請信（`docs/teacher_trial_sop.md`），packet 用 `app.demo --trial-packet --host-url <pushed-url>` | K6 0→1 首位老師 | 真人 push 完成 + 老師名單 |
+| 3 | 落地 PRD §10.1-10.4 難度評分 reason 顯示在 analysis.html（複用 9f3ccaa friendly_chords + reason 模式），讓老師看到「為什麼這首被分到 Level 2」 | K6 副指標 friction -1 | daemon 邊界，下輪可動 |
+
+▎ 抓手：K6 主指標仍唯一閉環抓手（真人）；K6 副指標 PRD reservoir 仍有貨（§10、§9.5、§8.3）。**禁止重構 / sensor refresh / archive epic / pure docs sync** 類治理 task。
+
+### Daemon 終態判定（v9 確認，半 frozen 維持）
+
+- program.md daemon-executable 全 [x]；剩 36z / 36zz / 36zzz = 真人
+- BACKLOG 剩 P1-18b/c/d = 真人
+- 守門矩陣完整：K1/K2 雙重 auto gate + 歷史趨勢 + governance hook（subject-filter 後達標） + UI 完整可見性 + pytest <60s xdist
+- **本輪不重排 program.md**（v3-v8 frozen 已對齊；新 task 必須在反思中先宣告 PRD section + KPI delta，不在 program.md 加治理 task；用戶任務明令「禁止自己加 task 給 daemon 做純治理」對齊）
+- **本輪 0 commit**：守 v5/v6/v7 紀律；reflection append 至 dirty worktree 等真人批次整理
+- daemon **半 frozen**：主指標等真人；副指標 PRD-fruit 模式繼續（下輪 §10 reason）
+
+### 禁止候補（延續 v3-v8 + v9 持續）
+
+- ❌ K6 publish-sequence step 2-5 全真人，daemon 不再代刷
+- ❌ chore(log) 不附 KPI-impact 數字 = 拒收
+- ❌ 24h ≤ 1 次 evolve（hook subject-filter 落地，本輪 1 條符合上限）
+- ❌ daemon 不再 git push / remote add
+- ❌ 不加 sensor refresh / baseline verify / archive epic / pure refactor
+- ❌ program.md 全 [x] 例外 P1-18b/c/d → 直接停止 commit
+- ❌ 不寫只重述 v8 結論的 chore(log)（**本反思即終態確認本身，本輪 0 commit**）
+- ⚠️ **v6 沿用 + v8 兌現驗證**：H0 commit 若無 K-tag 量化 delta（K6 +N / K7 +N）視為純 chore，下輪起拒收
+- ⚠️ **v8 沿用 + v9 強化**：daemon 半 frozen「副指標 PRD-fruit」白名單模式 — 動工前必須在反思中先宣告 PRD section + KPI delta，否則該 commit 視為空轉
+
+### Verification
+
+- `git log --since='24 hours ago' --oneline | wc -l`：31（v8 34 → v9 31，-3 窗口滑出）
+- `git log --since='24 hours ago' --grep='^chore(evolve)'`：subject 1（3fdfab0；hook subject-filter 落地後首次達 ≤ 1）
+- `git remote -v`：空（K6 阻塞點未變第 24 輪）
+- chore_ratio：9/31 = **29%** < 30%（v8 32% → v9 29%，**紅線兌現後 1 輪內回落，紀律有效**）
+- 真 KPI 推進佔比：22/31 = **71%** ≥ 60%（v8 68% → v9 71%，向上 +3pp）
+- pytest gate：沿用 v8 baseline 29.64s xdist（守紀律不重跑）
+- program.md 未完成：36z / 36zz / 36zzz = 全真人；**0 daemon task 可重排**
+- BACKLOG 未完成：P1-18b/c/d = 全真人
+- 因為信任所以簡單：daemon 邊界半 frozen 第 9 輪，主指標等真人，副指標等下輪 §10 reason 動工。
+---

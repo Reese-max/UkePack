@@ -275,6 +275,12 @@
 - [x] 37m. 補 `app/api/projects/share.py` + `app/api/share_pages.py` + `templates/share_preview.html` / `partials/share_card.html`：owner 端建立/撤銷、分析頁/預覽頁顯示可複製分享連結、public `/share/{code}` noindex 預覽頁、share-scoped PDF/音檔下載路由
 - [x] 37n. 補 `tests/test_share_links.py` + `openspec/specs/share-links.md`，同步更新 `projects-api.md` / `pages-routes.md` / `README.md` / `BACKLOG.md`
 
+## 階段十三-K6-pdf-consistency（evolve 2026-05-07 10:00 新增，daemon 可執行）
+
+> 動機：e6286a0 把 strum BPM range badge 加進 `strum_patterns.html`（analysis page），但 `app/render/pages/page2.py` strum section 沒有對應更新。老師列印 PDF 練習包給學生時，學生看不到每個刷法的 BPM 範圍提示，資訊不完整。
+
+- [ ] 36z-pdf-bpm. **[KPI-impact: K6 screen/print 一致性，daemon 可執行]** 在 `app/render/pages/page2.py` strum section 加入 `StrumPattern.bpm_range` 顯示（格式：`♩=50–90 BPM`）；補 regression test 驗 PDF bytes 含 BPM 字樣；commit `feat(pdf): add strum BPM range to practice pack PDF` -> K6
+
 ---
 
 ## 全域守則（每輪 AI 都要遵守）

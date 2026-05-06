@@ -279,7 +279,7 @@
 
 > 動機：e6286a0 把 strum BPM range badge 加進 `strum_patterns.html`（analysis page），但 `app/render/pages/page2.py` strum section 沒有對應更新。老師列印 PDF 練習包給學生時，學生看不到每個刷法的 BPM 範圍提示，資訊不完整。
 
-- [ ] 36z-pdf-bpm. **[KPI-impact: K6 screen/print 一致性，daemon 可執行]** 在 `app/render/pages/page2.py` strum section 加入 `StrumPattern.bpm_range` 顯示（格式：`♩=50–90 BPM`）；補 regression test 驗 PDF bytes 含 BPM 字樣；commit `feat(pdf): add strum BPM range to practice pack PDF` -> K6
+- [x] 36z-pdf-bpm. **[KPI-impact: K6 screen/print 一致性，daemon 可執行]** 在 `app/render/pages/page2.py` strum section 加入 `StrumPattern.bpm_range` 顯示（格式：`♩=50–90 BPM`）；補 regression test 驗 PDF bytes 含 BPM 字樣；commit `feat(pdf): add strum BPM range to practice pack PDF` -> K6
 
 ---
 

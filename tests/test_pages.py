@@ -242,6 +242,16 @@ def test_page_import_rejects_wrong_extension(db_client: TestClient) -> None:
     assert "import_error=1" in resp.headers["location"]
 
 
+def test_page_import_404_on_missing_project(db_client: TestClient) -> None:
+    """POST /projects/{id}/import for a non-existent project → 404 (not 500)."""
+    resp = db_client.post(
+        "/projects/99999/import",
+        files={"file": ("song.musicxml", io.BytesIO(b"<score/>"), "application/xml")},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 404
+
+
 def test_analysis_page_form_points_to_page_route(db_client: TestClient) -> None:
     """analysis.html import form must POST to /projects/{id}/import (page route), not API."""
     create = db_client.post(

@@ -66,3 +66,6 @@ data/
 
 # Auto-engineer batch run reports
 report.*.json
+
+# Windows crash artifacts
+*.stackdump

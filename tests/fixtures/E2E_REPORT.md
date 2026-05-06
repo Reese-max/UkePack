@@ -20,43 +20,43 @@
 
 | Bucket | Samples | p50 (s) | p95 (s) | p100 (s) | Gate |
 |--------|---------|---------|---------|----------|------|
-| Cold | 30 | 0.24 | 0.52 | 1.00 | cold < 12.0s |
-| Warm | 30 | 0.24 | 0.46 | 0.47 | PASS |
+| Cold | 30 | 0.24 | 0.48 | 0.66 | cold < 12.0s |
+| Warm | 30 | 0.24 | 0.43 | 0.99 | PASS |
 
 ## Per-Fixture Results
 
 | Fixture | Status | Cold (s) | Warm (s) |
 |---------|--------|----------|----------|
-| alouette | PASS | 0.28 | 0.21 |
-| are_you_sleeping | PASS | 0.22 | 0.46 |
-| au_clair_de_la_lune | PASS | 0.22 | 0.19 |
-| baa_baa_black_sheep | PASS | 0.25 | 0.17 |
-| camptown_races | PASS | 0.24 | 0.33 |
-| clementine | PASS | 0.20 | 0.19 |
-| farmer_in_the_dell | PASS | 0.29 | 0.26 |
-| go_tell_aunt_rhody | PASS | 0.26 | 0.21 |
-| greensleeves | PASS | 0.21 | 0.33 |
-| happy_birthday | PASS | 0.19 | 0.26 |
-| hot_cross_buns | PASS | 0.22 | 0.27 |
-| ive_been_working_on_the_railroad | PASS | 0.24 | 0.25 |
-| jack_and_jill | PASS | 0.21 | 0.16 |
-| jingle_bells | PASS | 1.00 | 0.27 |
-| lightly_row | PASS | 0.42 | 0.20 |
-| little_brown_jug | PASS | 0.20 | 0.29 |
-| london_bridge | PASS | 0.19 | 0.23 |
-| mary_had_a_little_lamb | PASS | 0.60 | 0.24 |
-| muffin_man | PASS | 0.24 | 0.47 |
-| oh_susanna | PASS | 0.25 | 0.20 |
-| old_macdonald_had_a_farm | PASS | 0.26 | 0.33 |
-| pop_goes_the_weasel | PASS | 0.21 | 0.20 |
-| row_row_row_your_boat | PASS | 0.32 | 0.45 |
-| shell_be_coming_round_the_mountain | PASS | 0.21 | 0.16 |
-| skip_to_my_lou | PASS | 0.29 | 0.23 |
-| the_mulberry_bush | PASS | 0.24 | 0.22 |
-| this_old_man | PASS | 0.20 | 0.19 |
-| three_blind_mice | PASS | 0.18 | 0.33 |
-| twinkle_twinkle_little_star | PASS | 0.24 | 0.20 |
-| yankee_doodle | PASS | 0.17 | 0.31 |
+| alouette | PASS | 0.17 | 0.22 |
+| are_you_sleeping | PASS | 0.24 | 0.24 |
+| au_clair_de_la_lune | PASS | 0.22 | 0.28 |
+| baa_baa_black_sheep | PASS | 0.25 | 0.29 |
+| camptown_races | PASS | 0.36 | 0.26 |
+| clementine | PASS | 0.20 | 0.23 |
+| farmer_in_the_dell | PASS | 0.19 | 0.15 |
+| go_tell_aunt_rhody | PASS | 0.21 | 0.16 |
+| greensleeves | PASS | 0.20 | 0.34 |
+| happy_birthday | PASS | 0.51 | 0.42 |
+| hot_cross_buns | PASS | 0.41 | 0.22 |
+| ive_been_working_on_the_railroad | PASS | 0.24 | 0.27 |
+| jack_and_jill | PASS | 0.24 | 0.19 |
+| jingle_bells | PASS | 0.20 | 0.19 |
+| lightly_row | PASS | 0.17 | 0.19 |
+| little_brown_jug | PASS | 0.19 | 0.17 |
+| london_bridge | PASS | 0.31 | 0.43 |
+| mary_had_a_little_lamb | PASS | 0.46 | 0.24 |
+| muffin_man | PASS | 0.34 | 0.24 |
+| oh_susanna | PASS | 0.32 | 0.30 |
+| old_macdonald_had_a_farm | PASS | 0.17 | 0.23 |
+| pop_goes_the_weasel | PASS | 0.21 | 0.17 |
+| row_row_row_your_boat | PASS | 0.21 | 0.42 |
+| shell_be_coming_round_the_mountain | PASS | 0.16 | 0.31 |
+| skip_to_my_lou | PASS | 0.66 | 0.99 |
+| the_mulberry_bush | PASS | 0.38 | 0.38 |
+| this_old_man | PASS | 0.31 | 0.28 |
+| three_blind_mice | PASS | 0.26 | 0.26 |
+| twinkle_twinkle_little_star | PASS | 0.28 | 0.19 |
+| yankee_doodle | PASS | 0.23 | 0.15 |
 
 ## Failure Analysis
 

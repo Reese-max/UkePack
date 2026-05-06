@@ -77,6 +77,7 @@
 - [x] P2-04 私人分享連結（短碼 + 過期）
 - [x] P2-05 Discord bot 初版（讀檔 → 回 PDF）
 - [x] P2-06 可彈性分數視覺化
+- [x] P2-07 pytest-xdist parallel execution — per-worker SQLite isolation via `pytest_configure` + `-n auto --dist=loadfile`; reliable < 60 s gate on Windows
 
 ---
 

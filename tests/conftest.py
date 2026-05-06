@@ -1,4 +1,6 @@
+import os
 import shutil
+import tempfile
 import textwrap
 import zipfile
 from collections.abc import Iterator
@@ -11,6 +13,33 @@ from sqlmodel import Session, SQLModel, create_engine
 
 from app.core.db import get_session, reset_engine
 from app.main import app
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Isolate file storage and SQLite DB per xdist worker to prevent conflicts.
+
+    Without isolation, workers sharing the same DB file and data/ directory will
+    conflict when multiple tests create project ID=1 simultaneously. Each worker
+    gets its own temp directory tree so all I/O is fully disjoint.
+    """
+    worker_id = os.environ.get("PYTEST_XDIST_WORKER", "")
+    if worker_id:
+        tmp_dir = Path(tempfile.gettempdir()) / f"ukepack_test_{worker_id}"
+        tmp_dir.mkdir(exist_ok=True)
+        os.environ["SQLITE_PATH"] = str(tmp_dir / "ukepack.db")
+        os.environ["DATA_DIR"] = str(tmp_dir)
+        # Clear lru_cache so the new paths take effect on the next get_settings() call.
+        from app.config import get_settings as _gs
+
+        _gs.cache_clear()
+
+
+def pytest_unconfigure(config: pytest.Config) -> None:
+    """Remove per-worker temp directories created during xdist execution."""
+    worker_id = os.environ.get("PYTEST_XDIST_WORKER", "")
+    if worker_id:
+        tmp_dir = Path(tempfile.gettempdir()) / f"ukepack_test_{worker_id}"
+        shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 @pytest.fixture(scope="session")

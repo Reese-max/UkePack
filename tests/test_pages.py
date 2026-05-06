@@ -658,6 +658,8 @@ def test_analysis_page_shows_edit_chords_section_when_chords_text_set(
     assert "C | Am | F | G" in resp.text
 
 
+
+
 def test_analysis_page_edit_chords_hidden_after_musicxml_import(
     db_client: TestClient,
 ) -> None:
@@ -677,4 +679,63 @@ def test_analysis_page_edit_chords_hidden_after_musicxml_import(
     assert resp.status_code == 200
     assert "分析結果" in resp.text
     assert "修改和弦輸入" not in resp.text
+
+
+# ── PRD §8.2 Step 4 — practice speed suggestions ───────────────────────────
+
+
+def test_build_analysis_includes_practice_speeds_when_bpm_present() -> None:
+    """_build_analysis must compute 50%/70%/100% speeds when BPM is known."""
+    from app.api.pages import _build_analysis
+
+    score_json = (
+        '{"title":"T","key":"C major","bpm":120,"time_signature":"4/4",'
+        '"measures":4,"chords":[],"melody":[],"sections":[]}'
+    )
+    project = Project(title="T", source_type="public_domain", score_json=score_json)
+    result = _build_analysis(project)
+
+    assert result is not None
+    speeds = result["practice_speeds"]
+    assert speeds is not None
+    bpms = [s["bpm"] for s in speeds]
+    assert bpms == [60, 84, 120]  # round(120*0.5)=60, round(120*0.7)=84, 120
+
+
+def test_build_analysis_practice_speeds_none_without_bpm() -> None:
+    """practice_speeds must be None when the score has no BPM."""
+    from app.api.pages import _build_analysis
+
+    score_json = (
+        '{"title":"T","key":"C major","bpm":null,"time_signature":"4/4",'
+        '"measures":4,"chords":[],"melody":[],"sections":[]}'
+    )
+    project = Project(title="T", source_type="public_domain", score_json=score_json)
+    result = _build_analysis(project)
+
+    assert result is not None
+    assert result["practice_speeds"] is None
+
+
+def test_analysis_page_shows_practice_speeds_when_bpm_present(
+    db_client: TestClient,
+) -> None:
+    """analysis.html must render 建議練習速度 row when BPM is available (PRD §8.2 Step 4)."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "BPM Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    # MusicXML twinkle fixture embeds a tempo mark, so BPM will be set
+    with TWINKLE.open("rb") as fh:
+        db_client.post(
+            f"/api/projects/{pid}/import",
+            files={"file": ("twinkle.musicxml", fh, "application/xml")},
+        )
+
+    resp = db_client.get(f"/projects/{pid}")
+    assert resp.status_code == 200
+    assert "建議練習速度" in resp.text
+    assert "BPM" in resp.text
+
 

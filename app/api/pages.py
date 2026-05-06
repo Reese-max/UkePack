@@ -308,9 +308,21 @@ def _build_analysis(project: Project) -> dict[str, Any] | None:
     playability = classify(score)
     patterns = suggest_for_level(score, project.arrangement_level)
 
+    # Derive suggested practice speeds (50% / 70% / 100% of BPM) per PRD §8.2 Step 4
+    practice_speeds: list[dict[str, object]] | None = None
+    if score.bpm:
+        slow = max(1, round(score.bpm * 0.5))
+        mid = max(1, round(score.bpm * 0.7))
+        practice_speeds = [
+            {"label": "慢速（50%）", "bpm": slow},
+            {"label": "中速（70%）", "bpm": mid},
+            {"label": "全速（100%）", "bpm": score.bpm},
+        ]
+
     return {
         "key": score.key,
         "bpm": score.bpm,
+        "practice_speeds": practice_speeds,
         "time_signature": score.time_signature,
         "measures": score.measures,
         "chords": [c.model_dump() for c in score.chords[:24]],

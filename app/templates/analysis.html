@@ -223,6 +223,12 @@ F | G | C | C |"
                 <strong>{{ analysis.bpm }}</strong>
             </div>
             {% endif %}
+            {% if analysis.practice_speeds %}
+            <div class="data-cell">
+                <small>建議練習速度</small>
+                <strong>{{ analysis.practice_speeds | map(attribute="bpm") | join(" / ") }} BPM</strong>
+            </div>
+            {% endif %}
             {% if analysis.time_signature %}
             <div class="data-cell">
                 <small>拍號</small>

@@ -528,6 +528,42 @@ def test_preview_page_private_research_label(db_client: TestClient) -> None:
     assert "Private study only" in resp.text
 
 
+def test_preview_page_suno_paid_label(db_client: TestClient) -> None:
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Suno Paid Song", "source_type": "suno_paid"},
+    )
+    pid = create.json()["id"]
+    db_client.post(f"/api/projects/{pid}/license", json={"confirmed": True})
+
+    resp = db_client.get(f"/projects/{pid}/preview")
+    assert "User-declared commercial rights" in resp.text
+
+
+def test_preview_page_self_created_label(db_client: TestClient) -> None:
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "My Own Song", "source_type": "self_created"},
+    )
+    pid = create.json()["id"]
+    db_client.post(f"/api/projects/{pid}/license", json={"confirmed": True})
+
+    resp = db_client.get(f"/projects/{pid}/preview")
+    assert "自創作品" in resp.text
+
+
+def test_preview_page_licensed_label(db_client: TestClient) -> None:
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Licensed Track", "source_type": "licensed"},
+    )
+    pid = create.json()["id"]
+    db_client.post(f"/api/projects/{pid}/license", json={"confirmed": True})
+
+    resp = db_client.get(f"/projects/{pid}/preview")
+    assert "已授權使用" in resp.text
+
+
 def test_preview_page_not_found(db_client: TestClient) -> None:
     resp = db_client.get("/projects/99999/preview")
     assert resp.status_code == 404

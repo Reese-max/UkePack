@@ -47,6 +47,12 @@
             <span class="badge badge-muted">🔒 Private study only</span>
             {% elif project.source_type == 'suno_free' %}
             <span class="badge badge-blue">Non-commercial practice use</span>
+            {% elif project.source_type == 'suno_paid' %}
+            <span class="badge badge-blue">User-declared commercial rights</span>
+            {% elif project.source_type == 'self_created' %}
+            <span class="badge badge-green">✅ 自創作品</span>
+            {% elif project.source_type == 'licensed' %}
+            <span class="badge badge-orange">已授權使用</span>
             {% else %}
             <span class="badge badge-green">✅ 公版授權</span>
             {% endif %}

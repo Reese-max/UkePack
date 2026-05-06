@@ -208,6 +208,35 @@ class TestRenderPdf:
 
         assert layout_module.unique_chords(score) == ["???"]
 
+    def test_page2_strum_bpm_range_shown(self) -> None:
+        """Page 2 strum section must render BPM range hint for each strum pattern."""
+        score = Score(title="BPM Test", key="C major", measures=4)
+        strum_patterns = suggest_for_level(score, 1)
+        req = PackRequest(
+            title="BPM Test",
+            source_type="public_domain",
+            level=1,
+            score=score,
+            strum_patterns=strum_patterns,
+        )
+
+        drawn_texts: list[str] = []
+        buffer = io.BytesIO()
+        c = rl_canvas.Canvas(buffer)
+        original_draw = c.drawString
+
+        def _capture(x: float, y: float, text: str) -> None:
+            drawn_texts.append(str(text))
+            original_draw(x, y, text)
+
+        c.drawString = _capture  # type: ignore[method-assign]
+        page2_module.render_page2(c, req)
+        c.save()
+
+        assert any("BPM" in t for t in drawn_texts), (
+            f"Expected 'BPM' in page 2 strum text; drawn: {drawn_texts}"
+        )
+
 
 class TestTeacherReviewPdfOverrides:
     """Exercises teacher review override paths in page renderers (page1:57-73/100-110,

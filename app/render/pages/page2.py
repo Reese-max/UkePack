@@ -50,7 +50,8 @@ def render_page2(c: rl_canvas.Canvas, req: PackRequest) -> None:
         for sp in req.strum_patterns[:3]:
             c.setFont(_ZH, 12)
             c.setFillColor(colors.black)
-            c.drawString(_MARGIN, strum_y, f"{sp.name}（{sp.time_signature}）：{sp.notation()}")
+            bpm_hint = f"  ♩={sp.bpm_range[0]}–{sp.bpm_range[1]} BPM"
+            c.drawString(_MARGIN, strum_y, f"{sp.name}（{sp.time_signature}）：{sp.notation()}{bpm_hint}")
             strum_y -= 18
             c.setFont(_ZH, 10)
             c.setFillColor(colors.HexColor("#666666"))

@@ -20,35 +20,46 @@ _GRANDFATHERED_SHAS = {
 }
 
 
+def _recent_commit_subjects() -> list[str] | None:
+    # Force UTF-8 because recent commit bodies include non-ASCII text on Windows.
+    result = subprocess.run(
+        [
+            "git",
+            "--no-pager",
+            "-c",
+            "i18n.logOutputEncoding=utf8",
+            "log",
+            "--since=24 hours ago",
+            "--format=%h %s",
+            "--no-decorate",
+        ],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        cwd=ROOT,
+        check=False,
+    )
+    if result.returncode != 0:
+        return None
+    return [ln for ln in result.stdout.strip().splitlines() if ln.strip()]
+
+
 def test_evolve_cooldown_at_most_one_per_24h() -> None:
     """At most 1 chore(evolve) commit should appear in the last 24 hours.
 
     Pre-existing known violations (committed before this test was introduced)
     are listed in _GRANDFATHERED_SHAS and excluded from the count.
     """
-    result = subprocess.run(
-        [
-            "git",
-            "--no-pager",
-            "log",
-            "--since=24 hours ago",
-            "--grep=chore(evolve)",
-            "--oneline",
-            "--no-decorate",
-        ],
-        capture_output=True,
-        text=True,
-        cwd=ROOT,
-        check=False,
-    )
-    if result.returncode != 0:
+    raw_lines = _recent_commit_subjects()
+    if raw_lines is None:
         # git not available or not a git repo — skip
         return
-    raw_lines = [ln for ln in result.stdout.strip().splitlines() if ln.strip()]
     # Exclude known pre-existing violations (shortened SHA prefix match)
     new_violations = [
         ln
         for ln in raw_lines
+        if " chore(evolve):" in ln
         if not any(ln.startswith(sha) for sha in _GRANDFATHERED_SHAS)
     ]
     assert len(new_violations) <= 1, (

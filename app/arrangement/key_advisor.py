@@ -89,7 +89,7 @@ def _build_mode_fallback(score: Score, original_tonic: str, original_mode: str) 
         target_key=fallback_key,
         semitone_shift=semitone_shift,
         friendly_chords=friendly_chords,
-        # {original_mode} 調式不支援自動移調，fallback 到 C major
+        # {original_mode} 調式不支援自動移調, fallback 到 C major
         reason=(
             f"{score.key} 使用 {original_mode} 調式（不支援自動移調），改用 "
             f"{fallback_key} 為基礎，主要和弦為 {chord_preview}。"

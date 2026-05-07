@@ -18,6 +18,11 @@ _PRE_GUARD_RELAXATION_SHAS = {
     # admission is accompanied by full rule-9 justification in the commit body
     # (same-category as 08c5d85; M-notation pre-enforcement, not a pattern).
     "0eb185d",
+    # 20ea4b3 adds 0eb185d to this exemption set. Its body used the trigger word
+    # in a meta-explanation context (describing the word's presence in 0eb185d,
+    # not performing an actual guard relaxation). This is the terminal entry in
+    # the log-commit / no-drift admission chain; no further follow-ups expected.
+    "20ea4b3",
 }
 
 # Governance files monitored for relaxation attempts.

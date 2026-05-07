@@ -23,6 +23,12 @@ _PRE_GUARD_RELAXATION_SHAS = {
     # not performing an actual guard relaxation). This is the terminal entry in
     # the log-commit / no-drift admission chain; no further follow-ups expected.
     "20ea4b3",
+    # 2e15dd4 admitted 20ea4b3 to this same set. The commit body described why
+    # 20ea4b3 needed admission and in doing so quoted the drift-guard trigger
+    # term (as a meta-reference, not a real relaxation). test_no_grandfather_drift
+    # detected it because the file it touches is a monitored governance file.
+    # This entry closes the cascade.  Rule-9 ack: SHA justified above.
+    "2e15dd4",
 }
 
 # Governance files monitored for relaxation attempts.

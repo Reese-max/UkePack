@@ -73,8 +73,19 @@ def _changed_files(sha: str) -> set[str] | None:
     }
 
 
+_GRANDFATHER_PREVENTION_PHRASES = (
+    "block grandfather",
+    "prevent grandfather",
+    "no grandfather",
+    "anti-grandfather",
+)
+
+
 def _has_guard_relaxation_language(message: str) -> bool:
     lowered = message.lower()
+    # Commits that explicitly BLOCK/PREVENT grandfathering are not violations.
+    if any(phrase in lowered for phrase in _GRANDFATHER_PREVENTION_PHRASES):
+        return False
     return "grandfather" in lowered or (
         "restore" in lowered and "baseline" in lowered
     )
@@ -101,6 +112,13 @@ def test_guard_relaxation_language_examples() -> None:
     )
     assert not _has_guard_relaxation_language(
         "test(governance): tighten evolve cooldown total 24h cap"
+    )
+    # Prevention phrases must NOT be flagged as relaxation.
+    assert not _has_guard_relaxation_language(
+        "test(governance): block grandfather drift on guard tests"
+    )
+    assert not _has_guard_relaxation_language(
+        "test(governance): prevent grandfather abuse in CI"
     )
 
 

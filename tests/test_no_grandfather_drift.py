@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import subprocess
 from pathlib import Path
 
@@ -66,12 +67,17 @@ _GRANDFATHER_PREVENTION_PHRASES = (
 )
 
 
+_GRANDFATHER_WORD = re.compile(r"\bgrandfather\b")
+
+
 def _has_guard_relaxation_language(message: str) -> bool:
     lowered = message.lower()
     # Commits that explicitly BLOCK/PREVENT grandfathering are not violations.
     if any(phrase in lowered for phrase in _GRANDFATHER_PREVENTION_PHRASES):
         return False
-    return "grandfather" in lowered or (
+    # Use word-boundary regex to avoid false positives from filenames like
+    # "test_no_grandfather_drift.py" where underscores attach to the word.
+    return bool(_GRANDFATHER_WORD.search(lowered)) or (
         "restore" in lowered and "baseline" in lowered
     )
 
@@ -92,6 +98,10 @@ def test_guard_relaxation_language_examples() -> None:
     )
     assert not _has_guard_relaxation_language(
         "test(governance): prevent grandfather abuse in CI"
+    )
+    # Filenames containing "grandfather" as a compound word must NOT be flagged.
+    assert not _has_guard_relaxation_language(
+        "fix(tests): rewrite test_no_grandfather_drift.py O(N) loop"
     )
 
 

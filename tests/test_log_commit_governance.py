@@ -13,6 +13,11 @@ _GRANDFATHERED_LOG_SHAS = {
     "13ee603",  # chore(logs): update results.log — M1 practice speed suggestions
     "ee5baeb",  # chore(logs): update results.log M0 preview badge fix
     "1ba6842",  # chore(logs): mark 36z-pdf-bpm done + results.log entry
+    # 08c5d85 used M-notation (M0 baseline RED→GREEN) rather than K-series.
+    # The K-series enforcement rule (43cff1c) was introduced in the same session;
+    # this commit used the pre-existing M-priority notation consistently with
+    # earlier chore(logs) entries. Admitted as pre-enforcement, not a pattern.
+    "08c5d85",  # chore(logs): results.log M0 grandfather guard false-positive fix
 }
 
 

@@ -56,5 +56,5 @@ exclude = ["tests/fixtures"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q --strict-markers -n4 --dist=loadfile"
+addopts = "-q --strict-markers -n4 --dist=worksteal"
 asyncio_mode = "auto"

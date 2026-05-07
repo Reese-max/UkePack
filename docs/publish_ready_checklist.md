@@ -59,11 +59,22 @@ git push -u origin master
 git remote -v
 ```
 
+## Cloud deployment
+
+UkePack must be hosted at a public URL before teachers can trial it remotely.
+See **[docs/deployment_guide.md](./deployment_guide.md)** for step-by-step instructions for Render.com, Fly.io, and Railway.
+
+Key notes:
+- Render.com free tier: ephemeral `/tmp` — SQLite resets on cold start.  Use `DATA_DIR=/tmp/ukepack_data` and `SQLITE_PATH=/tmp/ukepack_data/ukepack.db`.
+- All platforms: Start Command must be `uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
+- Verify deployment with `curl https://<your-app-url>/health` → `{"status":"ok"}`.
+
 ## Human publish sequence
 
 1. ✅ Add `LICENSE` — done (MIT, 2026 UkePack Contributors).
 2. Create the GitHub repository and paste the description draft above.
 3. Run the remote bootstrap commands and confirm `git remote -v` prints `origin`.
 4. Verify `README.md`, `docs/teacher/checklist.md`, and `feedback.md` all render/link correctly on GitHub.
-5. Regenerate the teacher-trial packet with `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out $env:TEMP\trial.pdf --trial-packet $env:TEMP\teacher-trial.zip --host-url https://<your-host>/new`.
-6. Only after steps 1-5 are green, use the README Beta recruitment section or `docs/teacher/templates/` to start 真人 outreach.
+5. Follow [docs/deployment_guide.md](./deployment_guide.md) to deploy to Render.com (or Fly.io / Railway) and get a public URL.
+6. Regenerate the teacher-trial packet with `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out $env:TEMP\trial.pdf --trial-packet $env:TEMP\teacher-trial.zip --host-url https://<your-app>/new`.
+7. Only after steps 1-6 are green, use the README Beta recruitment section or `docs/teacher/templates/` to start 真人 outreach.

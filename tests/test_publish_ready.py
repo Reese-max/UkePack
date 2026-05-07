@@ -118,6 +118,20 @@ def test_publish_ready_description_stays_short_and_keyword_complete() -> None:
         assert keyword in description
 
 
+def test_deployment_guide_exists_and_covers_platforms() -> None:
+    """Deployment guide must exist and mention the three recommended platforms."""
+    guide = ROOT / "docs" / "deployment_guide.md"
+    assert guide.exists(), "docs/deployment_guide.md must exist for K6 remote-hosting"
+    text = guide.read_text(encoding="utf-8")
+    for heading in ("Render.com", "Fly.io", "Railway"):
+        assert heading in text, f"deployment guide must cover {heading}"
+    # Must explain the PORT env var and health check endpoint
+    assert "$PORT" in text
+    assert "/health" in text
+    # Must have post-deploy trial-packet instructions
+    assert "--host-url" in text
+
+
 def test_readme_links_to_publish_ready_checklist() -> None:
     readme = _read_text(README)
     match = re.search(r"## 📦 Publish 準備\n(.*?)(?=\n## |\Z)", readme, re.DOTALL)

@@ -80,6 +80,7 @@ uv run python -m app.demo \
 [docs/publish_ready_checklist.md](./docs/publish_ready_checklist.md)。
 
 - 先確認 GitHub repo description、README badge、LICENSE / CC 標示、git remote bootstrap 都過關
+- 接著照 [docs/deployment_guide.md](./docs/deployment_guide.md) 把 app 部署到雲端（Render.com / Fly.io / Railway），取得老師可直接開啟的公開 URL
 - checklist 還會提醒公開前不要漏掉 `docs/teacher/checklist.md`、`feedback.md` 與 teacher trial packet 驗收
 - 完成 checklist 後，再進真人 `git remote add origin ...` / `git push` / 老師 outreach
 

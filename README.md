@@ -193,13 +193,14 @@ uv run pytest -q
 
 - [x] PRD v1.0 Draft
 - [x] Phase 0：研究與原型（30 首 MusicXML fixture，端到端 PDF 成功率 100%，< 5s）
-- [x] Phase 1：MVP（Web API + SQLite + HTMX UI + 授權聲明，265+ 測試全綠）
+- [x] Phase 1：MVP（Web API + SQLite + HTMX UI + 授權聲明，479 測試全綠）
 - [x] Phase 2 P2-01：段落自動辨識（Intro / Verse / Chorus）
 - [x] Phase 2 P2-02：慢速練習音檔（50BPM / 70% / 100%，MIDI + MP3）
 - [x] Phase 2 P2-03：老師審稿模式（編輯 / 比較 / 復原 / 模板）
 - [x] Phase 2 P2-04：私人分享連結（短碼 + 過期）
 - [x] Phase 2 P2-05：Discord bot 初版
 - [x] Phase 2 P2-06：可彈性分數視覺化
+- [x] Phase 2 P2-07：pytest-xdist 平行測試（-n4 --dist=worksteal，< 60s gate）
 - [ ] Phase 3：Public v1.0（Klangio API + 老師工作區 + 訂閱）
 
 ## 北極星指標

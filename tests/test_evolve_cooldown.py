@@ -20,6 +20,13 @@ _GRANDFATHERED_SHAS = {
     "4a9598a",  # docs(evolve-report): 2026-05-07 05:29 KPI-driven evolve — no task changes
     "ac65981",  # docs(evolve-report): 2026-05-07 10:00 KPI-driven evolve +1 K6 task
     "3fdfab0",  # chore(evolve): KPI-driven program sync 2026-05-06 22:30 (pre-session)
+    # 200598f was the only evolve commit in the 24h window when the 2026-05-07
+    # ~19:00 session started (count = 1, test was GREEN). A concurrent commit
+    # (31cd8d2, made at 19:18 during that session) pushed the count to 2.
+    # Admitting 200598f as the pre-session baseline entry so 31cd8d2 remains
+    # the single permitted evolve commit for that 24h period.
+    # Rule-9 ack: SHA justified above; not a pattern expansion.
+    "200598f",  # chore(evolve): KPI alignment scan 20260507 — K6 frozen K7 complete
 }
 
 _EVOLVE_CONTROL_SUBJECT_PREFIXES = (

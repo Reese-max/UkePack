@@ -15,6 +15,7 @@
 | 回饋表 | 準備 [`feedback.md`](../feedback.md) | 結束後 5 分鐘內可填完 |
 | 試用包 ZIP | `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out $env:TEMP\trial.pdf --trial-packet $env:TEMP\teacher-trial.zip` | 可直接附寄 PDF + teacher_guide + teacher_trial_sop + feedback + outreach templates + 範例曲譜 |
 | 選用：練習音檔展示 | 若要 demo 音檔，先用 API 把 1 個 MIDI 補傳到測試專案 | 分析頁會出現「🎧 練習音檔」卡片 |
+| 選用：公開試用 URL | 遠端試用時必須提供非 `localhost` 網址，參考 [`docs/deployment_guide.md`](./deployment_guide.md) | 5 分鐘內取得 `https://xxx.onrender.com`，代入 `--host-url` |
 
 > Windows PowerShell 可用 `Invoke-RestMethod http://localhost:8000/health` 做健康檢查；macOS / Linux 可用 `curl http://localhost:8000/health`。
 

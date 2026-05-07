@@ -40,6 +40,7 @@ def create_teacher_trial_packet(
     checklist_path = _repo_root() / "docs" / "teacher" / "checklist.md"
     templates_dir = _repo_root() / "docs" / "teacher" / "templates"
     feedback_path = _repo_root() / "feedback.md"
+    deployment_guide_path = _repo_root() / "docs" / "deployment_guide.md"
     template_context = {
         "TRIAL_URL": host_url,
         "SONG_TITLE": _display_song_title(score_path.stem),
@@ -75,6 +76,10 @@ def create_teacher_trial_packet(
                 _render_template(template_path, template_context),
             )
         archive.writestr(f"{root}/feedback.md", feedback_path.read_text(encoding="utf-8"))
+        archive.writestr(
+            f"{root}/docs/deployment_guide.md",
+            deployment_guide_path.read_text(encoding="utf-8"),
+        )
         archive.writestr(f"{root}/samples/{score_path.name}", score_path.read_bytes())
         archive.writestr(f"{root}/output/{pdf_filename}", pdf_bytes)
 
@@ -130,6 +135,7 @@ def _packet_readme(
             "4. docs/teacher_trial_sop.md：主持人觀察腳本、邀請信、追蹤模板",
             "5. feedback.md：5 題回饋表 + 主持人觀察欄位",
             "6. docs/teacher/templates/*.txt：可直接貼出去的邀請 / 排程 / 提醒 / 追蹤模板",
+            "7. docs/deployment_guide.md：若需公開 URL，照此文件部署 Render.com/Fly.io/Railway（5 分鐘）",
             "",
             "15 分鐘流程 / Suggested flow:",
             "1. 打開試用網址，建立專案。",

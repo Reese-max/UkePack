@@ -40,6 +40,7 @@ def test_trial_packet_includes_sender_docs_and_localhost_warning(tmp_path: Path)
     assert any(name.endswith("/docs/teacher_guide.md") for name in names)
     assert any(name.endswith("/docs/teacher/checklist.md") for name in names)
     assert any(name.endswith("/docs/teacher_trial_sop.md") for name in names)
+    assert any(name.endswith("/docs/deployment_guide.md") for name in names)
     assert sorted(rendered_templates) == [
         "day_before_reminder.txt",
         "followup_24h.txt",

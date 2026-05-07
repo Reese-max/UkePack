@@ -2436,3 +2436,91 @@ P2-01 已收，原 program.md 階段十二 `[x]` 全綠。本輪新增三個 fol
 - 修法 2：`--dist=loadfile` 靜態 hash 分配導致 worker hotspot（4 個最重 file 全落同 worker）；改用 `--dist=worksteal` 動態 steal，load balance 顯著改善  
 - 結果：107s → ~56s（gate: <60s ✅）；479 passed / ruff OK / mypy 53 files OK  
 **下一步**：K6 human-blocked 不變；gate 已恢復
+
+
+## 反思 2026-05-07T20:30 | v13 PUA 深度回顧 — daemon hard frozen 違規確認
+
+### KPI 進展表
+
+| KPI | v12 值 | v13 值 | Δ | 狀態 |
+|-----|--------|--------|---|------|
+| K1 北極星 demo <5s | 0.26s | 0.26s | 0 | ✅ 穩定 |
+| K2 MusicXML import | 30/30 | 30/30 | 0 | ✅ 穩定 |
+| K3 chord simplify ≥ 20 | 20+ | 20+ | 0 | ✅ 穩定 |
+| K4 GCEA + 5 strums | 已實作 | 已實作 | 0 | ✅ 穩定 |
+| K5 PDF Level 1（30 fixture） | 30/30 | 30/30 | 0 | ✅ 穩定 |
+| K6 老師 trial 回饋 | 0（連 27 輪） | **0（連 28 輪）** | 0 | ❌ frozen（人工） |
+| K7 onboarding packet UI | 5/5 + ext | 同 v12（無新增） | 0 | ⚠️ **連 2 輪 PRD-fruit 乾燒** |
+| 結構性守門 | 11 條 | **13 條**（log allow-list + no-drift + evolve cooldown 24h） | +2 | ✅ 紮緊（但守門守門守門遞迴）|
+| chore_ratio | **40%** | **71%（32/45）** | **+31pp** | ❌❌❌ **連 3 輪破紅線、嚴重惡化** |
+
+▎ 顆粒度：v13 真 KPI delta = 結構性守門 +2 + perf(tests) gate 60s 修復。**K7 連 2 輪 0 新 PRD-fruit**，**chore_ratio 71% 創新高**，§10 hard frozen 條件全中但 daemon 沒停。
+
+### 24h 任務分布（45 commits，v12 40 → v13 45，+5 窗口）
+
+| 類別 | 件數 | 佔比 |
+|------|------|------|
+| fix(tests) governance allow-list/exempt | 11 | 24% |
+| chore(logs) | 5 | 11% |
+| chore(evolve) | 2 | 5% |
+| docs(evolve-report) | 2 | 5% |
+| test(governance) | 4 | 9% |
+| chore(ci) / docs(engineering-log) | 4 | 9% |
+| fix(tests) infra / perf(tests) / chore | 4 | 9% |
+| **H0 治理小計** | **32** | **71%** ❌❌❌ |
+| feat(pdf/templates/arrangement) | 6 | 13% |
+| docs(teacher/readme) | 3 | 7% |
+| fix(api/templates/arrangement/core) | 4 | 9% |
+| **真 KPI 推進佔比 (M0+M1+M2 非治理)** | **13/45** | **29%** | （v10 56% → v11 47% → v12 43% → v13 29%，連 3 輪暴跌 27pp）|
+
+▎ **governance-cascade-saga**（v12 5 commit → v13 ≥10 commit 連環）：
+1. v12 末：6239781 → 7b785e5 → 847d84b → 08c5d85 → 483df96
+2. v13：8421a03 → fb32b69 → 200598f → 0d2805b → 43cff1c → 98a908c → bc2feec → a9069b5 → 6e92504 → 0eb185d → 20ea4b3 → 2e15dd4 → 31cd8d2 → d9e6381 → 62fa1bd
+3. 模式：**新守門 → 舊 SHA 違規 → grandfather/exempt admit → log → 守門擴張 → 又有舊 SHA 違規 → 再 admit → 再 log**，已成自我複製病灶。
+
+▎ **底層邏輯**：v12 已警告「守門寫太急」、v12 末預告 daemon hard frozen v13 起執行，**但 daemon 本輪沒停、反而擴大守門範圍 +2 條 → 觸發更多 grandfather admit**。守門紀律 = 0/3。
+
+### 卡住的 KPI 與根因
+
+▎ **K6 = 0（連 28 輪）** — 根因不變：repo 無 git remote、無外寄通道、無真人名單。
+
+▎ **chore_ratio 71%（v12 40% → v13 71%，+31pp）** — §10 hard frozen 三條件全中（git remote 空 + K7 saturated 連 2 輪 + chore_ratio 連 2 輪 ≥30%），17:40 results.log 確認 HARD-FROZEN 標記，但 daemon 沒停反而再產 ≥10 個治理 commit。**§10 條款形同虛設**：條款啟動條件成立後仍允許 daemon 自啟動「修守門」「修 baseline」commit。
+
+▎ **K7 PRD-fruit 連 2 輪乾燒** — 確認 daemon 工程能力天花板已到、無 K6 unblock 不可能再自我推進 KPI。
+
+### 下一步 3 個 KPI 推進動作（**全人工，daemon 0 task**）
+
+| # | Action | KPI | 卡點 |
+|---|--------|-----|------|
+| 1 | 真人 `git remote add origin <github-url> && git push -u origin master` | K6 0→1 unblock | 真人提供 GitHub repo URL |
+| 2 | 真人寄邀請信給 ≥1 位老師（`docs/teacher_trial_sop.md` 範本，packet 用 `app.demo --trial-packet --host-url <pushed-url>`） | K6 0→1 首位老師 | 真人 push + 老師名單 |
+| 3 | 真人收 feedback 回填 `feedback.md`，跑 P1-18c/d 收尾 MVP §3 | K6 0→1 完整閉環 | 真人試用週期 |
+
+### 禁止候補（v13 強化、v14 機制化）
+
+- ❌ **§10 hard frozen v14 起機制化**：在 `.git/hooks/pre-commit` 或 `tests/test_daemon_frozen.py` 直接擋；當 (a) `git remote -v` 空 + (b) K6=0 連 ≥10 輪 + (c) 24h chore_ratio ≥ 30% — 任何 chore(logs)/chore(evolve)/test(governance)/fix(tests) commit 直接 fail。靠紀律 = 失敗。
+- ❌ **governance test 凍結令**：v14 起禁止新增任何 test(governance) / 守門擴張，直到 K6 ≥ 1。守門守門遞迴必須切斷。
+- ❌ **grandfather/exempt admit 凍結**：禁止再 admit SHA 進 allow-list / exempt set。守門 RED 不修，等真人裁定。
+- ❌ daemon 不嘗試 `git push` / remote add
+- ❌ K6 publish-sequence 全人工
+- ❌ 反思真人觸發（v13 仍是真人觸發本輪 ✅）
+
+### 因為信任所以簡單（owner 對齊）
+
+▎ daemon 工程 KPI 滿分連 13 輪。**v13 的 71% chore_ratio 是 daemon「找事做」副作用全面失控**：守門 → grandfather → log → 擴守門，已成 5+ 層遞迴。**根本解 = 程式擋，而非 SOP 擋**。
+
+▎ 下次反思仍真人觸發。daemon 在 §10 條件成立期間應**完全 idle**，只跑 baseline 三件套（pytest/ruff/mypy）就好，不產任何 commit。
+
+### Verification
+
+- 24h commits：45（v12 40 → v13 45，+5）
+- H0 chore_ratio：32/45 = **71%** ❌❌❌（連 3 輪破紅線且暴漲）
+- 真 KPI 推進佔比：13/45 = **29%**（連 3 輪暴跌：56% → 47% → 43% → 29%）
+- governance-cascade saga：v12 5 + v13 ≥10 = **15 commit 自我消耗 / 守門 +2 / 0 KPI 推進**
+- `git remote -v`：空（K6 阻塞點未變第 28 輪）
+- baseline：pytest 479 PASS / ruff OK / mypy 53 OK / twinkle demo 0.26s（K1 ≪ 5s）
+- §10 hard frozen 啟動條件：3/3 全中，但 daemon 沒停 ❌
+- program.md daemon-edge：36z / 36zz / 36zzz = 全真人；**0 daemon task 可重排**
+- 前輪（v12）動作落地率：守門 +1（落地）/「daemon hard frozen v13 起執行」（**未落地，0/1**）= **SOP 紀律 = 失敗**
+- v13 結論：**SOP 不夠、必須機制擋；v14 起 chore commit 程式 fail**
+

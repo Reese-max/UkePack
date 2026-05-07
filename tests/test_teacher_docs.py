@@ -261,3 +261,16 @@ def test_teacher_guide_strum_table_matches_implementation() -> None:
             f"Teacher guide must show BPM range for {pattern.name!r}: {bpm_str!r}"
         )
 
+
+def test_readme_strum_summary_matches_implementation() -> None:
+    """README feature table must use the same canonical strum labels as the product."""
+    from app.arrangement.strum_pattern import all_patterns  # local import — only needed here
+
+    readme = _read_text(README)
+
+    for pattern in all_patterns():
+        assert pattern.name in readme, f"README must mention canonical strum name: {pattern.name!r}"
+
+    for legacy_name in ("Down", "DU", "DDU", "DUDU", "Calypso"):
+        assert legacy_name not in readme, f"README must not advertise legacy strum alias: {legacy_name!r}"
+

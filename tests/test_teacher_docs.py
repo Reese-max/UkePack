@@ -245,3 +245,19 @@ def test_feedback_md_has_polaris_metadata_section() -> None:
     ):
         assert field in feedback, f"feedback.md must contain: {field!r}"
 
+
+def test_teacher_guide_strum_table_matches_implementation() -> None:
+    """Drift guard: strum names and BPM ranges in teacher guide must match strum_pattern.py."""
+    from app.arrangement.strum_pattern import all_patterns  # local import — only needed here
+
+    guide = _read_text(TEACHER_GUIDE)
+
+    for pattern in all_patterns():
+        assert pattern.name in guide, (
+            f"Teacher guide must mention strum pattern name: {pattern.name!r}"
+        )
+        bpm_str = f"{pattern.bpm_range[0]}–{pattern.bpm_range[1]} BPM"
+        assert bpm_str in guide, (
+            f"Teacher guide must show BPM range for {pattern.name!r}: {bpm_str!r}"
+        )
+

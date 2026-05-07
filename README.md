@@ -220,6 +220,8 @@ uv run pytest -q
 | [docs/teacher/templates/](./docs/teacher/templates/) | 試用邀請 / 排程確認 / 前一天提醒 / 24 小時追蹤範本（ZIP 也會附上） |
 | [openspec/specs/](./openspec/specs/) | 各模組 API / 行為規格（15 份） |
 | [docs/teacher_trial_sop.md](./docs/teacher_trial_sop.md) | 老師試用 SOP（15 分鐘流程、邀請信、驗收清單） |
+| [docs/deployment_guide.md](./docs/deployment_guide.md) | 雲端部署指南（Render.com / Fly.io / Railway，5 分鐘讓 app 上線供老師試用） |
+| [docs/publish_ready_checklist.md](./docs/publish_ready_checklist.md) | Publish 準備驗收清單（公開 repo 前的所有前置條件） |
 | [feedback.md](./feedback.md) | 老師試用回饋問卷 |
 | [engineering-log.md](./engineering-log.md) | 技術決策 + 重大 incident 記錄 |
 

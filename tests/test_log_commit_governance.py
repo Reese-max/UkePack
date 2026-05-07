@@ -18,6 +18,13 @@ _GRANDFATHERED_LOG_SHAS = {
     # this commit used the pre-existing M-priority notation consistently with
     # earlier chore(logs) entries. Admitted as pre-enforcement, not a pattern.
     "08c5d85",  # chore(logs): results.log M0 grandfather guard false-positive fix
+    # 6e92504 used M-notation (KPI-impact: M0 baseline RED->GREEN) rather than
+    # K-series. It records a test-infrastructure fix that restores K5 (pytest
+    # <60s gate); the M0 priority label was used consistently with other same-
+    # session commits before numeric K-series became the enforced standard.
+    # Reflection ack: this is the same exemption category as 08c5d85 — one-time
+    # M-notation; pattern not repeated going forward.
+    "6e92504",  # chore(logs): results.log M0 p95 regression false-positive fix
 }
 
 

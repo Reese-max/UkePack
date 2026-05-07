@@ -12,6 +12,12 @@ ROOT = Path(__file__).resolve().parent.parent
 # entry explaining why the older violation must remain exempt.
 _PRE_GUARD_RELAXATION_SHAS = {
     "fb32b69",
+    # 0eb185d admits 6e92504 (M-notation log commit) to the log-commit allow-list.
+    # Exemption: the word "grandfather" appears in the subject because it mirrors
+    # the exact operation performed (adding to _GRANDFATHERED_LOG_SHAS); the
+    # admission is accompanied by full rule-9 justification in the commit body
+    # (same-category as 08c5d85; M-notation pre-enforcement, not a pattern).
+    "0eb185d",
 }
 
 # Governance files monitored for relaxation attempts.

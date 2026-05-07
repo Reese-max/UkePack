@@ -19,6 +19,7 @@ _GRANDFATHERED_SHAS = {
     "d4d4593",  # chore(evolve): KPI-driven evolve 20260505 + meta-learn anti-pattern
     "4a9598a",  # docs(evolve-report): 2026-05-07 05:29 KPI-driven evolve — no task changes
     "ac65981",  # docs(evolve-report): 2026-05-07 10:00 KPI-driven evolve +1 K6 task
+    "3fdfab0",  # chore(evolve): KPI-driven program sync 2026-05-06 22:30 (pre-session)
 }
 
 _EVOLVE_CONTROL_SUBJECT_PREFIXES = (

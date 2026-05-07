@@ -18,7 +18,7 @@ yarn-debug.log*
 # Python
 __pycache__/
 *.pyc
-.venv/
+.venv*/
 venv/
 *.egg-info/
 

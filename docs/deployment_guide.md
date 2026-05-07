@@ -30,6 +30,8 @@ git push -u origin master
 
 [Render.com](https://render.com) 提供永遠免費的 Web Service，部署 Python/FastAPI 最快 5 分鐘。
 
+> **零點擊配置**：repo 根目錄已包含 `render.yaml`。連接 GitHub 後 Render 會自動讀取該檔案，無需手動填寫 Build/Start command 或環境變數。
+
 ### 步驟
 
 **1. 建立帳號並連接 GitHub**
@@ -38,9 +40,9 @@ git push -u origin master
 
 **2. 建立 Web Service**
 
-- 點 **New → Web Service**
+- 點 **New → Web Service**（或 **New → Blueprint** 讓 Render 自動套用 `render.yaml`）
 - 選擇 `UkePack` repo
-- 填入以下設定：
+- 若使用 **Web Service**（非 Blueprint），手動填入：
 
 | 欄位 | 值 |
 |------|-----|

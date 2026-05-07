@@ -1,0 +1,23 @@
+# Render.com Infrastructure as Code — https://render.com/docs/infrastructure-as-code
+# After pushing to GitHub, connect the repo at dashboard.render.com and Render will
+# auto-detect this file so no manual UI configuration is needed.
+services:
+  - type: web
+    name: ukepack
+    runtime: python
+    plan: free
+    buildCommand: pip install uv && uv sync
+    startCommand: uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      # Force Python 3.12 to match requires-python = ">=3.12" in pyproject.toml
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      # Render free tier has no persistent disk; use /tmp for ephemeral storage.
+      # Projects reset on cold start — upgrade to Starter + Persistent Disk ($1/mo)
+      # for data that survives restarts.
+      - key: DATA_DIR
+        value: /tmp/ukepack_data
+      - key: SQLITE_PATH
+        value: /tmp/ukepack_data/ukepack.db
+      - key: DEBUG
+        value: "false"

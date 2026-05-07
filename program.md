@@ -293,3 +293,6 @@
 6. 不要碰 PRD.md / MISSION.md / AGENTS.md（read-only）
 7. 不要建 `frontend/` / `node_modules/` / 任何 `.ts` 檔（AGENTS.md §1 hard rule）
 8. **雙事實源規定**（36x，本輪起執行）：`engineering-log.md` 只記 reflection + 重大 incident（換策略、根因分析）；每輪 sprint 的實作 metadata（決策 / PASS/FAIL / 做了什麼）只寫 `results.log`。不回頭改舊 entries。
+9. **守門 grandfather 反向操作禁令**（v11 反思 2026-05-07T18:00 立規）：governance test 新增 `_GRANDFATHERED_SHAS` 條目視同放寬守門；commit message 必須附「為何此 SHA 應豁免」+ reflection ack；無原因 grandfather = 違規。下輪 v12 反思強制驗證。
+10. **daemon hard frozen 條款**（v12 反思 2026-05-07T19:00 立規）：當 (a) `git remote -v` 空 + (b) K7 PRD-fruit reservoir 乾燒（連 1 輪 0 新增）+ (c) chore_ratio 連 2 輪 ≥ 30%，daemon 進入 hard frozen — 不產 commit、不自啟動反思、不 evolve；下次反思必須真人觸發。**啟動條件全部成立 = v13 起執行**。
+11. **守門寫太急禁令**（v12 反思立規）：governance test 上線必須附「3 commit round-trip dry-run」證明（驗 false positive / 邊界 / 既有 SHA 通過）；6239781 反例觸發 5 commit 修補。下輪起無 round-trip 證明 = 拒收。

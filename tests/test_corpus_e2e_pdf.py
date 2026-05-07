@@ -290,9 +290,20 @@ def test_corpus_warm_render_p95(
 def test_p95_no_regression(
     corpus_pdf_cache: dict[str, _CorpusPdfResult],
 ) -> None:
-    """Latest p95 must not be more than 2x the mean of the prior 5 runs."""
+    """Latest p95 must not be more than 2x the mean of the prior 5 runs.
+
+    Requires WARM_SAMPLE_SIZE >= 3 to produce statistically meaningful p95.
+    With sample_count < 3 the measurement is a single-observation point that
+    is dominated by OS jitter (especially under pytest-xdist parallelism), so
+    the regression check is skipped; the absolute 5-second gate in
+    test_corpus_warm_render_p95 still applies regardless.
+    """
     summary = _build_corpus_summary(corpus_pdf_cache)
     if summary.warm_summary is None:
+        return
+
+    # Single-sample p95 == that sample; meaningless for regression detection.
+    if summary.warm_summary.sample_count < 3:
         return
 
     if not E2E_HISTORY_PATH.exists():

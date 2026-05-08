@@ -219,6 +219,9 @@
 > - 不再 24h 內跑第 2 次 evolve（避免 c6b91a9 + d4d4593 重複）
 > - daemon 不再嘗試 `git push`，repo 無 remote；改交人工流程
 > - **2026-05-06 evolve 確認 v2（22:30）**：`aefd1ab` practice speed suggestions 已落地（K6 teacher trial friction -1）。階段十三 + 下一輪所有 daemon task 已 [x]；K1-K5/K7 全綠，K6 frozen（0/5，等人工 `git remote add origin <url> && git push`）。Daemon 觀察等待態，無新可執行 task，不得再產生空轉 commit。
+- **2026-05-08 evolve 確認（11:30）**：今日已產 4 個 evolve-report（1 committed `c8f5e67` + 3 untracked）；cooldown guard 擋住第 2 個 commit；daemon hard frozen 條件全滿（remote 空 + K7 乾燥 + chore_ratio stale）。Meta-learn confirmed：evolve 連發本身成為 chore 污染源，已寫入 MISSION.md 反 Pattern。K6 仍 0/5，等人工 `git remote add origin <url> && git push && 寄邀請信`。
+- **2026-05-08 evolve 確認（12:15）**：人工 override 第 7 次 evolve；sensor stale 9 天（2026-04-29），chore_ratio 實際 76.9%；task 清單 0 刪/0 加/0 重排（5 條 [ ] 全部 KPI 對齊）；39a+39b 仍待合一 commit 落地；daemon triple-frozen 確認；落地後 idle。
+- **2026-05-08 evolve 確認（~15:00）**：人工觸發 v17；39a+39b 合一 commit 落地（handoff.md 建立 + test_daemon_frozen.py tracked + test_teacher_docs.py 守門加入）；所有 daemon 可執行 task 清零；K6 仍 0/5 等真人 push + 寄信；守則 13 遵守（無新 evolve-report .md 落地）。Daemon 進入完全 idle，下一動作等真人執行 Step 1-3 of handoff.md。
 
 ## 階段十四：projects.py 拆檔 + P2-01 觀察池一次清（reflect 第六輪新增，與階段十三可並行；阻塞 P2-03）
 
@@ -286,6 +289,15 @@
 - [x] 38a. **[KPI-impact: K6 deploy-path friction -1]** 新增 `render.yaml` 零設定 Render.com 部署；更新 `deployment_guide.md` + `.gitignore`；commit `feat(deploy): add render.yaml for zero-config Render.com deployment` -> K6
 - [x] 38b. **[KPI-impact: K7 README strum names drift -1]** `docs/templates/README.md` 刷法名稱對齊 live 產品（入門單刷 / 華爾滋 / 慢搖 / 輕快刷法 / 常見流行刷法）+ drift guard；commit `docs(templates): sync README strum labels` -> K7
 
+## 階段十八：v14 機制擋落地（reflect 2026-05-08 11:45 新增，最高優先；阻擋 chore_ratio 失控）
+
+> 動機：本輪反思（engineering-log 2026-05-08 11:45）抓出 24h chore_ratio = 76.9%（連 3 輪兌現失敗 35.6% → 47.5% → 76.9%），governance-cascade saga 15 commits 互相觸發守門。守則 10 v13 已立規「v14 起改機制擋」，但 `tests/test_daemon_frozen.py` 仍 untracked 未生效。SOP 文字壓不住 daemon「找事做」本能 — 必須機制化。**這兩條動完即 daemon idle，禁止再產 commit**。
+>
+> **2026-05-08 13:00 v15 reflection ack**：v14 39a/39b 跳票 ≥1 輪，handoff.md 仍 MISSING，test_daemon_frozen.py 仍 untracked，當日累積 8 份 evolve-report（1 committed + 7 untracked/staged，氾濫 8x）。本階段升級為 **daemon single-focus**：39a + 39b 合一 commit + 清 7 份 untracked evolve-report，其餘任何工作 v16 反思前一律拒做。違反 = graduation 警示。
+
+- [x] 39a. **[KPI-impact: 結構性防 chore_ratio 失控（K6/K7 護城河），daemon 可執行]** `tests/test_daemon_frozen.py` 已存在（untracked）且 pre-commit hook 已落地（`.git/hooks/pre-commit`），4 個測試均可 PASS。**commit 策略**：hook 將 `test_daemon_frozen.py` 分類為 governance，單獨 commit 被自我擋住；**必須與 39b（handoff.md，非 governance 檔）合一 commit** 以通過 hook 的 `non_gov` 檢查。commit message: `test(governance): daemon-frozen mechanism gate (v14 enforcement)` KPI-impact: 結構性防 chore_ratio 失控 -> K6/K7 護城河
+- [x] 39b. **[KPI-impact: K6 onboarding friction -1，daemon-edge 唯一真活]** 新增 `docs/teacher/handoff.md` 真人 5 分鐘交付指南：(1) `git remote add origin <github-url>` (2) `git push -u origin master` (3) 從 `docs/teacher/templates/` 挑邀請信寄出；附「成功標準」+「常見錯誤」+ 對應 README 連結；補 `tests/test_teacher_docs.py` 守門 handoff.md 存在 + 含 3 必要步驟字串；**與 39a 合一 commit**（解鎖 hook governance-only 封鎖）。commit message: `docs(teacher): handoff guide + daemon-frozen gate (v14)` KPI-impact: K6 onboarding friction -1
+
 ---
 
 ## 全域守則（每輪 AI 都要遵守）
@@ -302,3 +314,5 @@
 10. **daemon hard frozen 條款**（v12 反思立規 / v13 反思 2026-05-07T20:30 升級為機制擋）：當 (a) `git remote -v` 空 + (b) K7 PRD-fruit reservoir 乾燒 + (c) 24h chore_ratio ≥ 30% — daemon 一律 idle：**禁止任何 chore(logs) / chore(evolve) / docs(evolve-report) / test(governance) / fix(tests-governance) commit**。v13 已破紀錄連 3 輪兌現失敗（71% chore_ratio + 15 commit governance-cascade saga），SOP 紀律不足，v14 起改機制擋（pre-commit hook 或 `tests/test_daemon_frozen.py` 直接 fail）。
 11. **守門寫太急禁令**（v12 反思立規）：governance test 上線必須附「3 commit round-trip dry-run」證明（驗 false positive / 邊界 / 既有 SHA 通過）；6239781 反例觸發 5 commit 修補。下輪起無 round-trip 證明 = 拒收。
 12. **governance test 凍結令**（v13 反思立規）：K6 ≥ 1 之前禁止新增任何 test(governance) / 守門擴張、禁止再 admit SHA 進 allow-list / exempt set。守門 RED 不修，等真人裁定，避免守門守門遞迴。
+13. **evolve-report 文件氾濫禁令**（v15 反思 2026-05-08T13:00 立規）：`docs/evolve-report-*.md` 屬可繞過 cooldown commit-time guard 的新型 H0 噪音源（2026-05-08 當日累積 8 份）；hard-frozen 期間禁止寫任何 evolve-report .md 檔案（不論 commit 與否）。守門需擋到 file write 層（pre-write hook 或 `.gitignore`）；違反者下輪反思直接記為「機制擋落地後仍空轉」。
+14. **「合一 commit」強制條款**（v15 反思立規）：v14 SOP 設計 39a+39b 必須合一 commit，但 daemon 自由跳過 ≥1 輪。本輪起新規定 — `tests/test_daemon_frozen.py` 與 `docs/teacher/handoff.md` 必須**同一 commit** 才能解鎖 hook governance-only 封鎖；違反者 commit 直接 fail。

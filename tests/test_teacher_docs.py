@@ -15,6 +15,7 @@ TRIAL_SOP = ROOT / "docs" / "teacher_trial_sop.md"
 CHECKLIST = ROOT / "docs" / "teacher" / "checklist.md"
 TEMPLATE_DIR = ROOT / "docs" / "teacher" / "templates"
 POLARIS_MEASUREMENT = ROOT / "docs" / "teacher" / "polaris_measurement.md"
+HANDOFF = ROOT / "docs" / "teacher" / "handoff.md"
 UI_TEMPLATE_PATHS = (
     ROOT / "app" / "templates" / "new_project.html",
     ROOT / "app" / "templates" / "analysis.html",
@@ -274,3 +275,15 @@ def test_readme_strum_summary_matches_implementation() -> None:
     for legacy_name in ("Down", "DU", "DDU", "DUDU", "Calypso"):
         assert legacy_name not in readme, f"README must not advertise legacy strum alias: {legacy_name!r}"
 
+
+
+def test_handoff_md_exists() -> None:
+    """39b guard: handoff.md must exist for K6 delivery flow."""
+    assert HANDOFF.exists(), "docs/teacher/handoff.md missing — 39b not landed"
+
+
+def test_handoff_md_has_required_steps() -> None:
+    """39b guard: handoff.md must contain the 3 mandatory delivery steps."""
+    text = _read_text(HANDOFF)
+    for required in ("git remote add", "git push", "寄"):
+        assert required in text, f"handoff.md missing required step: {required!r}"

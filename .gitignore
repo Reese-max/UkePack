@@ -72,3 +72,4 @@ report.*.json
 
 # KPI gate streak counter (pre-commit hook state)
 .kpi-gate-streak
+docs/evolve-report-*.md

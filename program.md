@@ -281,6 +281,11 @@
 
 - [x] 36z-pdf-bpm. **[KPI-impact: K7 screen/print 一致性（packet UI 完善度），daemon 可執行]** 在 `app/render/pages/page2.py` strum section 加入 `StrumPattern.bpm_range` 顯示（格式：`♩=50–90 BPM`）；補 regression test 驗 PDF bytes 含 BPM 字樣；commit `feat(pdf): add strum BPM range to practice pack PDF` -> K7
 
+## 階段十七.75：K6 部署 + K7 漂移清尾（2026-05-08 evolve 補錄，已完成）
+
+- [x] 38a. **[KPI-impact: K6 deploy-path friction -1]** 新增 `render.yaml` 零設定 Render.com 部署；更新 `deployment_guide.md` + `.gitignore`；commit `feat(deploy): add render.yaml for zero-config Render.com deployment` -> K6
+- [x] 38b. **[KPI-impact: K7 README strum names drift -1]** `docs/templates/README.md` 刷法名稱對齊 live 產品（入門單刷 / 華爾滋 / 慢搖 / 輕快刷法 / 常見流行刷法）+ drift guard；commit `docs(templates): sync README strum labels` -> K7
+
 ---
 
 ## 全域守則（每輪 AI 都要遵守）

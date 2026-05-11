@@ -60,6 +60,8 @@ Phase 0（研究與原型，1–2 週）：
 - ❌ `chore(log): record teacher-trial blocker` 無 KPI-impact 標記（純 chore 磨耗；同一阻塞點 log ≥2 次後不再 commit）(S2E-T4 meta-learn 2026-05-05)
 - ❌ 重複 FAIL log 替代實質 K6 推進（K6 blocker confirmed 連續 ≥10 輪記錄但 K6 無進展 → 停止 blocker log，等人工觸發）(S2E-T4 meta-learn 2026-05-05)
 - ❌ governance-patch-cascade：一條 governance test 觸發修補 commit → 需要 grandfather 豁免 → grandfather guard 誤判 → 再觸發修補，形成多輪修補迴圈（每輪消耗 3–6 commits 卻不推進任何 K-tag KPI）；觀察到 ≥3 輪（evolve 20260507-1930 confirmed）(S2E-T4 meta-learn 2026-05-07)
+- ❌ evolve 連發（24h 內 >1 次）且無 K6/K7 新進展 → evolve-report 本身成為 chore_ratio 污染源，trigger cooldown guard；觀察到 4 次（2026-05-08 當日 4 輪，c8f5e67 + 3 untracked reports）(S2E-T4 meta-learn 2026-05-08)
+- ❌ program.md tail-ack 線性膨脹：每輪 evolve ack 追加 5-15 行至 program.md，70+ 輪後 token overflow（>29k tokens），加劇 daemon 無效空轉；SOP 修正：evolve ack 從此只寫 engineering-log，不再追加 program.md (S2E-T4 meta-learn 2026-05-09)
 
 ## 不做的事（明確降噪）
 

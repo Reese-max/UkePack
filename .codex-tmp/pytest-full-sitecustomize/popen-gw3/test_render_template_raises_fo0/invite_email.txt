@@ -1,0 +1,2 @@
+{{TRIAL_URL}}
+{{UNKNOWN_TOKEN}}

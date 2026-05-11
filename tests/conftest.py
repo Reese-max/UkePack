@@ -2,6 +2,7 @@ import os
 import shutil
 import tempfile
 import textwrap
+import uuid
 import zipfile
 from collections.abc import Iterator
 from pathlib import Path
@@ -15,6 +16,56 @@ from app.core.db import get_session, reset_engine
 from app.main import app
 
 
+def _patch_windows_pytest_basetemp() -> None:
+    if os.name != "nt":
+        return
+
+    from _pytest.pathlib import rm_rf
+    from _pytest.tmpdir import TempPathFactory, get_user
+
+    def _sandbox_temproot() -> Path:
+        temproot = Path(os.environ.get("PYTEST_DEBUG_TEMPROOT") or tempfile.gettempdir())
+        temproot.mkdir(parents=True, exist_ok=True)
+        tempfile.tempdir = str(temproot)
+        return temproot
+
+    def _getbasetemp(self: TempPathFactory) -> Path:
+        if self._basetemp is not None:
+            return self._basetemp
+
+        if self._given_basetemp is not None:
+            basetemp = self._given_basetemp
+            if basetemp.exists():
+                rm_rf(basetemp)
+            basetemp.mkdir(parents=True, exist_ok=True)
+        else:
+            temproot = _sandbox_temproot()
+            user = get_user() or "unknown"
+            rootdir = temproot / f"ukepack-pytest-{user}-{os.getpid()}-{uuid.uuid4().hex}"
+            rootdir.mkdir(parents=True, exist_ok=True)
+            basetemp = rootdir / "pytest"
+            basetemp.mkdir(parents=True, exist_ok=True)
+
+        self._basetemp = basetemp.resolve()
+        self._trace("new basetemp", self._basetemp)
+        return self._basetemp
+
+    def _mktemp(self: TempPathFactory, basename: str, numbered: bool = True) -> Path:
+        basename = self._ensure_relative_to_basetemp(basename)
+        if numbered:
+            path = self.getbasetemp() / f"{basename}{uuid.uuid4().hex}"
+        else:
+            path = self.getbasetemp() / basename
+        path.mkdir(parents=True, exist_ok=not numbered)
+        self._trace("mktemp", path)
+        return path
+
+    _sandbox_temproot()
+    # Pytest's 0o700 temp dirs can become unreadable under this Windows sandbox.
+    TempPathFactory.getbasetemp = _getbasetemp
+    TempPathFactory.mktemp = _mktemp
+
+
 def pytest_configure(config: pytest.Config) -> None:
     """Isolate file storage and SQLite DB per xdist worker to prevent conflicts.
 
@@ -22,6 +73,7 @@ def pytest_configure(config: pytest.Config) -> None:
     conflict when multiple tests create project ID=1 simultaneously. Each worker
     gets its own temp directory tree so all I/O is fully disjoint.
     """
+    _patch_windows_pytest_basetemp()
     worker_id = os.environ.get("PYTEST_XDIST_WORKER", "")
     if worker_id:
         tmp_dir = Path(tempfile.gettempdir()) / f"ukepack_test_{worker_id}"

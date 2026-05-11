@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import shutil
+import tempfile
+import uuid
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from tempfile import TemporaryDirectory
 
 from app.core.musicxml import MAX_IMPORT_BYTES, parse
 from app.core.practice_pack import build_pack_request
@@ -58,7 +62,7 @@ def create_discord_practice_pack(
     if len(content) > MAX_IMPORT_BYTES:
         raise ValueError(f"File too large; limit is {MAX_IMPORT_BYTES // (1024 * 1024)} MB")
 
-    with TemporaryDirectory(prefix="ukepack-discord-") as temp_dir:
+    with _discord_temp_dir() as temp_dir:
         input_path = Path(temp_dir) / f"upload{suffix}"
         input_path.write_bytes(content)
         try:
@@ -92,6 +96,17 @@ def create_discord_practice_pack(
         chord_count=len(score.chords),
         pdf_bytes=pdf_bytes,
     )
+
+
+@contextmanager
+def _discord_temp_dir() -> Iterator[Path]:
+    temp_dir = Path(tempfile.gettempdir()) / f"ukepack-discord-{uuid.uuid4().hex}"
+    temp_dir.mkdir(parents=True, exist_ok=False)
+    try:
+        yield temp_dir
+    finally:
+        # tempfile.TemporaryDirectory chmods during cleanup; that breaks this Windows sandbox.
+        shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 def _resolve_title(provided_title: str | None, score_title: str, filename: str) -> str:

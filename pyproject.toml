@@ -39,6 +39,9 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
 
+[tool.uv]
+package = false
+
 [tool.ruff]
 line-length = 100
 target-version = "py312"
@@ -53,6 +56,7 @@ python_version = "3.12"
 strict = true
 ignore_missing_imports = true
 exclude = ["tests/fixtures"]
+cache_dir = "C:/Users/Administrator/AppData/Local/Temp/ukepack-mypy-live"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

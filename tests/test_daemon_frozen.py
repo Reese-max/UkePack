@@ -9,7 +9,22 @@ from __future__ import annotations
 
 from pathlib import Path
 
-HOOK_PATH = Path(".git/hooks/pre-commit")
+
+def _git_dir() -> Path:
+    git_path = Path(".git")
+    if git_path.is_file():
+        prefix, value = git_path.read_text(encoding="utf-8").strip().split(":", 1)
+        if prefix != "gitdir":
+            raise ValueError(".git file does not point to a gitdir")
+        git_dir = Path(value.strip())
+        # Worktrees store hooks in the referenced gitdir, not under the .git file.
+        if not git_dir.is_absolute():
+            git_dir = git_path.parent / git_dir
+        return git_dir
+    return git_path
+
+
+HOOK_PATH = _git_dir() / "hooks" / "pre-commit"
 
 
 def test_pre_commit_hook_exists() -> None:

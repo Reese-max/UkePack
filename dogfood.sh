@@ -13,7 +13,8 @@ uv run pytest tests/test_e2e.py -q 2>&1 | tail -5 || {
 
 echo "[dogfood] 2/3 — CLI smoke（真用戶會跑的指令）"
 if [[ -f scripts/generate-pack.py ]]; then
-    timeout 60 uv run python scripts/generate-pack.py --dry-run 2>&1 | tail -5 || true
+    # `|| true` 之前會吞 ModuleNotFoundError，讓 sensor 拿到偽綠 dogfood；闭环顆粒度修正。
+    timeout 60 uv run python scripts/generate-pack.py --dry-run 2>&1 | tail -5
 fi
 
 echo "[dogfood] 3/3 — render.yaml deploy 驗證（如果有）"

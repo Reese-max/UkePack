@@ -28,6 +28,23 @@ def test_dry_run_exits_zero() -> None:
     assert "[dry-run] OK" in result.stdout
 
 
+def test_dry_run_works_from_external_cwd(tmp_path: Path) -> None:
+    # Owner-friendly invocation: `python scripts/generate-pack.py` from outside
+    # the repo root must still import `app.demo`. Regression guard for the
+    # missing sys.path bootstrap that previously failed with ModuleNotFoundError.
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--dry-run",
+         "--input", str(REPO_ROOT / "samples" / "public_domain" / "twinkle.musicxml")],
+        capture_output=True,
+        text=True,
+        timeout=60,
+        cwd=tmp_path,
+    )
+    assert result.returncode == 0, (
+        f"stderr={result.stderr}\nstdout={result.stdout}"
+    )
+
+
 def test_dry_run_missing_input_returns_error() -> None:
     result = subprocess.run(
         [

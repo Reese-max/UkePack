@@ -11,6 +11,13 @@ import argparse
 import sys
 from pathlib import Path
 
+# Allow `python scripts/generate-pack.py` (no `uv run`) by exposing repo root;
+# Python only prepends the script's own dir, so `from app.demo import ...` would
+# otherwise miss the package even when cwd is the repo root.
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
 DEFAULT_INPUT = Path("samples/public_domain/twinkle.musicxml")
 DEFAULT_OUT_PDF = Path("dist/trial-pack.pdf")
 DEFAULT_OUT_ZIP = Path("dist/trial-pack.zip")

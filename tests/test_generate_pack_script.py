@@ -70,6 +70,17 @@ def test_wet_run_produces_real_pdf_and_zip(tmp_path: Path) -> None:
     assert out_zip.is_file() and out_zip.stat().st_size > 0, "ZIP empty/missing"
 
 
+def test_dogfood_sh_has_pipefail() -> None:
+    # Regression: `set -e` alone lets `cmd | tail -5` swallow inner failures
+    # (third-tier false-green: v147 closed `|| true`, but pipe still masked
+    # ModuleNotFoundError in dry-run). pipefail is the only line-level guard.
+    dogfood = REPO_ROOT / "dogfood.sh"
+    body = dogfood.read_text(encoding="utf-8")
+    assert "set -eo pipefail" in body or "set -o pipefail" in body, (
+        "dogfood.sh must enable pipefail; otherwise piped failures are silenced"
+    )
+
+
 def test_dry_run_missing_input_returns_error() -> None:
     result = subprocess.run(
         [

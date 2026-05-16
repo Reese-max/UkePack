@@ -1,7 +1,8 @@
 #!/bin/bash
 # UkePack dogfood — 真用戶 path（不是 unit test）
 # 失敗 = 真用戶會看到的 bug；過 = 可以 ship
-set -e
+# pipefail 防 `cmd | tail` mask 內部 fail（第三層偽綠：v147 修 || true 後，pipe 仍會吞 ModuleNotFoundError）
+set -eo pipefail
 
 cd "$(dirname "$0")"
 

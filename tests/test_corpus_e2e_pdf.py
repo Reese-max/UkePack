@@ -1,7 +1,9 @@
-"""End-to-end corpus test: Level 1 PDF pipeline for a corpus subset.
+"""End-to-end corpus test: Level 1 PDF pipeline for the full 30-fixture corpus.
 
-Parse coverage uses all 30 fixtures (test_musicxml_import.py §4 KPI gate).
-PDF E2E uses 15 fixtures to keep pytest wall-clock within the < 60 s gate.
+Both parse coverage (test_musicxml_import.py §4 KPI gate) and PDF E2E here run
+against all 30 fixtures, aligning the aggregate gate docstring with what is
+actually measured. Per-fixture warm render is ~0.1 s, so the full corpus stays
+well inside the pytest 60 s gate.
 """
 
 from __future__ import annotations
@@ -19,9 +21,11 @@ import pytest
 from app.demo import run
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
-# Use 5-fixture subset for E2E PDF rendering to stay within pytest < 60 s gate.
-# All 30 fixtures are still tested for MusicXML import in test_musicxml_import.py.
-ALL_FIXTURE_PATHS = sorted(FIXTURES_DIR.glob("*.musicxml"))[:5]
+# Full 30-fixture corpus — warm render ~0.1 s each, stays inside pytest 60 s gate
+# even serially. Matches MISSION DoD item 2 (≥ 90% success on 30-fixture base)
+# and removes the previous truth gap where the aggregate gate claimed 30 but
+# only iterated over 5.
+ALL_FIXTURE_PATHS = sorted(FIXTURES_DIR.glob("*.musicxml"))
 E2E_REPORT_PATH = FIXTURES_DIR / "E2E_REPORT.md"
 E2E_HISTORY_PATH = FIXTURES_DIR / "E2E_HISTORY.csv"
 UPDATE_ARTIFACTS_ENV = "UKEPACK_UPDATE_E2E_ARTIFACTS"

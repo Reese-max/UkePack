@@ -15,6 +15,16 @@ echo "[dogfood] 2/3 — CLI smoke（真用戶會跑的指令）"
 if [[ -f scripts/generate-pack.py ]]; then
     # `|| true` 之前會吞 ModuleNotFoundError，讓 sensor 拿到偽綠 dogfood；闭环顆粒度修正。
     timeout 60 uv run python scripts/generate-pack.py --dry-run 2>&1 | tail -5
+    # 拉通 dry-run -> wet-run：dry-run 只驗 import；owner 真寄 packet 用的是 wet-run，
+    # 兩條 path 都要在 dogfood 跑過才算闭环。輸出寫到 .ukepack-tmp 不污染 dist。
+    mkdir -p .ukepack-tmp
+    rm -f .ukepack-tmp/dogfood-wet.pdf .ukepack-tmp/dogfood-wet.zip
+    timeout 60 uv run python scripts/generate-pack.py \
+        --out-pdf .ukepack-tmp/dogfood-wet.pdf \
+        --out-zip .ukepack-tmp/dogfood-wet.zip 2>&1 | tail -5
+    [[ -s .ukepack-tmp/dogfood-wet.pdf && -s .ukepack-tmp/dogfood-wet.zip ]] || {
+        echo "[dogfood] wet-run 未產出 PDF+ZIP"; exit 1;
+    }
 fi
 
 echo "[dogfood] 3/3 — render.yaml deploy 驗證（如果有）"

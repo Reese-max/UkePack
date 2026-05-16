@@ -46,9 +46,13 @@ def test_dry_run_works_from_external_cwd(tmp_path: Path) -> None:
 
 
 def test_wet_run_produces_real_pdf_and_zip(tmp_path: Path) -> None:
-    # Regression: dogfood.sh step 2 used to assert dry-run only — owner emailing
-    # 5 teachers actually invokes wet-run. dry-run ≠ real output; lock the
-    # contract that wet-run produces non-empty PDF + ZIP artifacts.
+    # Regression ladder (N+1 of v147 `|| true` → v148 dry-vs-wet → v150 pipefail):
+    # size > 0 still accepts a 1-byte stub PDF or an empty ZIP central directory,
+    # so owner could email 5 teachers a packet that is "technically non-empty"
+    # but missing README/templates/feedback — green dogfood, broken K6.
+    # Lock content, not just byte count.
+    import zipfile
+
     out_pdf = tmp_path / "wet.pdf"
     out_zip = tmp_path / "wet.zip"
     result = subprocess.run(
@@ -67,7 +71,16 @@ def test_wet_run_produces_real_pdf_and_zip(tmp_path: Path) -> None:
         f"stderr={result.stderr}\nstdout={result.stdout}"
     )
     assert out_pdf.is_file() and out_pdf.stat().st_size > 0, "PDF empty/missing"
+    assert out_pdf.read_bytes()[:5] == b"%PDF-", "PDF lacks %PDF- magic"
     assert out_zip.is_file() and out_zip.stat().st_size > 0, "ZIP empty/missing"
+    with zipfile.ZipFile(out_zip) as zf:
+        names = zf.namelist()
+        assert any(n.endswith("README.txt") for n in names), (
+            f"trial packet missing README.txt — owner cannot ship to teachers; got {names}"
+        )
+        assert any(n.endswith("feedback.md") for n in names), (
+            f"trial packet missing feedback.md — K6 cannot collect feedback; got {names}"
+        )
 
 
 def test_dogfood_sh_has_pipefail() -> None:

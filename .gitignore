@@ -78,3 +78,7 @@ docs/evolve-report-*.md
 # slip past *.pdf/*.zip rules; tracking pollutes git status and risks dragging
 # daemon試跑垃圾 into K6 owner push)
 .ukepack-tmp/
+
+# Daemon wake timestamp — mutated by harness every restart, never useful diff;
+# tracking pollutes git status + reflection snapshot truth (see v154 retro)
+.last-restart

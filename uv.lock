@@ -2108,7 +2108,7 @@ wheels = [
 [[package]]
 name = "ukepack"
 version = "0.1.0"
-source = { editable = "." }
+source = { virtual = "." }
 dependencies = [
     { name = "discord-py" },
     { name = "fastapi" },

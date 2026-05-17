@@ -73,3 +73,8 @@ report.*.json
 # KPI gate streak counter (pre-commit hook state)
 .kpi-gate-streak
 docs/evolve-report-*.md
+
+# Daemon scratch dir — demo/dogfood/trial-pack outputs (probe.txt, pt.txt et al.
+# slip past *.pdf/*.zip rules; tracking pollutes git status and risks dragging
+# daemon試跑垃圾 into K6 owner push)
+.ukepack-tmp/

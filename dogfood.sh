@@ -7,10 +7,12 @@ set -eo pipefail
 cd "$(dirname "$0")"
 
 echo "[dogfood] 1/3 — pytest 端到端"
-uv run pytest tests/test_e2e.py -q 2>&1 | tail -5 || {
-    # 沒有 e2e 就跑 smoke
-    uv run pytest -q -k "smoke or health" --maxfail=3 2>&1 | tail -5
-}
+# 第五層偽綠（v147 || true → v148 dry-vs-wet → v150 pipefail → v151 size-vs-content → 本層）：
+# 原本 `pytest tests/test_e2e.py || { smoke fallback }` 引用了不存在的檔案，rc=4 永遠
+# 觸發 fallback，step 1 名為「pytest 端到端」實際只跑 smoke/health；v149 剛擴展為 30/30
+# corpus E2E 的 gate 從未被 dogfood 觸發。改成直接跑真實 corpus E2E 套件，並移除
+# fallback —— 若 e2e 壞就讓 dogfood 紅，不再以軟套件靜默替代。
+uv run pytest tests/test_corpus_e2e_pdf.py tests/test_corpus_e2e_artifact_policy.py -q 2>&1 | tail -5
 
 echo "[dogfood] 2/3 — CLI smoke（真用戶會跑的指令）"
 if [[ -f scripts/generate-pack.py ]]; then

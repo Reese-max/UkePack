@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -91,6 +92,57 @@ def test_dogfood_sh_has_pipefail() -> None:
     body = dogfood.read_text(encoding="utf-8")
     assert "set -eo pipefail" in body or "set -o pipefail" in body, (
         "dogfood.sh must enable pipefail; otherwise piped failures are silenced"
+    )
+
+
+def test_dogfood_sh_references_only_existing_pytest_paths() -> None:
+    # Fifth-tier false-green (N+1 of v147/v148/v150/v151): dogfood.sh:10 pointed at
+    # `tests/test_e2e.py` which never existed in this repo. With `set -eo pipefail`
+    # the missing-file rc=4 fell through `|| { fallback smoke }` and step 1 silently
+    # downgraded from "real e2e" to "smoke-only", bypassing the 30/30 corpus gate
+    # that v149 just landed. Lock every `pytest tests/...` reference inside
+    # dogfood.sh to a path that actually exists.
+    import re
+
+    dogfood = REPO_ROOT / "dogfood.sh"
+    raw = dogfood.read_text(encoding="utf-8")
+    # Strip `#` comment lines: in-file forensic notes about the v152 fix mention
+    # the *old* `pytest tests/test_e2e.py` path; that's history, not live wiring.
+    body = "\n".join(
+        line for line in raw.splitlines() if not line.lstrip().startswith("#")
+    )
+    # Match both `pytest tests/foo.py` and `pytest tests/dir/foo.py` forms.
+    referenced = re.findall(r"pytest\s+(tests/[\w/.-]+\.py)", body)
+    assert referenced, "dogfood.sh must invoke pytest on an explicit test path"
+    for rel in referenced:
+        assert (REPO_ROOT / rel).is_file(), (
+            f"dogfood.sh references {rel} but file does not exist; "
+            "step 1 would silently fall through to smoke fallback"
+        )
+
+
+def test_dogfood_sh_step1_has_no_fallback_mask() -> None:
+    # Companion guard: even if path exists today, a `pytest ... || { pytest ... }`
+    # fallback masks real e2e failures by re-running a softer suite. Forbid the
+    # fallback construct entirely; if the primary suite breaks, dogfood must fail.
+    dogfood = REPO_ROOT / "dogfood.sh"
+    raw = dogfood.read_text(encoding="utf-8")
+    # Strip `#` comment lines so forensic notes describing the *historical* fallback
+    # bug (kept in-file as context for the v152 fix) don't trigger this guard.
+    body = "\n".join(
+        line for line in raw.splitlines() if not line.lstrip().startswith("#")
+    )
+    # Look for `pytest ...` chained with `||` opening a brace-group that also runs pytest.
+    # Conservative match: any `|| {` followed (within 200 chars) by another pytest call.
+    suspicious = False
+    for match in re.finditer(r"\|\|\s*\{", body):
+        window = body[match.end(): match.end() + 200]
+        if "pytest" in window:
+            suspicious = True
+            break
+    assert not suspicious, (
+        "dogfood.sh has `pytest ... || { ... pytest ... }` fallback — "
+        "this masks real e2e failures by silently switching to a softer suite"
     )
 
 

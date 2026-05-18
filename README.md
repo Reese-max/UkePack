@@ -2,6 +2,8 @@
 
 > 把一首歌變成小朋友也能練的烏克麗麗練習包——從 MusicXML 匯入到 PDF，< 5 秒出稿。
 
+[![CI](https://github.com/Reese-max/UkePack/actions/workflows/ci.yml/badge.svg)](https://github.com/Reese-max/UkePack/actions/workflows/ci.yml)
+
 UkePack AI 讀取 MusicXML（或手動和弦），自動簡化和弦、推薦調性、分級難度、配對刷法，
 輸出含和弦圖、刷法說明、段落地圖的 A4 練習 PDF。老師可在審稿模式校稿後再交給學生練習。
 

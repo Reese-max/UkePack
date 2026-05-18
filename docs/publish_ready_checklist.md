@@ -6,10 +6,9 @@
 ## Current snapshot (updated 2026-05-18)
 
 - ✅ GitHub push done: https://github.com/Reese-max/UkePack (master HEAD `ed4e6eb`)
-- Current README badge count: 1
+- Current README badge count: 2
 - Current git remote count: 1
-- Configured remotes: origin
-- Current repo license file: LICENSE (MIT, 2026 UkePack Contributors)
+- Configured remotes: originLICENSE (MIT, 2026 UkePack Contributors)
 - GitHub repo description: set ✅
 
 ## GitHub repo description draft
@@ -23,7 +22,7 @@
 
 ## README badge clean check
 
-- Current README badge count: 1 (Render one-click deploy button, added 2026-05-18)
+- Current README badge count: 2 (Render deploy button + CI badge, updated 2026-05-18)
 - Policy: keep only working badges tied to tests, coverage, Python version, or deployment actions that directly help K6/K7 outreach.
 - Reject if: broken `shields.io` URLs, stale branch-name badges, or decorative badges that do not help K6/K7 outreach.
 - Manual check: after first push, open GitHub README preview once and confirm no broken images.

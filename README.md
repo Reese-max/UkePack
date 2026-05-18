@@ -87,7 +87,11 @@ git push -u origin master
 ```
 
 下一步讓老師可以用：
-1. 照 [docs/deployment_guide.md](./docs/deployment_guide.md) 部署到雲端（Render.com 已有 `render.yaml` 零設定），取得公開 URL
+1. 點下方按鈕一鍵部署到 Render.com（已有 `render.yaml` 零設定），取得公開 URL
+
+   [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Reese-max/UkePack)
+
+   詳細選項見 [docs/deployment_guide.md](./docs/deployment_guide.md)（亦支援 Fly.io / Railway）。
 2. 用 `app.demo --trial-packet --host-url <公開網址>/new` 產老師試用包
 3. 從 [docs/teacher/templates/](./docs/teacher/templates/) 寄邀請信
 4. 跑完後把回饋填到 [feedback.md](./feedback.md)

@@ -7,6 +7,8 @@
 
 - ✅ GitHub push done: https://github.com/Reese-max/UkePack (master HEAD `0ba3486`)
 - Current README badge count: 0
+- Current git remote count: 0
+- Configured remotes: none
 - Current repo license file: LICENSE (MIT, 2026 UkePack Contributors)
 - GitHub repo description: set ✅
 
@@ -38,10 +40,15 @@
   2. Keep sample provenance / public-domain wording visible in docs and PDF footers.
   3. Never publish `samples/private_research/`.
 
-## ~~Git remote bootstrap commands~~（已完成，2026-05-18）
+## Git remote bootstrap commands
 
-Repo is at **https://github.com/Reese-max/UkePack** — `git remote -v` confirms `origin`.
-No action needed. Go to "Cloud deployment" next.
+> ✅ **已完成（2026-05-18）** — Repo is live at **https://github.com/Reese-max/UkePack**.
+> The commands below are retained for reference; they do not need to be re-run.
+
+```bash
+git remote add origin https://github.com/<owner>/UkePack.git
+git push -u origin master
+```
 
 ## Cloud deployment
 

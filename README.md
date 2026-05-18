@@ -78,6 +78,14 @@ uv run python -m app.demo \
 
 Repo 已公開：**https://github.com/Reese-max/UkePack**
 
+完整前置清單見 [docs/publish_ready_checklist.md](./docs/publish_ready_checklist.md)。
+
+```bash
+# Git remote（已完成）
+git remote add origin https://github.com/Reese-max/UkePack.git
+git push -u origin master
+```
+
 下一步讓老師可以用：
 1. 照 [docs/deployment_guide.md](./docs/deployment_guide.md) 部署到雲端（Render.com 已有 `render.yaml` 零設定），取得公開 URL
 2. 用 `app.demo --trial-packet --host-url <公開網址>/new` 產老師試用包

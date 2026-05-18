@@ -383,3 +383,5 @@
 [2026-05-18T16:17:39+08:00] | M1 | PASS | KPI-impact: K6 publish-gate cleared — git push origin master succeeded (db3d45f..0e703ca, 12 commits now on GitHub); handoff.md Step 2 marked done | baseline pytest/ruff/mypy all exit 0; pushed 11 commits to https://github.com/Reese-max/UkePack; next human action: Step 3 send invite email
 
 [2026-05-18T08:36:32] | M0 | PASS | test-green restored | fix(docs): restored 4 broken regression-guard snippets
+[2026-05-18T17:09:27+08:00] | M0 | PASS | KPI-impact: K6 publish-state accuracy 0->1 (snapshot guard now real) | fix(test): _remote_names() was silently returning () because .git is a gitfile; configparser never found sections. Replaced with subprocess git remote. Truth-aligned publish_ready_checklist.md (remote count 0->1, Configured remotes: origin, HEAD hash ed4e6eb) and handoff.md HEAD hash. 573 tests pass, ruff/mypy clean. Pushed 01fdbf2 to origin/master.
+[2026-05-18T18:06:46] | M1 | PASS | KPI-impact: K6 deployment friction -1 barrier | docs(readme): add one-click Render deploy button — Render.com 1-click vs 10-step manual; render.yaml already in repo; checklist badge count 0->1; 25 tests PASS

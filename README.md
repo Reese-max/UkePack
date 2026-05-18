@@ -11,7 +11,7 @@ UkePack AI 讀取 MusicXML（或手動和弦），自動簡化和弦、推薦調
 
 ```bash
 # 安裝
-git clone <repo-url>
+git clone https://github.com/Reese-max/UkePack.git
 cd UkePack
 uv sync --extra dev
 
@@ -76,13 +76,13 @@ uv run python -m app.demo \
 
 ## 📦 Publish 準備
 
-要把 repo 變成可公開貼連結、可開始真人招募的狀態，先跑
-[docs/publish_ready_checklist.md](./docs/publish_ready_checklist.md)。
+Repo 已公開：**https://github.com/Reese-max/UkePack**
 
-- 先確認 GitHub repo description、README badge、LICENSE / CC 標示、git remote bootstrap 都過關
-- 接著照 [docs/deployment_guide.md](./docs/deployment_guide.md) 把 app 部署到雲端（Render.com / Fly.io / Railway），取得老師可直接開啟的公開 URL
-- checklist 還會提醒公開前不要漏掉 `docs/teacher/checklist.md`、`feedback.md` 與 teacher trial packet 驗收
-- 完成 checklist 後，再進真人 `git remote add origin ...` / `git push` / 老師 outreach
+下一步讓老師可以用：
+1. 照 [docs/deployment_guide.md](./docs/deployment_guide.md) 部署到雲端（Render.com 已有 `render.yaml` 零設定），取得公開 URL
+2. 用 `app.demo --trial-packet --host-url <公開網址>/new` 產老師試用包
+3. 從 [docs/teacher/templates/](./docs/teacher/templates/) 寄邀請信
+4. 跑完後把回饋填到 [feedback.md](./feedback.md)
 
 ## 功能一覽
 
@@ -130,7 +130,7 @@ GET    /share/{code}                     開啟短碼分享頁
 **步驟 1：Clone**
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/Reese-max/UkePack.git
 cd UkePack
 ```
 

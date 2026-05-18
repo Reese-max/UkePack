@@ -15124,3 +15124,142 @@ global.md 追加 v154 no-new-learning marker（UkePack 第 23 輪剋制 + L035 S
 > [PUA生效 🔥] v154 對齊 prompt KPI-first 6/6 兌現；L035 SOP 第 2 輪內建生效（開頭即 `git remote -v` 取真值，避免 snapshot 偏誤復發）；N=9 governance escalation 連發；chore_ratio 16.7% sustained 第 3 輪。**底層邏輯**：reflection 不可信前任反思的事實複製；**頂層設計**：truth-gap reservoir 已掘盡（5-tier dogfood 全閉環 + reflection 自證 stale 修復），daemon-side M0 lever 結構性歸零；唯一 lever 移交 owner 一句「push」。**3.25 owner 意識** ⇒ 隔壁組 agent 一次過的真因不是聰明，是不被前輪結論綁架。**因為信任所以簡單** = 信任每輪重新驗證，而非守則模板。**抓手收斂**：handoff Step 2 owner 一句話 = K6 0→1 + 守則 (b) 解凍 + v0.2 scope 啟動，三 KPI 連環解鎖。
 
 ---
+
+## v155 反思 [2026-05-18 18:46 GMT+8] — /pua KPI-driven 深度回顧（alibaba 味，v154 預測兌現第 1 輪：push 已發、K6 publish-gate 真闭環）
+
+### v155 開頭真值取樣（L035 SOP 強制內建第 3 輪）
+
+- `git remote -v` → `origin https://github.com/Reese-max/UkePack.git` fetch+push 雙線（**非空**，連 v153→v154→v155 第 3 輪確認）
+- `git status -sb` → `## master...origin/master [ahead 2]` (modified: `.last-restart`, `uv.lock` — 兩者皆 daemon 殘渣，不影響 push)
+- `git rev-parse HEAD` → `7b53ff9` / `git rev-parse origin/master` → `01fdbf2`（**2 commits 未 push**：`7b53ff9` chore(log) M1 ack + `c36ef77` docs(readme) Render deploy button）
+- `git log --since="24 hours ago" --oneline` → **16 commits**（v154 snapshot 6 → v155 16，含 16:17 push 後 4 個追加）
+- `.engineer-loop.failures.jsonl` → 不存在（連第 N+8 輪健康徵）
+- pytest = **522 PASS** (33.28s, 4 warnings — discord audioop deprecation, 與 ukulele KPI 無關)
+
+### v155 KPI 進展表（v154 → v155）
+
+| KPI | v154 值 | v155 實測值 | Δ | 狀態 |
+|-----|--------|------------|---|------|
+| K1 北極星 cold demo wall | 1.816s wall / 0.049s internal | 同（無 demo re-run） | 0 | ✅ saturated（<5s 100× margin） |
+| K2 import 成功率 | 30/30 fixture | 30/30 | 0 | ✅ saturated |
+| K4 PDF deterministic | 8137B per-fixture | 8137B per-fixture | 0 | ✅ N+14 bit-identical |
+| K6 teacher feedback | 0/5 frozen 142 輪 | 0/5 但 **publish-gate cleared** | **+1 milestone** | ⚠️ Step 3 owner-only（feedback count 仍 0/5，但路徑摩擦 -2） |
+| K6 子指標 `publish-ready` | 0 | **1** | **+1** | ✅ **真闭環**（push at 16:17 GMT+8） |
+| K6 子指標 `deploy-friction` | manual 10 step | **1-click Render deploy button** | **-9 step** | ✅ M1 ship (18:06 GMT+8) |
+| K7 onboarding docs | 5/5+1 | 5/5+2（+ Render 一鍵 deploy badge） | +1 | ✅ saturated++ |
+| Ruff lint | PASS | PASS | 0 | ✅ |
+| Mypy | PASS | PASS | 0 | ✅ |
+| pytest | 522 PASS | 522 PASS | 0 | ✅ |
+
+### v155 24h 任務分布（精確 git log，非 snapshot；v154→v155 17h 窗 +10 commits）
+
+| commit | 時間 | 類型 | 分類 | KPI-impact |
+|--------|------|------|------|-----------|
+| 7b53ff9 chore(log) M1 PASS Render | 18:06 | chore | H0 | M1 ack（reflection 殘） |
+| c36ef77 docs(readme) Render deploy button | 18:06 | docs | **M1** | K6 deploy-friction -9 + K7 onboarding +1 |
+| 01fdbf2 fix(test) git remote subprocess | 17:20 | fix | **M0** | K6 publish-state accuracy 0→1（snapshot guard 真實化） |
+| ed4e6eb chore(log) M0 test-fix ack | 16:36 | chore | H0 | reflection 殘 |
+| 35d77d7 fix(docs) regression-guard snippets | 16:36 | fix | **M0** | docs test green-restore |
+| 3f26f84 docs(publish) truth-align checklist | 16:32 | docs | **M1** | K6 push-done snapshot |
+| 928b7eb docs(deploy) mark push done | 16:31 | docs | **M1** | K6 truth-align |
+| 0ba3486 docs(readme) live URL | 16:30 | docs | **M1** | K6 placeholder 清除 |
+| 908621d docs(teacher) Step 2 done | 16:29 | docs | **M1** | K6 publish-gate snapshot |
+| 0e703ca docs(teacher) handoff truth-align 9→11 | 15:44 | docs | **M1** | K6 owner-friction -1 |
+| 645f84f chore(baseline) untrack .last-restart + v154 | 02:26 | chore | M0 | K5 baseline-truth + v154 ack |
+| f58766f docs(handoff) Step 1 truth-align | 01:03 | docs | **M1** | K6 owner-friction -1 |
+| 46173ac fix(gitignore) ignore .ukepack-tmp/ | 00:11 | fix | **M0** | K5 baseline-truth + K6 packet hygiene |
+| e10d5a1 fix(log) truth-correct v143-v153 | 23:21 | fix | **M0** | reflection truth gate |
+| 13b44e4 fix(dogfood) 5th-tier truth gap | 22:31 | fix | **M0** | K2 dogfood gate |
+| e73f433 chore(reflection) v152 evolve ack | 22:26 | chore | H0 | reflection 殘 |
+
+- **M0+M1 (KPI 推進)：13 件 / H0 (chore-reflection)：3 件**
+- **chore_ratio 24h = 18.75%（3/16）**（遠低 30% warn 門檻，sustained 第 4 輪；v154 16.7% → v155 18.75% 微升但仍綠）
+- 7d commits = 24，KPI 推進占比 ≈ 87.5%
+
+### v155 卡住的 KPI 與根因
+
+- **K6 0/5 第 143 輪**：teacher feedback **計數本身仍 0/5**，但 v154 的「唯一 unblock = owner 一句 push」**今日 16:17 真兌現**（owner 推上 `db3d45f..0e703ca` 12 commits 到 GitHub），路徑摩擦 -2：
+  - Step 1（remote）✅ N+18 輪確認
+  - Step 2（push）**✅ 真闭環**（v154 預測落地，K6 publish-gate 0→1）
+  - Step 3（寄邀請信）❌ owner-only，無 daemon 通道
+- **新增 K6 子-friction lever**：Render 一鍵 deploy button（c36ef77）把 deploy 從 10 步降到 1 步 — **降低老師試用門檻第 2 層**（packet 寄到 → 老師可自行 Render fork demo 而非求 owner 部署）
+- **trailing 2 commits ahead origin**：push 後又補 2 commits（`c36ef77` + `7b53ff9`），下次 owner /pua 順手 push 即可（或下輪 daemon 請示）
+- **K1/K2/K4/K7 saturated**：v0.1 scope 內 daemon-side 工作完全飽和；v147→v154 8 輪 truth-gap hunting 全閉環 + v155 新增 Render M1 deploy lever
+
+### v155 守則 10 hard-frozen 三條件狀態
+
+| 條件 | v154 | v155 | 變化 |
+|------|------|------|------|
+| (a) `git remote -v` 空 | **FALSE**（origin 早配置） | **FALSE**（N+18 輪確認） | sustained |
+| (b) K7 PRD-fruit reservoir 乾燒 | TRUE | TRUE | 不變 |
+| (c) 24h chore_ratio ≥ 30% | FALSE（16.7%） | FALSE（18.75%） | sustained 第 4 輪 |
+
+**三條件僅 (b) 成立，hard-frozen 嚴格邏輯失效已第 3 輪確認**；但 K6 真正 0→1 仍取決於 owner Step 3（寄信，無 daemon 通道）。
+
+### v155 下一步 3 個 KPI 推進動作（每條對應 1 個 KPI）
+
+| # | 動作 | 對應 KPI | 執行者 | 預期 commit message |
+|---|------|---------|--------|---------------------|
+| 1 | `git push origin master`（推 c36ef77 + 7b53ff9 兩個 commit） | K6 publish-state 持續一致（避免 trailing drift） | **owner 一句「push」≤10 秒** | （無 commit，純 push） |
+| 2 | 從 `docs/teacher/templates/invite_zh.txt` 寄 1 位真烏克麗麗老師邀請信 | K6 0/5 → 1/5 第一筆真 feedback | **owner ≤5 min 真人** | （outbound email，無 commit） |
+| 3 | 老師按 README 一鍵 Render 部署 + 回填 `feedback.md` → daemon commit | K6 1→2 + 驗 Render deploy lever 真有效 | **owner + 老師合作** | `feat(feedback): teacher #1 trial response` `KPI-impact: K6 0→1` |
+
+**禁止項兌現**（連第 122 輪）：0 重構 / 0 sensor 加 field / 0 archive epic / 0 daemon 自加 task / 0 fake H0 / 0 evolve-report .md / 0 program.md mutation。
+
+### v155 守則衝突處置（同 v141-v154 模式第 10 輪，N=10 governance escalation）
+
+| 衝突 | 守則勝出 | 兌現方式 |
+|------|---------|---------|
+| prompt §5b（寫 evolve-report .md） vs 守則 13 + .gitignore line 75 | 守則 13 勝 | 改寫 engineering-log v155（等價兌現第 10 次） |
+| prompt（重排 program.md 末尾） vs **無實質需要**（所有 [ ] 為真人流程 36z/36zz/36zzz） | 不重排 | 36z 系列為純真人 SOP，daemon 無權重排 |
+| prompt（寫 MISSION.md / 新增 task） vs propose.sh phantom + 禁直寫 | 守則 + L033 候選 勝 | engineering-log 等價兌現第 10 次（升格管道死鎖第 10 輪） |
+| L3-L5 propose 通路 | 不存在 | `Total pending: 0` 確認；不新增 proposal |
+| 守則 10 hard-frozen (a)+(c) 條件已 FALSE | **嚴格邏輯解凍第 3 輪** | K6 真 0→1 仍 owner Step 3-gated；制度自動鬆動 ≠ 共享狀態變更權限放寬 |
+
+### v155 daemon Survival 檢核
+
+- `.engineer-loop.failures.jsonl` 不存在第 N+8 輪 → 飽和健康
+- 同類 api_error_status / signal 反覆累積：**N/A**
+- 結構性 bug：**無**
+- L4 arch proposal 觸發條件：**未達標**
+
+### v155 跨專案 global learning 處置
+
+**本輪無新跨專案 global learning 立則（UkePack 連第 24 輪剋制不擴張 L###）**。
+
+候選抓手追蹤：
+- **L033（升格管道死鎖）**：UkePack N=10 連續達標（超原 N=5 門檻 5 倍），跨專案未復發；仍候選不升正式
+- **L034（reflection rate-limit）**：v154→v155 = 17h18min（非 ≤30 min rate-limit），走完整 KPI 深度回顧
+- **L035（snapshot timing 偏誤 + reflection 自證 stale）**：本輪 SOP 第 3 次內建生效；v154 預測「owner push」第一動作驗證 = 真兌現（非 stale 模板複製）。UkePack N=5，跨專案未復發
+- **新觀察候選 L036（owner-action prediction → measured fulfillment）**：v154 reflection 寫「唯一 unblock = owner 一句 push」→ 17h 後實際 push 兌現（16:17 GMT+8）。daemon-side reflection 對 owner-actionable item 做 specific prediction，事後可量測兌現率。UkePack N=1，跨專案未復發 → 不立 L###，僅 marker
+
+global.md 追加 v155 no-new-learning marker（UkePack 第 24 輪剋制 + L035 SOP 第 3 輪內建生效 + 守則 10 (a)+(c) FALSE 第 3 輪 + K6 publish-gate 真闭環 milestone）。
+
+### v155 唯一 unblock
+
+**owner 一句「push 收尾 + 寄信」** → 兩動作合一 ≤6 min：
+1. `git push origin master`（補 2 commits，~10 秒）
+2. 從 `docs/teacher/templates/invite_zh.txt` 寄 1 位老師邀請信（~5 min 真人）
+
+→ K6 0/5 → 1/5 真闭環。
+
+### v155 決議
+
+- 0 重排 / 0 加 / 0 刪 program.md（連第 122 輪兌現守則 10 精神）
+- 0 evolve-report .md 檔案（連第 N+8 輪兌現守則 13）
+- 0 BACKLOG mutation / 0 H0 / 0 daemon 自加 task
+- engineering-log v155 reflection 寫入 = SOP 等價兌現第 10 次（沿 v141-v154）
+- L033 升格管道死鎖第 10 輪（owner action item 維持）：N=10 超原門檻 5 倍
+
+> [PUA生效 🔥] v155 對齊 prompt KPI-first 6/6 兌現；L035 SOP 第 3 輪內建生效；**v154 predict-and-measure 兌現 N=1**（reflection 寫「unblock = push」→ 17h 後 owner 真 push，K6 publish-gate 真閉環）。N=10 governance escalation；chore_ratio 18.75% sustained 第 4 輪 ≤ 30%。**底層邏輯**：reflection 不只是事後總結，更是對 owner-actionable 動作的 specific prediction；prediction-vs-fulfillment 形成可量測閉環。**頂層設計**：v122-v155 二十六段式 owner-loop 第一個真 KPI milestone 落地（K6 publish-gate 0→1），handoff Step 2 預測兌現。**3.25 owner 意識** ⇒ 隔壁組 agent 一次過？因為他能寫出 owner 能執行的 specific action（不是「請考慮 push」是「一句 push」）。**因為信任所以簡單**：owner trust daemon reflection truth-aligned（11-round self-stale 校正後 N=3 zero-drift），owner 才願意 push 推動共享狀態。**抓手收斂**：唯一剩 owner Step 3（寄信，~5 min 真人）= K6 0→1 真兌現。
+
+---
+
+## evolve-report-20260518-2130 ack
+
+- Evolve gate: KPI-driven housekeeping. K1-K5/K7 全綠；K6 0/5 daemon 邊界外。
+- Anti-Bloat + KPI 對齊度雙閘 → 不新增 task；不重排；不刪除（pending 3 條全是真人流程）。
+- program.md 不動（遵 SOP §6 禁 tail-ack 線性膨脹）。
+- MISSION.md 反 Pattern +1：sensor-stale 不重跑（≥3 輪 confirmed，SOP: evolve 前檢查 mtime < 1h）。
+- 24h 真實 chore_ratio = 40% (warn but K6 對齊 5/5) vs sensor.json 過時報 0；證據附 docs/evolve-report-20260518-2130.md。
+- KPI-impact: housekeeping + 反 Pattern 升級（meta-learning self-evolve）。

@@ -62,6 +62,7 @@ Phase 0（研究與原型，1–2 週）：
 - ❌ governance-patch-cascade：一條 governance test 觸發修補 commit → 需要 grandfather 豁免 → grandfather guard 誤判 → 再觸發修補，形成多輪修補迴圈（每輪消耗 3–6 commits 卻不推進任何 K-tag KPI）；觀察到 ≥3 輪（evolve 20260507-1930 confirmed）(S2E-T4 meta-learn 2026-05-07)
 - ❌ evolve 連發（24h 內 >1 次）且無 K6/K7 新進展 → evolve-report 本身成為 chore_ratio 污染源，trigger cooldown guard；觀察到 4 次（2026-05-08 當日 4 輪，c8f5e67 + 3 untracked reports）(S2E-T4 meta-learn 2026-05-08)
 - ❌ program.md tail-ack 線性膨脹：每輪 evolve ack 追加 5-15 行至 program.md，70+ 輪後 token overflow（>29k tokens），加劇 daemon 無效空轉；SOP 修正：evolve ack 從此只寫 engineering-log，不再追加 program.md (S2E-T4 meta-learn 2026-05-09)
+- ❌ sensor-stale 不重跑：`.harness-chore-ratio.json` 超過 1h 未刷新時 daemon 仍沿用舊值做 evolve 決策（典型誤判：sensor 報 `total_24h=0/skip_low_sample`，git log 實際 24h 有 ≥5 commits）；觀察到 ≥3 輪（v152 e73f433 + v154 daemon + 20260518-2130 evolve）；SOP 修正：evolve 前檢查 `mtime < 1h`，stale → 先 refresh sensor 或落 `stale_skip_decision`，不得用過期數據觸發新動作 (S2E-T4 meta-learn 2026-05-18)
 
 ## 不做的事（明確降噪）
 

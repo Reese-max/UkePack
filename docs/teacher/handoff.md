@@ -6,9 +6,9 @@
 
 - ✅ `origin` 已配置 → `https://github.com/Reese-max/UkePack.git`
 - ✅ **`git push` 已完成（2026-05-18）**：`01fdbf2` 已在 GitHub
-- ⚠️ **本機有 2 個新 commit 尚未推送**（詳見下方 Step 2b）
+- ⚠️ **本機有新 commit 尚未推送**（執行 `git log --no-pager origin/master..HEAD --oneline` 查看清單）
 - ✅ Baseline 全綠：pytest / ruff / mypy 皆 pass
-- ⏳ **下一步：Step 2b 推送 2 個新 commit → Step 3 寄信**
+- ⏳ **下一步：Step 2b 推送新 commit → Step 3 寄信**
 
 ## 前提確認
 
@@ -31,20 +31,21 @@ git remote add origin https://github.com/<你的帳號>/<repo名>.git
 
 `01fdbf2` 已推送至 GitHub：`https://github.com/Reese-max/UkePack`
 
-## Step 2b：推送 2 個新 commit（**待處理，必要**）
+## Step 2b：推送新 commit（**待處理，必要**）
 
-兩個新 commit 尚在本機，**推送後 GitHub README 才會出現 Render deploy button**：
+先確認目前有哪些 commit 待推送：
 
-| Commit | 說明 |
-|--------|------|
-| `c36ef77` | `docs(readme): add one-click Render deploy button` — 一鍵部署 Render.com |
-| `7b53ff9` | `chore(log): record M1 PASS for Render deploy button` — daemon log |
+```powershell
+git --no-pager log origin/master..HEAD --oneline
+```
+
+確認無誤後推送：
 
 ```powershell
 git push origin master
 ```
 
-驗證：`git log --oneline -1` 回傳 `7b53ff9`，GitHub repo 主頁 README 出現 `Deploy to Render` 按鈕。
+驗證：`git status` 顯示 `Your branch is up to date with 'origin/master'`，GitHub repo 主頁 README 出現 `Deploy to Render` 按鈕。
 
 ## Step 3：寄邀請信（**Step 2b 完成後**）
 
@@ -63,7 +64,7 @@ git push origin master
 
 - [x] `git remote -v` 有 origin（daemon 已確認）
 - [x] `git push` 完成（2026-05-18，origin/master = `01fdbf2`）
-- [ ] **Step 2b**：再次推送 2 個新 commit（見上）→ origin/master = `7b53ff9`
+- [ ] **Step 2b**：推送新 commit → `git status` 顯示 up to date with origin/master
 - [ ] GitHub repo 公開可見（或邀請老師為 collaborator）
 - [ ] 邀請信已寄出，記錄日期 + 老師匿名代號到 `engineering-log.md`
 

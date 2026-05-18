@@ -52,6 +52,9 @@ samples/private_research/
 # Spectra app data
 .spectra/
 
+# mypy cache (cross-platform default location)
+.mypy_cache/
+
 # Runtime artifacts (auto-engineer / coverage / project lock)
 .auto-engineer.pid
 .auto-engineer.state.json

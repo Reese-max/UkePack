@@ -12,17 +12,10 @@
 
 ---
 
-## 前置：把 repo 推到 GitHub
+## ~~前置：把 repo 推到 GitHub~~（已完成）
 
-雲端平台需要從 GitHub 拉取程式碼。如果尚未推送：
-
-```bash
-git remote add origin https://github.com/<你的帳號>/UkePack.git
-git branch -M master
-git push -u origin master
-```
-
-推送成功後再繼續下面步驟。
+Repo 已公開：**https://github.com/Reese-max/UkePack**（master 最新版本 2026-05-18）。
+直接從下面選項一開始。
 
 ---
 

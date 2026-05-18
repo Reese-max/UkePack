@@ -5,8 +5,8 @@
 ## 目前進度（daemon 已驗證 2026-05-18）
 
 - ✅ `origin` 已配置 → `https://github.com/Reese-max/UkePack.git`
-- ✅ 本地有 **9 commits ahead of origin/master** 等推送（dogfood truth-gap 系列修補 + .gitignore 清理）
-- ✅ Baseline 全綠：pytest 573 / ruff / mypy 53 files 皆 pass
+- ✅ 本地有 **11 commits ahead of origin/master** 等推送（dogfood truth-gap 系列修補 + .gitignore 清理 + baseline 反思）
+- ✅ Baseline 全綠：pytest 522 / ruff / mypy 53 files 皆 pass
 - ⏳ **下一步只剩 Step 2（push）+ Step 3（寄信）**
 
 ## 前提確認
@@ -31,7 +31,7 @@ git remote add origin https://github.com/<你的帳號>/<repo名>.git
 先確認狀態：
 
 ```bash
-git status                          # 應顯示 "Your branch is ahead of 'origin/master' by 9 commits"
+git status                          # 應顯示 "Your branch is ahead of 'origin/master' by 11 commits"
 git remote -v                       # 應顯示 origin → Reese-max/UkePack.git
 ```
 
@@ -41,7 +41,7 @@ git remote -v                       # 應顯示 origin → Reese-max/UkePack.git
 git push -u origin master
 ```
 
-成功標準：GitHub repo 頁面可看到最新 commit（HEAD = `46173ac fix(gitignore): ignore .ukepack-tmp/`）、`README.md`、`render.yaml`。
+成功標準：GitHub repo 頁面可看到最新 commit（HEAD = `645f84f chore(baseline): untrack .last-restart`）、`README.md`、`render.yaml`。
 
 ## Step 3：寄邀請信
 

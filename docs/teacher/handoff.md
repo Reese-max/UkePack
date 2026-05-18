@@ -2,12 +2,13 @@
 
 > 這份文件是給真人操作的。Daemon 不執行此流程。
 
-## 目前進度（2026-05-18 push 已完成）
+## 目前進度（2026-05-18 更新）
 
 - ✅ `origin` 已配置 → `https://github.com/Reese-max/UkePack.git`
-- ✅ **`git push` 已完成（2026-05-18）**：HEAD `ed4e6eb` 已在 GitHub
+- ✅ **`git push` 已完成（2026-05-18）**：`01fdbf2` 已在 GitHub
+- ⚠️ **本機有 2 個新 commit 尚未推送**（詳見下方 Step 2b）
 - ✅ Baseline 全綠：pytest / ruff / mypy 皆 pass
-- ⏳ **下一步只剩 Step 3（寄信）**
+- ⏳ **下一步：Step 2b 推送 2 個新 commit → Step 3 寄信**
 
 ## 前提確認
 
@@ -28,9 +29,24 @@ git remote add origin https://github.com/<你的帳號>/<repo名>.git
 
 ## ~~Step 2：推送~~（**已完成，2026-05-18**）
 
-HEAD `ed4e6eb` 已推送至 GitHub：`https://github.com/Reese-max/UkePack`
+`01fdbf2` 已推送至 GitHub：`https://github.com/Reese-max/UkePack`
 
-## Step 3：寄邀請信（**現在從這裡開始**）
+## Step 2b：推送 2 個新 commit（**待處理，必要**）
+
+兩個新 commit 尚在本機，**推送後 GitHub README 才會出現 Render deploy button**：
+
+| Commit | 說明 |
+|--------|------|
+| `c36ef77` | `docs(readme): add one-click Render deploy button` — 一鍵部署 Render.com |
+| `7b53ff9` | `chore(log): record M1 PASS for Render deploy button` — daemon log |
+
+```powershell
+git push origin master
+```
+
+驗證：`git log --oneline -1` 回傳 `7b53ff9`，GitHub repo 主頁 README 出現 `Deploy to Render` 按鈕。
+
+## Step 3：寄邀請信（**Step 2b 完成後**）
 
 從 `docs/teacher/templates/` 挑適合版本：
 
@@ -46,7 +62,8 @@ HEAD `ed4e6eb` 已推送至 GitHub：`https://github.com/Reese-max/UkePack`
 ## 成功標準
 
 - [x] `git remote -v` 有 origin（daemon 已確認）
-- [x] `git push -u origin master` 成功（2026-05-18，HEAD `ed4e6eb`）
+- [x] `git push` 完成（2026-05-18，origin/master = `01fdbf2`）
+- [ ] **Step 2b**：再次推送 2 個新 commit（見上）→ origin/master = `7b53ff9`
 - [ ] GitHub repo 公開可見（或邀請老師為 collaborator）
 - [ ] 邀請信已寄出，記錄日期 + 老師匿名代號到 `engineering-log.md`
 

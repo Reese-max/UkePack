@@ -3,12 +3,12 @@
 > **用途**：把本地可跑的 UkePack repo 整理成「可公開貼連結、可招募老師試用」的狀態。  
 > **範圍**：只處理 publish-ready 前置，不假裝完成真人寄信 / 真人試用。
 
-## Current snapshot
+## Current snapshot (updated 2026-05-18)
 
-- Current git remote count: 0
-- Configured remotes: none
+- ✅ GitHub push done: https://github.com/Reese-max/UkePack (master HEAD `0ba3486`)
 - Current README badge count: 0
 - Current repo license file: LICENSE (MIT, 2026 UkePack Contributors)
+- GitHub repo description: set ✅
 
 ## GitHub repo description draft
 
@@ -38,26 +38,10 @@
   2. Keep sample provenance / public-domain wording visible in docs and PDF footers.
   3. Never publish `samples/private_research/`.
 
-## Git remote bootstrap commands
+## ~~Git remote bootstrap commands~~（已完成，2026-05-18）
 
-- Current git remote count: 0
-- Configured remotes: none
-
-```powershell
-# PowerShell
-git remote add origin https://github.com/<owner>/UkePack.git
-git branch -M master
-git push -u origin master
-git remote -v
-```
-
-```bash
-# Bash
-git remote add origin https://github.com/<owner>/UkePack.git
-git branch -M master
-git push -u origin master
-git remote -v
-```
+Repo is at **https://github.com/Reese-max/UkePack** — `git remote -v` confirms `origin`.
+No action needed. Go to "Cloud deployment" next.
 
 ## Cloud deployment
 
@@ -72,8 +56,8 @@ Key notes:
 ## Human publish sequence
 
 1. ✅ Add `LICENSE` — done (MIT, 2026 UkePack Contributors).
-2. Create the GitHub repository and paste the description draft above.
-3. Run the remote bootstrap commands and confirm `git remote -v` prints `origin`.
+2. ✅ Create GitHub repo + set description — done (`https://github.com/Reese-max/UkePack`).
+3. ✅ Push master to GitHub — done (HEAD `0ba3486`, 2026-05-18).
 4. Verify `README.md`, `docs/teacher/checklist.md`, and `feedback.md` all render/link correctly on GitHub.
 5. Follow [docs/deployment_guide.md](./deployment_guide.md) to deploy to Render.com (or Fly.io / Railway) and get a public URL.
 6. Regenerate the teacher-trial packet with `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out $env:TEMP\trial.pdf --trial-packet $env:TEMP\teacher-trial.zip --host-url https://<your-app>/new`.

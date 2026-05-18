@@ -5,10 +5,10 @@
 
 ## Current snapshot (updated 2026-05-18)
 
-- ✅ GitHub push done: https://github.com/Reese-max/UkePack (master HEAD `0ba3486`)
+- ✅ GitHub push done: https://github.com/Reese-max/UkePack (master HEAD `ed4e6eb`)
 - Current README badge count: 0
-- Current git remote count: 0
-- Configured remotes: none
+- Current git remote count: 1
+- Configured remotes: origin
 - Current repo license file: LICENSE (MIT, 2026 UkePack Contributors)
 - GitHub repo description: set ✅
 
@@ -64,7 +64,7 @@ Key notes:
 
 1. ✅ Add `LICENSE` — done (MIT, 2026 UkePack Contributors).
 2. ✅ Create GitHub repo + set description — done (`https://github.com/Reese-max/UkePack`).
-3. ✅ Push master to GitHub — done (HEAD `0ba3486`, 2026-05-18).
+3. ✅ Push master to GitHub — done (HEAD `ed4e6eb`, 2026-05-18).
 4. Verify `README.md`, `docs/teacher/checklist.md`, and `feedback.md` all render/link correctly on GitHub.
 5. Follow [docs/deployment_guide.md](./deployment_guide.md) to deploy to Render.com (or Fly.io / Railway) and get a public URL.
 6. Regenerate the teacher-trial packet with `uv run python -m app.demo --input samples\public_domain\twinkle.musicxml --level 1 --out $env:TEMP\trial.pdf --trial-packet $env:TEMP\teacher-trial.zip --host-url https://<your-app>/new`.

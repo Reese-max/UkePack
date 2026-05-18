@@ -5,7 +5,7 @@
 ## 目前進度（2026-05-18 push 已完成）
 
 - ✅ `origin` 已配置 → `https://github.com/Reese-max/UkePack.git`
-- ✅ **`git push` 已完成（2026-05-18）**：HEAD `0e703ca` 已在 GitHub
+- ✅ **`git push` 已完成（2026-05-18）**：HEAD `ed4e6eb` 已在 GitHub
 - ✅ Baseline 全綠：pytest / ruff / mypy 皆 pass
 - ⏳ **下一步只剩 Step 3（寄信）**
 
@@ -28,7 +28,7 @@ git remote add origin https://github.com/<你的帳號>/<repo名>.git
 
 ## ~~Step 2：推送~~（**已完成，2026-05-18**）
 
-HEAD `0e703ca` 已推送至 GitHub：`https://github.com/Reese-max/UkePack`
+HEAD `ed4e6eb` 已推送至 GitHub：`https://github.com/Reese-max/UkePack`
 
 ## Step 3：寄邀請信（**現在從這裡開始**）
 
@@ -46,7 +46,7 @@ HEAD `0e703ca` 已推送至 GitHub：`https://github.com/Reese-max/UkePack`
 ## 成功標準
 
 - [x] `git remote -v` 有 origin（daemon 已確認）
-- [x] `git push -u origin master` 成功（2026-05-18，HEAD `0e703ca`）
+- [x] `git push -u origin master` 成功（2026-05-18，HEAD `ed4e6eb`）
 - [ ] GitHub repo 公開可見（或邀請老師為 collaborator）
 - [ ] 邀請信已寄出，記錄日期 + 老師匿名代號到 `engineering-log.md`
 

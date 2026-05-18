@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-import configparser
 import re
+import subprocess
 import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CHECKLIST = ROOT / "docs" / "publish_ready_checklist.md"
 README = ROOT / "README.md"
-GIT_CONFIG = ROOT / ".git" / "config"
 
 
 def _read_text(path: Path) -> str:
@@ -18,14 +17,18 @@ def _read_text(path: Path) -> str:
 
 
 def _remote_names() -> tuple[str, ...]:
-    config = configparser.ConfigParser()
-    config.read(GIT_CONFIG, encoding="utf-8")
-    names = []
-
-    for section in config.sections():
-        if section.startswith('remote "'):
-            names.append(section.removeprefix('remote "').removesuffix('"'))
-
+    # Use `git remote` subprocess so it works even when .git is a gitfile
+    # (i.e. `ROOT/.git` is a plain file containing `gitdir: <real-path>` rather than a dir).
+    # configparser on a gitfile yields zero sections and would always return () — wrong.
+    result = subprocess.run(
+        ["git", "remote"],
+        capture_output=True,
+        text=True,
+        cwd=ROOT,
+    )
+    if result.returncode != 0:
+        return ()
+    names = [name.strip() for name in result.stdout.splitlines() if name.strip()]
     return tuple(sorted(names))
 
 

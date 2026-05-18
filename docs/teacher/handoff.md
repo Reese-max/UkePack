@@ -2,12 +2,12 @@
 
 > 這份文件是給真人操作的。Daemon 不執行此流程。
 
-## 目前進度（daemon 已驗證 2026-05-18）
+## 目前進度（2026-05-18 push 已完成）
 
 - ✅ `origin` 已配置 → `https://github.com/Reese-max/UkePack.git`
-- ✅ 本地有 **11 commits ahead of origin/master** 等推送（dogfood truth-gap 系列修補 + .gitignore 清理 + baseline 反思）
-- ✅ Baseline 全綠：pytest 522 / ruff / mypy 53 files 皆 pass
-- ⏳ **下一步只剩 Step 2（push）+ Step 3（寄信）**
+- ✅ **`git push` 已完成（2026-05-18）**：HEAD `0e703ca` 已在 GitHub
+- ✅ Baseline 全綠：pytest / ruff / mypy 皆 pass
+- ⏳ **下一步只剩 Step 3（寄信）**
 
 ## 前提確認
 
@@ -26,24 +26,11 @@ git remote add origin https://github.com/<你的帳號>/<repo名>.git
 驗證：`git remote -v` 應顯示 origin fetch/push 各一行。
 </details>
 
-## Step 2：推送（**現在從這裡開始**）
+## ~~Step 2：推送~~（**已完成，2026-05-18**）
 
-先確認狀態：
+HEAD `0e703ca` 已推送至 GitHub：`https://github.com/Reese-max/UkePack`
 
-```bash
-git status                          # 應顯示 "Your branch is ahead of 'origin/master' by 11 commits"
-git remote -v                       # 應顯示 origin → Reese-max/UkePack.git
-```
-
-推送：
-
-```bash
-git push -u origin master
-```
-
-成功標準：GitHub repo 頁面可看到最新 commit（HEAD = `645f84f chore(baseline): untrack .last-restart`）、`README.md`、`render.yaml`。
-
-## Step 3：寄邀請信
+## Step 3：寄邀請信（**現在從這裡開始**）
 
 從 `docs/teacher/templates/` 挑適合版本：
 
@@ -59,7 +46,7 @@ git push -u origin master
 ## 成功標準
 
 - [x] `git remote -v` 有 origin（daemon 已確認）
-- [ ] `git push -u origin master` 成功，GitHub repo 顯示最新 HEAD
+- [x] `git push -u origin master` 成功（2026-05-18，HEAD `0e703ca`）
 - [ ] GitHub repo 公開可見（或邀請老師為 collaborator）
 - [ ] 邀請信已寄出，記錄日期 + 老師匿名代號到 `engineering-log.md`
 

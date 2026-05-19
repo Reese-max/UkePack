@@ -7,7 +7,8 @@
 - ✅ `origin` 已配置 → `https://github.com/Reese-max/UkePack.git`
 - ✅ **Step 2b 已完成**：CI ✅ 全綠，`origin/master` = `304bb6a`（libcairo2-dev 修復已在 GitHub）
 - ✅ Baseline 全綠（本機）：pytest 522 passed / ruff / mypy 皆 pass
-- ℹ️ 本機 HEAD 比 origin/master 超前 1 commit（`4ae7313 docs(mission): meta-learn`），無 CI 風險
+- ✅ **render.yaml M0 修復**：`383ddca` 加入 `libcairo2-dev` apt 步驟 — 修復前 Render.com build 會因 pycairo 無 Linux wheel 而失敗
+- ℹ️ 本機 HEAD 比 origin/master 超前 3 commits（`4ae7313`, `4e501b7`, `383ddca`），無 CI 風險，建議一次推送
 - ⏳ **下一步：Step 2c 部署 Render.com → 取得公開 URL → 寄邀請信**
 
 ## 前提確認

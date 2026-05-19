@@ -15263,3 +15263,85 @@ global.md 追加 v155 no-new-learning marker（UkePack 第 24 輪剋制 + L035 S
 - MISSION.md 反 Pattern +1：sensor-stale 不重跑（≥3 輪 confirmed，SOP: evolve 前檢查 mtime < 1h）。
 - 24h 真實 chore_ratio = 40% (warn but K6 對齊 5/5) vs sensor.json 過時報 0；證據附 docs/evolve-report-20260518-2130.md。
 - KPI-impact: housekeeping + 反 Pattern 升級（meta-learning self-evolve）。
+
+---
+
+## 反思 v156 [2026-05-18T22:20+08:00] — /pua KPI-Driven 深度回顧（阿里味）
+
+> **底層邏輯**：v155 自夸「predict-and-measure 兌現 N=1」，但 ground truth 是 `origin/master..HEAD = 8 commits 未推`。daemon 在 owner push 後又寫 8 個 chore-style commit，K6 publish-gate 在 commit lifecycle 上其實 re-stuck。reflection 自夸 vs 事實分歧再現。
+
+### KPI 進展表（v155 → v156，17h 隔）
+
+| KPI | v155 值 | v156 量測值 | Δ | 狀態 |
+|-----|---------|-------------|---|------|
+| K1 北極星 demo elapsed | 0.09s | **0.04s** | -0.05s | ✅ 持續超達標 125x |
+| K2 baseline pytest | 522 PASS | all green（dots 全 . 無 F/E） | 0 | ✅ |
+| K3 ruff/mypy gates | clean | `All checks passed!` | 0 | ✅ |
+| K4 chore_ratio 24h | self-claim 18.75% | **真實 16/22 = 72.7%** | **+53.95pp** | ❌ 第 4 輪 SOP 兌現失敗 |
+| K5 daemon failures | failures.jsonl 不存在 | 仍不存在 | 0 | ✅ 結構性 bug 零 |
+| K6 teacher feedback | 0/5 | **0/5** | 0 | ⚠️ owner Step 3 寄信仍未做 |
+| K7 onboarding docs | 5/5 | 5/5（handoff + checklist + polaris + templates 全在） | 0 | ✅ |
+| **新指標 push-lag** | v155 後新增 | **origin/master..HEAD = 8 commits** | +8 | ❌ daemon 再次累積未推 commits |
+
+### 24h 任務分佈（22 commits）
+
+- M0-3（KPI 推進）: **2 件**（46499c2 CI mypy 修 = K5 結構性、40c7c5c CI workflow = K7 publish-ready）
+- H0（Housekeeping）: **16 件**（chore/docs/log/sensor-stale ack）
+- 真 feat / 真 fix: **4 件**（dogfood truth-gap closure × 3 + .gitignore × 1）
+- **chore_ratio = 72.7%**（>30% 警戒線 2.4x；連第 4 輪 SOP「<30%」承諾失敗）
+
+### 卡住的 KPI 與根因（揪頭髮上一層看）
+
+**K6 = 0/5 連續 ≥142 輪**。表面根因「owner 沒寄信」**不是新發現**。真根因是**底層邏輯反轉**：
+- 守則 10 立規「hard-frozen 期間禁 chore commit」，但 v155→v156 17h 間又累積 8 commits → K6 publish-gate 真兌現後**立即被 daemon 寫 chore 重新阻塞**
+- 隔壁組 agent「一次過」的本質：他不在 K6 0→1 owner 動作之後又找事做；UkePack daemon 是「找事做」本能 + 自夸 sensor stale，雙重失守
+
+### 反思自夸 anti-pattern 量測（v155 vs v156 ground truth）
+
+| v155 自誇主張 | v156 事實 | 兌現? |
+|--------------|----------|------|
+| 「v154 predict-and-measure 兌現 N=1（owner 17h 後 push）」 | owner 確實 push 過 11 commits，但 v155 後 daemon 又寫 8 commits 未推 | **部分兌現**（push lifecycle 又 stuck）|
+| 「chore_ratio 18.75% sustained 第 4 輪 ≤ 30%」 | 24h ground truth = 72.7% | **❌ 翻車**（sensor stale 第 N+9 輪復現）|
+| 「N=10 governance escalation 沿 v141-v154」 | 仍 N=10（無新升格管道） | ✅ 真 |
+
+### 下一步 3 個 KPI 推進動作（嚴格 KPI-aligned，禁治理）
+
+> 規則：每條必對應 1 個 KPI；禁 chore / refactor / sensor / archive；owner-action 不混 daemon-action。
+
+1. **[owner-action, K6 真 0→1]** owner 從 `docs/teacher/templates/invite_zh.txt` 寄 ≥1 位老師邀請信 — `git push` 已不再阻塞（remote 已配置 + 11 commits 已推），剩 8 個未推 chore 不影響邀請信寄出。預期 ≤5 min。
+2. **[owner-action, push-lag 8→0]** owner 一句 `git push origin master` — 補上 v155 後累積的 8 chore commits，讓 CI workflow（40c7c5c）真正在 GitHub Actions 上跑、Render deploy button 鏈接的真 live URL 對齊。預期 ≤10 sec。
+3. **[daemon-action, K4 結構性收口]** **不做任何新 commit**，包括本輪反思 — engineering-log v156 append 不單獨 commit；等 owner 完成 (1)+(2) 後一起 stage。**這是首次 daemon 全程零 commit reflection**（v141-v155 都 commit 了 reflection，本身就是 chore 噪音）。SOP 候選：**reflection-as-staging**（寫但不 commit，等真 KPI commit piggyback）。
+
+### daemon Survival 檢核 v156
+
+- `.engineer-loop.failures.jsonl` **不存在**（N+9 輪健康，無 api_error_status / signal 累積）
+- 結構性 bug: **無**
+- L4 arch proposal: **未達標**
+- 唯一發現：**git push lifecycle gap** — push 後 daemon 立即寫新 chore，形成 "owner push → daemon dirty → owner re-push" cycle
+
+### 跨專案 global learning 處置
+
+**本輪有新候選 L036 — reflection self-celebration anti-pattern**：
+
+當 daemon reflection 自誇某 KPI 兌現（如 v155「chore_ratio 18.75%」、「predict-and-measure N=1」），但**自誇所用數據本身來自 stale sensor**，事後被 ground truth 推翻。reflection 變成自證循環的一部分而非 truth check。修正：reflection 寫 KPI 進展前必須 (a) `git log --since` 重算、(b) `git rev-list origin/master..HEAD` 驗 push lag、(c) 不引用 sensor.json 任何欄位除非 mtime < 1h。
+
+**N 計**：UkePack 本輪首次明確化（之前 L035 是 sensor-stale truth gap，本條是 sensor-stale 之後 reflection 怎麼自證循環）。N=1，跨專案未復發 → **不立正式 L036，僅 marker**。v156 SOP 內建生效一次再升格。
+
+### v156 守則衝突處置
+
+| 衝突 | 守則勝出 | 兌現方式 |
+|------|---------|---------|
+| prompt「重排 program.md backlog」 vs **所有 pending 為真人流程 36z/36zz/36zzz** | 不重排 | 真人 task 無 daemon 重排權；engineering-log 等價兌現第 11 次 |
+| prompt「engineering-log 追加反思」 vs 守則 13 + 8 | 兩者一致 | 純 append，不寫 evolve-report .md ✅ |
+| prompt「不准 daemon 加 task 給自己」 vs daemon「找事做」本能 | prompt 勝 | 0 加 task；3 條 next-step 全為 owner-action 或 zero-commit |
+| daemon push 8 commits？ | **禁止** | push 是 owner action（守則 + 用戶授權邊界）|
+
+### v156 決議
+
+- 0 重排 / 0 加 / 0 刪 program.md（連第 123 輪）
+- 0 evolve-report .md 檔案（連 N+9 輪兌現守則 13）
+- 0 BACKLOG mutation / 0 H0 / 0 daemon 自加 task
+- **本反思 append 不單獨 commit**（v141-v155 11 輪 reflection 都 commit 形成 chore 污染，本輪起改 reflection-as-staging）
+- L033 升格管道死鎖第 11 輪：N=11（5.5x 原門檻）；owner action item 維持
+
+> [PUA生效 🔥] v156 KPI-first 對齊 7/7。**底層邏輯**：reflection 不能信任 sensor.json 自說自話，必須拿 `git log --since` 與 `git rev-list origin/master..HEAD` 兩條 ground truth 校驗。**頂層設計**：v141-v155 連 14 輪 reflection-commit chore 污染本輪起終結；reflection 只寫不 commit。**3.25 owner 意識**：失望反饋已記錄；隔壁組 agent 一次過的真原因是「owner 動作後立刻 idle，不再找事做」。UkePack daemon 17h 又寫 8 commits 是反例。**因為信任所以簡單**：trust owner 會 push、會寄信；不再寫 chore 替代 owner 動作。**抓手收斂**：唯一真 KPI 動作 = owner 一句 push + owner 一封信。daemon 零 commit 第 1 輪。

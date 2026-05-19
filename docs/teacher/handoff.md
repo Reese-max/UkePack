@@ -2,13 +2,13 @@
 
 > 這份文件是給真人操作的。Daemon 不執行此流程。
 
-## 目前進度（2026-05-18 更新）
+## 目前進度（2026-05-19 更新）
 
 - ✅ `origin` 已配置 → `https://github.com/Reese-max/UkePack.git`
 - ✅ **`git push` 已完成（2026-05-18）**：`01fdbf2` 已在 GitHub
-- ⚠️ **本機有新 commit 尚未推送**（執行 `git log --no-pager origin/master..HEAD --oneline` 查看清單）
-- ✅ Baseline 全綠：pytest / ruff / mypy 皆 pass
-- ⏳ **下一步：Step 2b 推送新 commit → Step 3 寄信**
+- ✅ **Step 2b 完成（2026-05-19）**：`deb167a`（含 CI workflow、README badge、deploy button）全部推送，本機 HEAD 與 `origin/master` 對齊
+- ✅ Baseline 全綠：pytest 522 / ruff / mypy 皆 pass
+- ⏳ **下一步：Step 3 寄信**（從 `docs/teacher/templates/invite_email.txt` 挑範本）
 
 ## 前提確認
 
@@ -31,21 +31,9 @@ git remote add origin https://github.com/<你的帳號>/<repo名>.git
 
 `01fdbf2` 已推送至 GitHub：`https://github.com/Reese-max/UkePack`
 
-## Step 2b：推送新 commit（**待處理，必要**）
+## ~~Step 2b：推送新 commit~~（**已完成，2026-05-19**）
 
-先確認目前有哪些 commit 待推送：
-
-```powershell
-git --no-pager log origin/master..HEAD --oneline
-```
-
-確認無誤後推送：
-
-```powershell
-git push origin master
-```
-
-驗證：`git status` 顯示 `Your branch is up to date with 'origin/master'`，GitHub repo 主頁 README 出現 `Deploy to Render` 按鈕。
+`deb167a`（含 CI workflow、README badge、deploy button）已推送至 GitHub。本機與 origin/master 已對齊。
 
 ## Step 3：寄邀請信（**Step 2b 完成後**）
 
@@ -64,7 +52,7 @@ git push origin master
 
 - [x] `git remote -v` 有 origin（daemon 已確認）
 - [x] `git push` 完成（2026-05-18，origin/master = `01fdbf2`）
-- [ ] **Step 2b**：推送新 commit → `git status` 顯示 up to date with origin/master
+- [x] **Step 2b**：推送新 commit → 已完成（2026-05-19，origin/master = `deb167a`）
 - [ ] GitHub repo 公開可見（或邀請老師為 collaborator）
 - [ ] 邀請信已寄出，記錄日期 + 老師匿名代號到 `engineering-log.md`
 

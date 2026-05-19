@@ -207,7 +207,7 @@ uv run pytest -q
 
 - [x] PRD v1.0 Draft
 - [x] Phase 0：研究與原型（30 首 MusicXML fixture，端到端 PDF 成功率 100%，< 5s）
-- [x] Phase 1：MVP（Web API + SQLite + HTMX UI + 授權聲明，479 測試全綠）
+- [x] Phase 1：MVP（Web API + SQLite + HTMX UI + 授權聲明，522 測試全綠）
 - [x] Phase 2 P2-01：段落自動辨識（Intro / Verse / Chorus）
 - [x] Phase 2 P2-02：慢速練習音檔（50BPM / 70% / 100%，MIDI + MP3）
 - [x] Phase 2 P2-03：老師審稿模式（編輯 / 比較 / 復原 / 模板）

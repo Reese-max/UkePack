@@ -6,7 +6,8 @@ services:
     name: ukepack
     runtime: python
     plan: free
-    buildCommand: pip install uv && uv sync
+    # libcairo2-dev required: pycairo 1.29.0 has no Linux wheel, must compile from source
+    buildCommand: apt-get update -qq && apt-get install -y --no-install-recommends libcairo2-dev pkg-config && pip install uv && uv sync
     startCommand: uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       # Force Python 3.12 to match requires-python = ">=3.12" in pyproject.toml

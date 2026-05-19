@@ -5,14 +5,10 @@
 ## 目前進度（2026-05-19 更新）
 
 - ✅ `origin` 已配置 → `https://github.com/Reese-max/UkePack.git`
-- ✅ **`git push` 已完成（2026-05-18）**：`01fdbf2` 已在 GitHub
-- ⚠️ **Step 2b 待推送**：本機 HEAD（`14ac214`）比 `origin/master`（`711aa5d`）**超前 3 commits**，包含 CI 修復（libcairo2-dev）。CI 目前在 GitHub 顯示 ❌ FAIL。
-  - `435d6a2` docs(teacher): add Render.com deploy prerequisite to handoff Step 3
-  - `b538d2f` fix(ci): install libcairo2-dev before uv sync on Ubuntu  ← **CI 修復**
-  - `14ac214` chore(log): record CI fix + previous round PASS
-  - **動作**：在本機執行 `git push origin master` 即可讓 CI 變綠
-- ✅ Baseline 全綠（本機）：pytest / ruff / mypy 皆 pass
-- ⏳ **下一步：先推送 → CI 變綠 → Step 2c 部署 Render.com → 寄邀請信**
+- ✅ **Step 2b 已完成**：CI ✅ 全綠，`origin/master` = `304bb6a`（libcairo2-dev 修復已在 GitHub）
+- ✅ Baseline 全綠（本機）：pytest 522 passed / ruff / mypy 皆 pass
+- ℹ️ 本機 HEAD 比 origin/master 超前 1 commit（`4ae7313 docs(mission): meta-learn`），無 CI 風險
+- ⏳ **下一步：Step 2c 部署 Render.com → 取得公開 URL → 寄邀請信**
 
 ## 前提確認
 

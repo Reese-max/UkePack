@@ -4,9 +4,13 @@ Implements program.md §10 / engineering-log v13-v21 obligation: when the
 daemon is hard-frozen (no git remote, K7 saturated, chore_ratio over budget),
 governance-only commits must be mechanically blocked rather than relying on
 SOP discipline. This test guards the hook against accidental deletion.
+
+Note: hook existence test is skipped in CI because `actions/checkout` does not
+restore `.git/hooks/`; the hook is a local-dev guard only.
 """
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 
@@ -28,6 +32,9 @@ HOOK_PATH = _git_dir() / "hooks" / "pre-commit"
 
 
 def test_pre_commit_hook_exists() -> None:
+    if os.getenv("CI") == "true":
+        # `actions/checkout` does not restore .git/hooks/; hook is local-dev only.
+        return
     assert HOOK_PATH.exists(), (
         "§10 pre-commit hook missing — daemon hard-frozen rule unenforced. "
         "See program.md §10."

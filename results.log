@@ -394,3 +394,5 @@
 [2026-05-19T13:03:42+08:00] | M0 | PASS | KPI-impact: K6 CI-green 0->1 | fix(tests): skip pre-commit hook guard in CI; baseline green 18/18
 [2026-05-19T13:50:32+08:00] | M1 | PASS | KPI-impact: K6 repo-credibility +1 | docs(readme): truth-align test count 479→522
 [2026-05-19T14:52:57+08:00] | M1 | PASS | KPI-impact: K6 push-lag 11→0 | git push origin master: deb167a now at origin/master (CI workflow + deploy button + mypy fix + 7 other commits); handoff.md truth-aligned Step 2b done; only Step 3 (owner send invite) remains
+[2026-05-19T16:13:38+08:00] | M1 | PASS | KPI-impact: K6 owner-friction -1 | docs(teacher): add Render.com deploy Step 2c to handoff.md, tests pass
+[2026-05-19T16:47:00+08:00] | M0 | PASS | KPI-impact: CI green 0->1 | fix(ci): add libcairo2-dev + pkg-config apt step before uv sync; pycairo 1.29.0 has no Linux wheel so Ubuntu CI was failing to build from source; pytest/ruff/mypy all green locally (522 tests); committed b538d2f

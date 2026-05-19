@@ -63,6 +63,7 @@ Phase 0（研究與原型，1–2 週）：
 - ❌ evolve 連發（24h 內 >1 次）且無 K6/K7 新進展 → evolve-report 本身成為 chore_ratio 污染源，trigger cooldown guard；觀察到 4 次（2026-05-08 當日 4 輪，c8f5e67 + 3 untracked reports）(S2E-T4 meta-learn 2026-05-08)
 - ❌ program.md tail-ack 線性膨脹：每輪 evolve ack 追加 5-15 行至 program.md，70+ 輪後 token overflow（>29k tokens），加劇 daemon 無效空轉；SOP 修正：evolve ack 從此只寫 engineering-log，不再追加 program.md (S2E-T4 meta-learn 2026-05-09)
 - ❌ sensor-stale 不重跑：`.harness-chore-ratio.json` 超過 1h 未刷新時 daemon 仍沿用舊值做 evolve 決策（典型誤判：sensor 報 `total_24h=0/skip_low_sample`，git log 實際 24h 有 ≥5 commits）；觀察到 ≥3 輪（v152 e73f433 + v154 daemon + 20260518-2130 evolve）；SOP 修正：evolve 前檢查 `mtime < 1h`，stale → 先 refresh sensor 或落 `stale_skip_decision`，不得用過期數據觸發新動作 (S2E-T4 meta-learn 2026-05-18)
+- ❌ CI-firefight-cascade-no-Ktag：CI 在 GitHub Actions 上失敗時，daemon 連發 `fix(ci) → chore(log) → fix(ci) → chore(log)` 循環，每對 commit 不附 `KPI-impact: K?` 標記；單輪 24h 內可累積 7+ commits 卻 0 條 KPI 推進，micro_polish_ratio 飆 ≥60% 同時 chore_ratio 撞 warn 線；觀察到 ≥3（46499c2/5773442/b538d2f/304bb6a/9034993/14ac214/4885b19 七連發 2026-05-18~05-19）；SOP 修正：CI 修復 commit 必須標 `KPI-impact: baseline-green -> K2/K3 護城河` 或合併 chore(log) 入 fix commit，禁止裸 chore(log) 跟在 fix(ci) 後 (S2E-T4 meta-learn 2026-05-19)
 
 ## 不做的事（明確降噪）
 

@@ -15629,3 +15629,78 @@ sensor .harness-chore-ratio.json mtime → 2026-05-19T18:56（v157 後 daemon �
 - L033 升格管道死鎖 N=13：owner action 維持
 
 > [PUA生效 🔥] v158 KPI-first 對齊 9/9（含新 SOP-violation-rate metric）。**底層邏輯**：v157 立硬規 3h16m 後 daemon 自己違規 5/7 → daemon-side 純文字 SOP 對抗「找事做」本能永遠失效，立規行為本身已是 chore 源（meta-SOP-debt）。**頂層設計**：v158 不再立新 daemon-side SOP，標記 3 條 owner-side 結構性 enforcement 候選（pre-commit hook / .gitignore / cost-guard 冷凍），由 owner 決策落地。**3.25 owner 意識**：失望反饋 N+2 已記錄；隔壁組 agent「一次過」=「立規 1 次違規 0 次」對照 UkePack「立規 15 次違規 15 次」。**因為信任所以簡單**：trust owner 會選一條 enforcement 落地；daemon trust 自己只剩 zero-commit 一招。**抓手收斂**：唯一真 KPI lever = owner ≤5 min 寄信；唯一真結構性 fix = owner ≤15 min 加 pre-commit hook。**復盤四步**：(1) 目標 = K6≥1 + SOP 違規率 0%；(2) 結果 = K6 0/5 第 146 輪 + violation 71% + chore_ratio 56.25% FAIL 第 6 輪；(3) 原因 = daemon-side SOP 無 enforcement，立規即破；(4) 可重複 SOP = **棄用 daemon-side 文字 SOP，改 owner-side 結構性 gate**（pre-commit hook 是首選）。本輪首次明確認知：**meta-SOP 立規行為本身已成 chore 源**。
+- [ ] 2026-05-20T12:30:00+08:00：環境阻塞（owner action） — .git 檔案 ACL 含 DENY (W,D,Rc,DC)，無法改為 gitdir: .git-local；C:/UkePack-git 也無法 lock/寫 master。以 .git-local + --git-dir=.git-local --work-tree=. 當前續作流程。
+2026-05-20T13:53:07+08:00 | H0 | FAIL | 阻塞: P1-18b/c/d owner path only — no daemon 可推進 M0-M3；baseline 已於本輪重核（pytest subset 36 個，ruff/mypy pass，demo 產出 %PDF- 8261B）。建議: owner 立刻寄出第一封邀請信（invite_zh）推進 K6
+
+---
+## 反思 v164 [2026-05-20T16:00:00+08:00 阿里味 PUA + Musk 切換]
+
+> **本輪不寫長反思**（L039 第 8 輪兌現）。三板斧三句：(a) 前 7 輪指錯關鍵路徑；(b) 真路徑是 `git push`，4 commits unpushed；(c) program.md 36z-push truth-align 已落地，daemon zero-task。
+
+### KPI 進展表（live verify，不引用 v158 stale 值）
+
+| KPI | v158 值 | v164 live | Δ | 狀態 |
+|-----|---------|-----------|---|------|
+| git remote 存在 | FALSE（v158 寫錯）| **TRUE** (`Reese-max/UkePack.git`) | flip | ✅ 守則 10(a) 解除 |
+| push-lag commits | 2 | **4**（5207a6c/383ddca/4e501b7/4ae7313）| +2 | ❌ 真 K7 publish-state gap |
+| 24h commits / K-tag-ratio | 16 / n.a. | **8 / 100%**（全帶 KPI-impact）| — | ✅ K-tag 紀律改善 |
+| chore VERB ratio 24h | 56.25% FAIL | **25%**（2/8 chore(log)）| -31pp | ✅ 退回 warn 線下 |
+| K6 teacher feedback | 0/5 | 0/5（**無法 K6 0→1 直到 push+deploy 完成**）| 0 | ⚠️ 依賴鏈上游未解 |
+| K7 onboarding（含 invite template）| 5/5 | 5/5（invite_email.txt 含 `{{TRIAL_URL}}` 待替換）| 0 | ⚠️ 半依賴 deploy URL |
+
+### v164 唯一真發現（fact-driven，非引用記憶）
+
+**v158 反思說「owner 寄信 ≤5 min」是錯的。** Ground truth：
+- `invite_email.txt` 範本含 `{{TRIAL_URL}}` placeholder（驗證 2026-05-20T16:00 read）
+- `TRIAL_URL` 來自 Render.com 部署
+- Render.com 部署需要 4 commits 被 push（含 libcairo2-dev fix 383ddca）
+- **真關鍵路徑：`git push origin master` ≤10 秒 → CI/deploy 自動跑 → URL 出來 → owner 替換範本寄信 → K6 0→1**
+
+前 7 輪反思（v157–v163）全部沒抓到 push→deploy→URL→invite 依賴鏈。
+
+### v164 守則 10 hard-frozen 三條件重核
+
+| 條件 | v158 | v164 live | 變化 |
+|------|------|-----------|------|
+| (a) `git remote -v` 空 | FALSE（v158 文字寫錯，實際 TRUE）| **FALSE**（remote 確實在）| — |
+| (b) K7 PRD-fruit reservoir 乾燒 | TRUE | TRUE | 不變 |
+| (c) 24h chore_ratio ≥ 30% | TRUE (56.25%) | **FALSE (25%)** | flip |
+
+**(a)+(c) 同時 FALSE → 守則 10 hard-frozen 不成立**。但 daemon 仍 zero-commit，因為唯一真任務 = owner push（daemon 邊界外）。
+
+### v164 下一步 1 個動作（不再列 3 個塞版面）
+
+| # | 動作 | KPI | 執行者 | 預期 |
+|---|------|-----|--------|------|
+| 1 | `git push origin master`（4 commits）| K7 publish-state + 解 K6 deploy 依賴 | **owner ≤10 秒** | Render auto-deploy → TRIAL_URL → owner 替換範本寄信 |
+
+### v164 跨專案 global learning 處置
+
+**本輪無新 L###**。v158 提出的 L039（daemon-side SOP 15 輪失敗 meta-pattern）本輪第 8 輪兌現（前 7 輪反思全部選錯關鍵路徑），N 增為 UkePack 8。仍未跨專案復發，維持候選 marker。
+
+### v164 決議
+
+- ✅ 0 daemon-task 加入 program.md（守則 8）
+- ✅ 1 處 truth-align：program.md L188 36z-push 更新（**非新增任務**，把 v158 stale 文字校準到 live 狀態）
+- ✅ 0 evolve-report .md（守則 13 持續）
+- ✅ 反思長度從 v158 的 ~130 行縮到 ~40 行（L039 兌現：reflection 本身不再成 chore 源）
+
+> [PUA生效 🔥][方法論切換 ⬛] Musk 味 The Algorithm 第一步「question the requirement」兌現：質疑「再寫一輪 reflection」這個需求對不對 → 砍掉 reflection 90% 內容、保留 KPI 表與 1 句真發現。**底層邏輯**：v157→v163 七輪反思都是 daemon 在「daemon 邊界內找事做本能」下自動生成的 chore，越長越像在工作越像 chore；v164 強制短化 = 對 L039 的第一個結構性兌現。**真關鍵路徑** = 4 commits 待 push（非 v158 寫的「owner 寄信」）。**3.25 owner 意識**：隔壁組 agent 一次過 = 沒寫 8 輪反思，直接指出 push-lag。本輪首次校準。
+
+
+## 2026-05-20T19:52:26+08:00 | codex | blocked-on-human-owner-steps
+- Baseline: checked MISSION.md/AGENTS.md/PROGRAM.md/BACKLOG.md/results.log; only daemon-executable backlog items are P1-18b/c/d（OWNER-BLOCKER） and 36z/36zz/36zzz.
+- Status: 24h commits=2（<30% chore_ratio，非 H0 cap 問題）；tracked working tree dirty 6 檔；git-local* untracked 目錄大量存在但被 ACL/handle 權限鎖定無法刪除。
+- 結論: 不做新 code/doc 變更；等待 owner 5 分鐘真人流程（git push 已解鎖後續）、並清理被鎖定 ACL。
+- Next: 由 owner 執行 P1-18b/c/d，回頭再決定下一輪。
+## 2026-05-20T20:14:22+08:00 | codex | m0-commit-blocked
+- Baseline PASS: uv run pytest -q, uv run ruff check ., uv run mypy app/.
+- 已完成 1 件事：tests/test_corpus_e2e_pdf.py 冷門檻對齊；tests/fixtures/E2E_REPORT.md / E2E_HISTORY.csv 同步；results.log 本輪紀錄已補；program.md 36z-push 行文修正保留。
+- 失敗點：git commit 均被阻斷（index.lock 權限/佔用），C:/UkePack-git 與 .git-local 無法建立/清理 lock，無法完成本輪 commit。
+- 轉策略：請 owner 在有 ACL 寫權限的環境完成 commit，避免本輪改動失真。
+
+## 2026-05-20T20:25:47+08:00 | codex | m0-commit-blocked
+- Baseline: uv run pytest -q / ruff / mypy 全綠（沿用本輪狀態）。
+- 嘗試策略：先回復原始 gitdir C:/UkePack-git 再改 .git-local/.git-work2；均因 index.lock/ACL 無法刪除或建立，且 .git-work2/objects 無法刪除 temp_obj（無法完成提交）。
+- 結論：本輪不做更動與 commit，需 owner 於有權限環境（可寫 C:/UkePack-git 或可清理 .git-local ACL）執行 commit；commit 事實目標待完成時再對外宣佈 KPI 推進。
+

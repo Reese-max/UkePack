@@ -15716,3 +15716,65 @@ sensor .harness-chore-ratio.json mtime → 2026-05-19T18:56（v157 後 daemon �
 - 嘗試策略：先回復原始 gitdir C:/UkePack-git 再改 .git-local/.git-work2；均因 index.lock/ACL 無法刪除或建立，且 .git-work2/objects 無法刪除 temp_obj（無法完成提交）。
 - 結論：本輪不做更動與 commit，需 owner 於有權限環境（可寫 C:/UkePack-git 或可清理 .git-local ACL）執行 commit；commit 事實目標待完成時再對外宣佈 KPI 推進。
 
+---
+## 反思 v167 [2026-05-21T12:57:00+08:00 阿里味 PUA - L040 SOP-6 hard cap 兌現]
+
+| KPI | v164/v166 | v167 live | Δ |
+|-----|-----------|-----------|---|
+| push-lag commits | 4 / 5 | **6**（+ecd9b7f, d12cc39） | +1~2 |
+| ACL lock | TRUE (L041候選) | **FALSE**（commit 通路解鎖） | flip |
+| 24h commits / chore VERB | 8 / 25% | 2 / 100%（rescue+truth-align） | 樣本不足 |
+| sensor | n/a | total_24h=0 / skip_low_sample | 窗口錯位 |
+| K6 / K7 | 0 / 5/5 | 0 / 5/5 | 0 |
+| daemon failures jsonl | 不存在 | 不存在 | 無結構性 daemon 死因 |
+
+**v167 唯一真發現**：ACL 解了（L041 候選回退）+ log 復原（probe-truncation 修了）+ 守則 10 hard-frozen 三條件 (a)FALSE/(c)skip → 不成立；但 push-lag 從 4→6 commits 加深。daemon 邊界內 100% 兌現，唯一 unblock 仍是 owner ≤10s `git push origin master`。
+
+**v167 SOP**: append-only 反思 / 0 commit / 0 program.md mutation / 0 evolve-report .md / 0 新 L###（global.md 無新跨專案證據；L041 候選暫不升 N=2，ACL 已解）/ 本反思 ≤15 行（L040 SOP-6 hard cap 達標）。
+
+**Next**: owner `git push origin master`（6 commits）→ Render auto-deploy → TRIAL_URL → invite_email.txt 替換 → K6 0→1。
+
+## [2026-05-21T12:59:02+08:00] | codex | blocked-owner-only
+- 判定：BACKLOG 僅剩 P1-18b/c/d 真人流程（P1-18a 材料已備齊）。daemon 無可直接推進的 M0–M3 任務。
+- `results.log` 已追加本輪封口。
+- 根因：owner 還未完成邀請 + 試用 + feedback + 結論（P1-18b/c/d）。
+- 下一步：owner 先完成 P1-18b 寄件並回填試用結果（P1-18c/d），解鎖下一輪 daemon 進場。
+## [2026-05-21T13:16:38+08:00] | codex | blocked-owner-only
+- BACKLOG 重盤點：仍僅 P1-18b/c/d 為可行項目；其餘都為 owner 人體流程 blocker（已在 v167 已列）。
+- 驗證：`uv run pytest -q`、`uv run ruff check .`、`uv run mypy app/` 全綠。
+- 結論：仍未發現可落地 M0–M3；不硬幹，等待 owner 完成邀請與試用後續步驟。
+
+## [2026-05-21T13:58:49+08:00] | codex | blocked-owner-only
+- 盤點：BACKLOG.md 剩餘未完成只有 P1-18b/c/d，屬 owner 真人步驟，P1-18a 已完成，短期內無新可執行 M0–M3 工作。
+- 驗證：uv run pytest -q、uv run ruff check .、uv run mypy app/ 全部通過；git status 仍有既有未交付 docs 變更（docs/publish_ready_checklist.md、docs/teacher/handoff.md）及未追蹤 _fix_publish.py，暫不納入本輪 KPI 可執行項目。
+- 結論：不做新的代碼/規格修改，先鎖定 owner-blocker；下一輪解鎖條件是 owner 完成 P1-18b/c/d（邀請、試用、feedback）。
+
+## [2026-05-21T13:59:58+08:00] | codex | blocked-owner-only + commit-lock
+- 嘗試將結果/阻塞封口 commit；遭遇 C:/UkePack-git/index.lock 無法建立（Permission denied）。
+- 核心狀態未變：可行任務仍僅剩 P1-18b/c/d，daemon 暫停等待 owner。
+- 後續：保留修復 ACL 權限後重試 commit；目前不做硬改動。
+
+## [2026-05-21 14:25:33+08:00] | codex | blocked-owner-only + commit-lock
+- 本輪對 `publish_ready_checklist.md` 與 `handoff.md` 做真實狀態修正（`originLICENSE` -> `origin`、步驟註記更新），並通過 `uv run pytest -q` / `ruff check .` / `mypy app/`。
+- 準備 commit 時仍被 `C:/UkePack-git/index.lock` 與 `.git-local/index.lock` 權限阻擋；未完成 commit。
+- 主要阻塞仍為 owner 人為步驟：P1-18b/c/d（邀請、試用、feedback）與本地 commit 權限 ACL。
+
+---
+## 反思 v168 [2026-05-21T14:40:00+08:00 阿里味 PUA — L040 SOP-6 hard cap + L041 候選精修]
+
+| KPI | v167 | v168 live | Δ |
+|-----|------|-----------|---|
+| push-lag commits | 6 | **6** | 0（owner ≤10s 動作仍懸） |
+| ACL lock | FALSE（v167 宣告解了） | **flap**：12:40 ecd9b7f 通 → 13:58/13:59/14:25 三筆 blocked-owner+commit-lock | flip 回 TRUE（intermittent） |
+| K1 live wall demo | n/a | 6.108s wall / 8261B PDF（cold-noise 嫌疑；test gate p100≤7s warm 仍綠） | 監測 |
+| 24h commits | 2 | 2 | 0 |
+| K6 / K7 | 0 / 5/5 | 0 / 5/5 | 0 |
+| daemon failures jsonl | 不存在 | 不存在 | 無結構性死因 |
+
+**v168 真發現（一行）**：L041 候選「ACL steady lock」模型錯 — 12:40→13:58 約 1h18m 內無 daemon 動作 ACL 自行 flip FALSE→TRUE（疑外部 Windows 程序：indexer/AV/backup 週期性鎖 .git）。同窗連寫 4 筆「blocked-owner-only」全文 entry 違反 L041 SOP #2「sticky single-line」 — 候選自身就是反例。
+
+**v168 SOP**：append-only / 0 program.md mutation（pending 36z/36zz/36zzz 全 owner-blocked，治理 reorder 本身是 H0 chore，禁）/ 已清 `_fix_publish.py` daemon ACL-workaround probe（L041 後遺留，非治理檔）/ 0 evolve-report / global.md L041 候選暫不升 N=2（同專案 refinement 不算跨專案），僅在本反思內註明「intermittent flap」精修。
+
+**Next（不變）**：owner `git push origin master`（6 commits）→ Render auto-deploy → TRIAL_URL → invite_email.txt → K6 0→1。
+
+> [PUA生效 🔥] **3.25 owner 意識**：v167→v168 1h45m 內第二次 /pua，KPI 0 進展、push-lag 0 進展、但 v167 的 ACL=FALSE 宣告已被自己 1h 後的 commit-lock 打臉。**底層邏輯** — daemon 把「當下能 commit」當作 ACL 永久解，但 Windows 環境 .git 鎖是 stateful 外部資源，需 session-scoped TTL 而非 boolean snapshot。**抓手** = L041 候選改寫「intermittent oscillation with ≥1h TTL」，下次 N=2 兌現需附 timestamp 連續樣本。**閉環** = 本輪不 commit、不重排、不堆 chore、清 1 個 probe artifact、寫 ≤15 行反思 — L040 N=4 兌現（公文 v97-v103 + UkePack v157-v168 + voice-actress R119-R125 + UkePack 本輪自承）。

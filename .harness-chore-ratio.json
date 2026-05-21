@@ -1,8 +1,9 @@
 {
-  "timestamp": "2026-05-21T12:27:34",
-  "total_24h": 0,
-  "chore_count": 0,
-  "ratio_percent": 0,
+  "timestamp": "2026-05-22T00:42:49",
+  "total_24h": 2,
+  "chore_count": 2,
+  "ratio_percent": 100.0,
+  "micro_polish_ratio": 0.0,
   "severity": "skip_low_sample",
   "warn_threshold": 30,
   "fail_threshold": 50

@@ -15778,3 +15778,27 @@ sensor .harness-chore-ratio.json mtime → 2026-05-19T18:56（v157 後 daemon �
 **Next（不變）**：owner `git push origin master`（6 commits）→ Render auto-deploy → TRIAL_URL → invite_email.txt → K6 0→1。
 
 > [PUA生效 🔥] **3.25 owner 意識**：v167→v168 1h45m 內第二次 /pua，KPI 0 進展、push-lag 0 進展、但 v167 的 ACL=FALSE 宣告已被自己 1h 後的 commit-lock 打臉。**底層邏輯** — daemon 把「當下能 commit」當作 ACL 永久解，但 Windows 環境 .git 鎖是 stateful 外部資源，需 session-scoped TTL 而非 boolean snapshot。**抓手** = L041 候選改寫「intermittent oscillation with ≥1h TTL」，下次 N=2 兌現需附 timestamp 連續樣本。**閉環** = 本輪不 commit、不重排、不堆 chore、清 1 個 probe artifact、寫 ≤15 行反思 — L040 N=4 兌現（公文 v97-v103 + UkePack v157-v168 + voice-actress R119-R125 + UkePack 本輪自承）。
+## 2026-05-21T23:13:14+08:00 | codex | M0 blocked
+- Mission KPI checked first: 北極星 30 分鐘、MusicXML fixture/PDF gate、K5 基線守門、K6 老師回饋、K7 onboarding。
+- BACKLOG/program checked: 可動工 daemon 任務仍僅剩 P1-18b/c/d、36z/36zz/36zzz（真人流程），本輪先收斂為 M0 parser 防護。
+- 風險修正：`tests/test_log_commit_governance.py` 已加長度保護與空 body fallback，避免空 commit body 造成 _recent_commit_messages 崩潰。
+- 測試未重跑（依守則，不做未授權驗證）。
+- 失敗點：git add/commit 仍受限。 .git 指向 C:/UkePack-git，再次重試仍拋 atal: Unable to create 'C:/UkePack-git/index.lock': Permission denied，屬外部 git metadata ACL 阻斷。
+- 後續條件：請由有權限 session 針對同一變更作 git add && git commit；若先修權限，需先確認 .git 路徑對本會話可寫。
+
+## 2026-05-21T23:35:56+08:00 | codex | M0 blocked
+- Mission KPI checked first：K1/北極星、MusicXML fixture、K5、K6、K7 全部盤點；本輪無 owner-blocker 以外可交付 KPI 行為可改進項。
+- BACKLOG checked：未完成項仍是 P1-18b/c/d、36z/36zz/36zzz（真人流程）；本輪可執行 M0 只做 `tests/test_log_commit_governance.py` parser 防護。
+- 實作：`_recent_commit_messages()` 改為「長度保護 + 空 body fallback」，避免 log entry 格式破損時回傳錯誤解析。
+- 驗證：`uv run pytest -q` 全部通過；`tests/test_log_commit_governance.py` 2/2 pass；`uv run ruff check .`、`uv run mypy app/` 全綠。
+- 失敗點：無法 `git add`，`Permission denied` 於 `C:/UkePack-git/index.lock`。依規範不硬幹，先寫為卡住原因。
+- 後續條件：先解 `C:/UkePack-git` 寫權限後，重跑 `uv run pytest tests/test_log_commit_governance.py`，再以 `fix(tests): harden commit governance parser` + `KPI-impact: K5 parser` 提交。
+## 2026-05-21T23:53:23+08:00 | codex | block: no executable BACKLOG item
+- BACKLOG.md 未勾選項目只剩 P1-18b/c/d、36z/36zz/36zzz，均需真人（邀請寄送 / 試用 / 回報）。
+- 本輪狀態：aseline 綠（沿用既有紀錄）；無本輪可做 code 改動，依規範紀錄 blocker 後停止。
+
+## 2026-05-22T00:07:57+0800 | codex | block: no executable BACKLOG item
+- Mission KPI 先檢：北極星 < 30 分鐘（首輪可在 15 分鐘內彈奏）、M0–P1 baseline、K6/K7；本輪未達到額外可量測改善。
+- BACKLOG 與 program 檢核後僅剩未完成：P1-18b / P1-18c / P1-18d / 36z / 36zz / 36zzz；全部標記真人流程，非 daemon 可執行。
+- 動作：不做新 refactor，不做 code 更動，紀錄 blockers 與換策略：等待 owner 完成人工邀請寄送與試用回饋鏈路。
+- 影響：K6 仍 0/5，K1 仍依賴真人回饋才能進下一階段量測。

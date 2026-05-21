@@ -55,7 +55,12 @@ def _recent_commit_messages() -> list[tuple[str, str, str]] | None:
         stripped = entry.strip()
         if not stripped:
             continue
-        sha, subject, body = stripped.split("\x1f", maxsplit=2)
+        parts = stripped.split("\x1f")
+        if len(parts) < 2:
+            continue
+        sha = parts[0]
+        subject = parts[1]
+        body = parts[2] if len(parts) > 2 else ""
         messages.append((sha.strip(), subject.strip(), body.strip()))
     return messages
 

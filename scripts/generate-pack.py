@@ -54,15 +54,15 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERROR: input file not found: {args.input}", file=sys.stderr)
         return 1
 
-    # Import here so --help works even if optional deps shift.
-    from app.demo import main as demo_main
-
     if args.dry_run:
         print(
             f"[dry-run] OK: input={args.input} out-pdf={args.out_pdf} "
             f"out-zip={args.out_zip} level={args.level} host-url={args.host_url}"
         )
         return 0
+
+    # Import only when we really run the heavy pipeline.
+    from app.demo import main as demo_main
 
     demo_main([
         "--input", str(args.input),

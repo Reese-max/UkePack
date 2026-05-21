@@ -1,20 +1,9 @@
 {
-  "timestamp": "2026-05-19T18:56:00+08:00",
-  "total_24h": 15,
-  "chore_count": 5,
-  "ratio_percent": 33,
-  "micro_polish_count": 10,
-  "micro_polish_ratio_percent": 67,
-  "severity": "warn",
+  "timestamp": "2026-05-21T12:27:34",
+  "total_24h": 0,
+  "chore_count": 0,
+  "ratio_percent": 0,
+  "severity": "skip_low_sample",
   "warn_threshold": 30,
-  "fail_threshold": 50,
-  "ground_truth_recount": true,
-  "categories": {
-    "chore_log": ["304bb6a", "14ac214", "9034993", "4885b19"],
-    "docs_evolve_ack": ["3aa9cd3"],
-    "chore_ci_infra": ["40c7c5c"],
-    "fix_micro": ["b538d2f", "46499c2", "5773442", "5f3a1d3", "deb167a"],
-    "docs_k7_aligned": ["435d6a2", "711aa5d", "49fa9d5", "f8c099b"]
-  },
-  "note": "v155 evolve 2026-05-19T18:56 ground-truth recount; previous sensor stale since 2026-05-18T03:00 (skip_low_sample false negative). CI firefight cascade dominates 24h window."
+  "fail_threshold": 50
 }

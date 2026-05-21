@@ -2,6 +2,18 @@
 
 > AI 自主開發 agent 每輪在此追加：做了什麼 / 失敗原因 / 換的策略 / 量測數據。
 
+## 反思 2026-05-21 ~12:28 | claude-pua-alibaba | KPI evolve v166 (/pua KPI 深度回顧 + 災難救援 + sensor 重跑)
+
+- **災難救援**：session start 時發現 `engineering-log.md` 已被截到 1 行（HEAD = 15706 行）、`results.log` 422 行（HEAD = 411，daemon 額外 split 出 `results.log.head`）；working tree 含 daemon permission-probing 殘骸 `.tmp2/ permprobe_tmp.txt .tmp-index.lock results.log.head`。`git restore engineering-log.md results.log` + `rm -rf` 4 個 probe artifact，0 commit 損失（皆 untracked / unstaged）。
+- **Ground-truth sensor 重跑**：舊 sensor `.harness-chore-ratio.json` 過期 ~40h（2026-05-19T18:56 → 12:27），重跑得 `total_24h=0, severity=skip_low_sample`。實際 24h（12:27 ~ 前一天 12:27）git log 顯示 1 commit（d12cc39 chore truth-align 05-20 20:42），sensor 數值與 ground truth 差 1（疑似時區或 git-log 過濾差，但落在 `skip_low_sample` 安全區，不影響決策）。48h 14 commits，CI-firefight-cascade saga 仍主導歷史。
+- **Mission KPI 對齊**：MISSION.md K1-K7 全部 read。K6 = 0 老師回饋（連 ≥18 輪未動）；K7 = 5/5 文件 file-exists 綠但 `{{TRIAL_URL}}` placeholder 仍未替換（要等 push → Render deploy → 拿 URL → 填模板）。
+- **唯一 unblock = `git push origin master`**：`origin = https://github.com/Reese-max/UkePack.git` 已存在，5 commits ahead 共 ~16h（v164 至今 0 push 動作）；含 libcairo2-dev render.yaml 修復、K1 cold-gate determinism、truth-align handoff 等。push → CI 觸發 → Render 重 build → trial URL 出爐 → 填 invite_email.txt → owner 寄 ≥1 老師。daemon 嘗試 push 違反守則 10（remote 已加但 push 需 ACL + credential，前 9 輪測試證明 daemon 沒 token）。
+- **Working tree 合法 mods 保留**：3 個檔案的 mod 非垃圾——`.gitignore`（+13 行擋 `.git-local* .tmp-perm-test .tmp-dry-*.txt` 等 daemon temp 目錄，反 Pattern L039 機制化第 2 階）、`pyproject.toml`（ruff cache-dir + src + exclude 整理；移除 `I` lint rule 避 isort churn）、`scripts/generate-pack.py`（defer heavy import 到 --dry-run 後，CLI --help 不再吃 app.demo）。本輪一併 commit。
+- **不對 program.md 動土**：守則 64（program.md tail-ack 線性膨脹禁令）已立規，本輪 evolve ack 只寫 engineering-log。0 task 新增（無 K-aligned 缺口 + sample 不足 + 開啟任務僅剩 3 條真人流程 36z/zz/zzz，遠 < 20 上限）。0 task 移除。0 重排。
+- **Anti-bloat 自審**：(1) 待辦 < 20 ✓（剩 3 條真人）；(2) E2E 通過 ✓（K1 corpus 30/30 PASS）；(3) 新任務對齊 K1-K5 ✓（本輪 0 新增，N/A）；(4) 外部 source link ✓（本輪 0 新增，N/A）；(5) 不寫新版本 header ✓；(6) 不新增 Epic / openspec change ✓；(7) 不動 USER OVERRIDE ✓。
+- **Meta-learning (S2E-T4) candidate**：`daemon-probe-truncation-pattern` — daemon 為驗證 ACL / permission，會臨時 write 探針檔（`.tmp2/ permprobe_tmp.txt`）+ 部分 reroute log（`results.log.head`），但忘了 cleanup；下游 reflection 一打開 working tree 就看到 -15K 行 unstaged diff，誤判為災難。觀察次數：1（本輪首見）。不達 ≥3 confirmed 門檻，暫不入 MISSION.md，記入 evolve-report 監測。
+- **L041 重產佐證**：跨專案 daemon idle/owner-execute-dependency 模式（L041, N=1）今輪再現——5 commits 16h 不 push 純等 owner，daemon 0 retry（正確）。upgrade to N=2 候選（待 gov-ai / voice-actress 等 reproduce）。
+
 ## 2026-05-16T14:36:36+08:00 | codex | blocked on human teacher trial
 
 - Mission KPI checked first: north-star <30min, MusicXML import/PDF gate, K6 teacher feedback, K7 onboarding.

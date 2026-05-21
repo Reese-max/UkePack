@@ -85,3 +85,16 @@ docs/evolve-report-*.md
 # Daemon wake timestamp — mutated by harness every restart, never useful diff;
 # tracking pollutes git status + reflection snapshot truth (see v154 retro)
 .last-restart
+
+# Temporary harness work dirs created by auto-engineer runs (safe to drop)
+.git-local
+.git-local2
+.git-work2
+.git-work4
+git-local3
+.git.bak-verify
+.tmp-perm-test
+.tmp
+.tmp-dry-*.txt
+.tmp-wet-*.txt
+tmp-wet-*.txt

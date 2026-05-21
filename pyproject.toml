@@ -45,9 +45,28 @@ package = false
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+cache-dir = ".tmp/ruff_cache"
+src = ["app", "tests"]
+exclude = [
+    "tests/fixtures",
+    ".venv",
+    ".ruff_cache",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".uv",
+    ".cache",
+    "build",
+    "dist",
+    "tmp",
+    ".codex-tmp",
+    ".tmp-run",
+    ".tmp-test",
+    ".tmp-perm-test",
+    "baseline-temp",
+]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF"]
+select = ["E", "F", "N", "UP", "B", "SIM", "RUF"]
 # RUF001: project uses Traditional Chinese strings with fullwidth punctuation
 ignore = ["E501", "RUF001"]
 

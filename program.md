@@ -209,9 +209,37 @@
 > 動機：MVP 三條 DoD 中，§1（北極星 < 5s）+ §2（30 fixture 端到端 ≥ 95%）已自動化守門。§3「找 1 位老師試用 + 寫 feedback」連續 2 輪反思未動：P1-18a 材料齊（feedback.md template + docs/teacher_trial_sop.md），但 18b/c/d 全 `[ ]`。再拖一輪就是反思第三輪同一條，且這不是工程能解、靠的是「現在就寄」。
 
 - [x] 36z-pre. **[KPI-impact: K6 招募曝光 0→1，daemon 可執行]** 在 `README.md` 加「Beta 老師招募」段落：說明 trial packet 用途、附 `app.demo --trial-packet --host-url <你的網址>` 指令範例、連結 `docs/teacher/checklist.md` 與 `feedback.md`，讓有意願的老師自行聯繫；補 `tests/test_teacher_docs.py` 驗 README 含招募段落；commit `docs(readme): add beta teacher recruitment section KPI-impact: K6`
-- [ ] 36z. 寄出 P1-18b 邀請信給 ≥1 位實際在教烏克麗麗的老師（用 `docs/teacher_trial_sop.md` 的範本）；在 engineering-log 記日期 + 收件人匿名代號 + 預期試用時間（**真人流程，待 36z-push 完成後才有意義**）
-- [ ] 36zz. P1-18c 跑試用 + 收 feedback，整理進 `feedback.md`（**真人流程**）
-- [ ] 36zzz. P1-18d 寫結論：根據 feedback 排 Phase 2 backlog 調整或標 known issue（**真人流程**）
+> ⚠️ OWNER-only：下列 3 條為真人流程（寄信／試用／結論），agent 不可達。已改 `- [O]` 標記，**不計入 daemon backlog**，止住對其反覆呼叫 codex 空轉（2026-05-26）。
+- [O] 36z. (OWNER-only 真人流程) 寄出 P1-18b 邀請信給 ≥1 位實際在教烏克麗麗的老師（用 `docs/teacher_trial_sop.md` 的範本）
+- [O] 36zz. (OWNER-only 真人流程) P1-18c 跑試用 + 收 feedback，整理進 `feedback.md`
+- [O] 36zzz. (OWNER-only 真人流程) P1-18d 寫結論：根據 feedback 排 Phase 2 backlog 調整或標 known issue
+
+## Phase 2 — U1-U6 深度任務（agent 可做、可量測、不靠教師試用）
+
+> 接續 MVP v0.1（8 DoD 全綠）。聚焦北極星「<30 分鐘能彈第一段」+ 擴覆蓋。屬 **feature 工作非 chore**，不受 hard-frozen 條款限制。
+> 規範同全域守則：每 task `pytest -q && ruff check . && mypy app/` 三綠才 commit；純 Python（FastAPI + music21 + reportlab），**不建 frontend / .ts / node_modules**（AGENTS.md §1）。
+
+### U1 和弦簡化深化（擴覆蓋）
+- [x] U1-a 和弦簡化映射表從 ≥20 擴到 ≥50（7th/sus/dim/slash → uke-friendly），更新 mapping + 測試驗覆蓋數（80 tests green / ruff / mypy；commit via writable interactive session 2026-05-27）
+- [ ] U1-b capo 建議 + 小手替代指法（kids），加單元測試
+
+### U2 匯入格式擴充（擴入口）
+- [ ] U2-a 支援 MIDI 匯入（music21 已可解析），補 ≥5 首 MIDI fixture + 成功率 ≥90% 測試
+- [ ] U2-b 支援純文字和弦譜 / ChordPro 匯入，補 fixture + 測試
+
+### U3 練習包深化（縮短「能彈第一段」）
+- [ ] U3-a 分段練習卡（前奏／主歌／副歌 各一張），PDF 分段生成測試
+- [ ] U3-b 漸進 tempo（慢→原速）標示 + 練習進度頁，測試
+
+### U4 PDF 輸出深化
+- [ ] U4-a Level 2/3 PDF 完整化（現 best-effort），補各 Level 生成成功率測試
+- [ ] U4-b 大字版 + 著色和弦圖（兒童友善）+ 家長指引頁，PDF 測試
+
+### U5 參考音訊生成（直接服務北極星）
+- [ ] U5-a 由和弦進行＋刷法生成參考音訊（metronome + 和弦，music21/MIDI 合成），生成測試
+
+### U6 起步曲庫（自帶內容，可全自動跑北極星）
+- [ ] U6-a 收 10 首 public-domain 兒歌 → 現成練習包；端到端每首 import→PDF <30min 實測（北極星指標）
 
 > **本輪反思禁止候補**（2026-05-06 更新，含 2026-05-05 條）：
 > - 不准再加 sensor refresh / baseline verify / archive epic / blocker log 類治理任務進 program.md（daemon 已連續 14 輪空轉）

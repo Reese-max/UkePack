@@ -61,11 +61,11 @@
   - [x] `app/render/pdf.py` svglib `contextlib.suppress` 12 行（mock `svglib.svglib.svg2rlg` 失敗）
   - [x] `app/core/db.py` 3 行 session cleanup（並修 pytest `ResourceWarning: unclosed database`）
 - [x] P1-17 30 首 fixture 端到端產 PDF 成功率 ≥ 95%（`tests/test_corpus_e2e_pdf.py` + `tests/fixtures/E2E_REPORT.md`）— 100% 通過
-- [ ] P1-18 找 1 位老師試用 + 寫 `feedback.md` — **🔒 OWNER-BLOCKER 2026-05-19**（agent 工作面 100% done：見 P1-18a；剩 P1-18b/c/d 是真人試用流程，agent 不可達）
+- [O] P1-18 找 1 位老師試用 + 寫 `feedback.md` — **🔒 OWNER-BLOCKER 2026-05-19（[O]=owner-only 不計 daemon backlog）**（agent 工作面 100% done：見 P1-18a；剩 P1-18b/c/d 是真人試用流程，agent 不可達）
   - [x] P1-18a 準備材料：`feedback.md` template（5 題） + `docs/teacher_trial_sop.md`（demo 影片腳本、邀請信、驗收欄位）+ `docs/teacher/templates/` 邀請信/排程/提醒/追蹤 4 模板 + trial-packet ZIP 自動生成 CLI（`uv run python -m app.demo --trial-packet ...`）
-  - [ ] P1-18b 邀請：寄出邀請信、約定試用時間 **(owner action — 模板已備齊，只缺真人收件人)**
-  - [ ] P1-18c 收 feedback：跑試用、整理回答到 `feedback.md` **(owner action — 待真人試用)**
-  - [ ] P1-18d 寫結論：根據 feedback 排 Phase 2 backlog 調整或標 known issue **(待 P1-18c 完成才能動)**
+  - [O] P1-18b 邀請：寄出邀請信、約定試用時間 **(owner action — 模板已備齊，只缺真人收件人)**
+  - [O] P1-18c 收 feedback：跑試用、整理回答到 `feedback.md` **(owner action — 待真人試用)**
+  - [O] P1-18d 寫結論：根據 feedback 排 Phase 2 backlog 調整或標 known issue **(待 P1-18c 完成才能動)**
 
 ---
 
@@ -78,6 +78,9 @@
 - [x] P2-05 Discord bot 初版（讀檔 → 回 PDF）
 - [x] P2-06 可彈性分數視覺化
 - [x] P2-07 pytest-xdist parallel execution — per-worker SQLite isolation via `pytest_configure` + `-n auto --dist=loadfile`; reliable < 60 s gate on Windows
+
+### U1 和弦簡化深化（擴覆蓋）
+- [x] U1-a 和弦簡化映射表從 ≥20 擴到 ≥50（7th/sus/dim/slash → uke-friendly），更新 mapping + 測試驗覆蓋數
 
 ---
 

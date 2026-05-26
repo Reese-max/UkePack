@@ -413,3 +413,4 @@
 [2026-05-21T23:35:56+08:00] | M0 | FAIL | KPI-impact: K5 commit-governance-parser | Parser hardening in `tests/test_log_commit_governance.py` passes local checks; commit blocked by `Permission denied` on `C:/UkePack-git/index.lock`.
 [2026-05-21T23:53:23+08:00] | M0 | FAIL | KPI-impact: K6 owner-friction 0->0, K1/K2/K7 baseline 維持 | BACKLOG 僅餘 P1-18b/c/d 與 36z/36zz/36zzz，皆為真人流程，無可立即執行 daemon 任務；不做未列 refactor，停止本輪實作。
 [2026-05-22T00:07:57+0800] | M0 | FAIL | KPI-impact: K6 owner-friction 0→0 | BACKLOG 只剩 P1-18b/c/d、36z/36zz/36zzz 的真人流程；daemon 無可執行 M0–M3 代碼任務，停止本輪，不做未列 refactor。
+2026-05-27T02:13:05+08:00 | H0 | FAIL | KPI-impact: K6 owner-friction 0->0 | BACKLOG only owner-only items (P1-18b/c/d), no M0-M3 executable code task this round. Baseline: pytest/ruff/mypy green.

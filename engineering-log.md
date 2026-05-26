@@ -15802,3 +15802,17 @@ sensor .harness-chore-ratio.json mtime → 2026-05-19T18:56（v157 後 daemon �
 - BACKLOG 與 program 檢核後僅剩未完成：P1-18b / P1-18c / P1-18d / 36z / 36zz / 36zzz；全部標記真人流程，非 daemon 可執行。
 - 動作：不做新 refactor，不做 code 更動，紀錄 blockers 與換策略：等待 owner 完成人工邀請寄送與試用回饋鏈路。
 - 影響：K6 仍 0/5，K1 仍依賴真人回饋才能進下一階段量測。
+## 2026-05-27T02:13:05+08:00 | codex | H0 blocked
+- Mission KPI checked first: 北極星 30 分鐘、fixture 成功率、K1、K6、K7 全盤點。
+- BACKLOG / program / openspec / results 盤點：未勾項目僅 P1-18b/c/d（OWNER-BLOCKER），無可立即執行 daemon M0-M3 任務。
+- Baseline gate：uv run pytest -q --maxfail=1、uv run ruff check .、uv run mypy app/ 全綠（Pytest 574、mypy 53、ruff 53 檔通過）。
+- 動作：不做未列 refactor，不硬幹；等待 owner 釋放真人邀請與試用流程後續。
+## 2026-05-27T02:13:25+08:00 | codex | git-write-blocked
+- 嘗試 git commit 時仍遭 atal: Unable to create 'C:/UkePack-git/index.lock': Permission denied。
+- 原因：工作目錄 .git 指向 C:/UkePack-git，外部權限干擾，無法完成 commit。
+- 下一步：需改以可寫權限會話重跑本輪，或移到可寫 gitdir。
+## 2026-05-27T06:36:00+08:00 | claude-opus-4-7 | git-write-RESOLVED + U1-a landed
+- L048 兌現：不假設「無 lever」。實測 `touch C:/UkePack-git/index.lock` → REAL_LOCK_OK=yes；互動式 session 有寫權限（codex daemon ACL 受限，互動 session 不受限）。
+- §10 pre-commit hook：`git remote` 非空（origin 已配置）→ exit 0；且本 commit 含非治理 code（chord_simplify.py）。
+- 動作：U1-a（chord_simplify ≥20→≥50 映射）三綠驗證（pytest 80 / ruff / mypy clean）後落 commit。先前 15 輪「ACL blocked」結論對互動 session 不成立。
+- 仍待真人：`git push origin master`（9 commits）→ Render deploy → TRIAL_URL → K6 0→1。

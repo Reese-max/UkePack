@@ -1,10 +1,11 @@
 {
-  "timestamp": "2026-05-22T00:42:49",
-  "total_24h": 2,
-  "chore_count": 2,
-  "ratio_percent": 100.0,
+  "timestamp": "2026-05-27T06:36:00",
+  "total_24h": 1,
+  "chore_count": 0,
+  "ratio_percent": 0.0,
   "micro_polish_ratio": 0.0,
   "severity": "skip_low_sample",
   "warn_threshold": 30,
-  "fail_threshold": 50
+  "fail_threshold": 50,
+  "source": "manual-recompute (chore-ratio-sensor.sh not found on host); 24h window = c5e01f5 feat(arrangement) U1-a"
 }

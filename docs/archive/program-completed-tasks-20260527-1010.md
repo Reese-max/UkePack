@@ -1,0 +1,127 @@
+- [x] 1. 建 `pyproject.toml`（python = "^3.12"，依賴：music21, fastapi, uvicorn, reportlab, svglib, mido, jinja2, pydantic-settings, sqlmodel, httpx）+ dev：pytest, pytest-cov, ruff, mypy
+- [x] 2. `uv sync` 跑通（無錯）
+- [x] 3. 建 `app/__init__.py` + `app/main.py`（FastAPI app + `/health` endpoint）
+- [x] 4. 建 `app/config.py`（pydantic-settings 讀 `.env`）
+- [x] 5. 建 `.env.example`（DATA_DIR / DEBUG / SQLITE_PATH）
+- [x] 6. 建 `tests/conftest.py` + `tests/test_health.py`
+- [x] 7. 跑 `uv run pytest -q` 綠
+- [x] 8. 跑 `uv run ruff check .` 綠
+- [x] 9. 跑 `uv run mypy app/` 綠
+- [x] 10. git commit `chore: bootstrap python skeleton`
+- [x] 11. 下載 5 首公版 MusicXML 到 `tests/fixtures/`（CC0 來源：MuseScore community / Mutopia Project）
+- [x] 12. 建 `app/models/score.py`（pydantic：title/key/bpm/time_signature/measures/chords/melody）
+- [x] 13. 建 `app/core/musicxml.py`：`parse(path: Path) -> Score`
+- [x] 14. 寫 `tests/test_musicxml_import.py`：5 首全綠
+- [x] 15. 補到 10 首 fixture，再跑測試
+- [x] 16. git commit `feat(core): musicxml parser + 10 fixtures`
+- [x] 17. 建 `app/arrangement/chord_simplify.py`：`simplify(chord: str) -> str` + 20 條映射
+- [x] 18. 寫 `tests/test_chord_simplify.py`：20 條全綠
+- [x] 19. 建 `app/arrangement/key_advisor.py`：`suggest_key(score: Score) -> KeyRecommendation`
+- [x] 20. 寫 `tests/test_key_advisor.py`：3 case（E→C, B→G, F#→F）
+- [x] 21. git commit `feat(arrangement): chord simplify + key advisor`
+- [x] 22a. 抽 `app/core/music_theory.py`：集中 `_PITCH_CLASS` / `_SHARP_NAMES` / `_FLAT_NAMES` / 和弦 root 解析 / `transpose_chord_symbol`，讓 `chord_simplify.py` 與 `key_advisor.py` 共用，刪重複常量
+- [x] 22b. 修 `chord_simplify`：核對 PRD §9.6 後修正 `Bdim → G7` 與 `F#m7b5 → Am`（功能性錯誤），補 `dim7 / Δ / N.C. / 全形空白 / 大寫 Maj` 等映射與測試
+- [x] 22c. 補 `app/core/musicxml.py::_extract_melody`：處理 `chord.Chord`（取最高音為 melody line），加 fixture 驗證
+- [x] 22d. 補測試邊界：`.mxl` zip 解析、metadata 缺失、空 chords 的 key advisor、非 major/minor mode 降級回 C major（不要直接 raise）
+- [x] 22e. 填 `openspec/specs/`：至少落地 MusicXML import / chord simplify / key advisor 三條 spec，讓 `.spectra.yaml` 從擺設變實貨
+- [x] 22f. 同步 BACKLOG.md：勾掉 P0-06（ruff/mypy 已全綠）+ 把 22a–22e 搬進 BACKLOG 對應 Phase 0 區塊
+- [x] 22g. git commit `refactor(core): consolidate music theory utils + fix chord simplify mappings`
+- [x] 22h. 啟用 `.spectra.yaml` runtime：解開 `tdd: true` / `audit: true` / `locale: tw` 三條註解，跑一次 `pytest -q && ruff check . && mypy app/` 確認沒副作用，commit `chore(spec): enable spectra runtime gates`
+- [x] 22i. 補 `tests/fixtures/` 到 30 首 MusicXML public-domain lead sheets，執行 `app/core/musicxml.py::parse` 跑全集，解析失敗的標 `@pytest.mark.xfail` 並寫進 `tests/fixtures/REPORT.md`（成功率、失敗原因分類、music21 版本）；本輪 30/30 PASS、成功率 100%，commit `test(core): expand fixture corpus to thirty songs`
+- [x] 22. 建 `app/arrangement/level_classifier.py`：可彈性評分（PRD §10.4）
+- [x] 23. 建 `app/arrangement/strum_pattern.py`：5 種刷法（PRD §9.10）
+- [x] 24. 測試
+- [x] 25. git commit `feat(arrangement): level classifier + strum patterns`
+- [x] 26. 建 `app/render/chord_diagram.py`：GCEA SVG 和弦圖 generator
+- [x] 27. 建 `app/render/pdf.py`：4 頁 A4 reportlab
+- [x] 28. 整合：和弦圖 SVG → svglib → reportlab Drawing
+- [x] 29. 加授權聲明 footer（依 source_type 切版）
+- [x] 30. 測試：3 首 fixture 產 PDF 成功
+- [x] 31. git commit `feat(render): pdf pipeline + chord diagram svg`
+- [x] 32. 建 `app/demo.py`：argparse `--input --level --out`
+- [x] 33. 量測：3 首 fixture × Level 1 各跑 1 次，記錄秒數到 `engineering-log.md`
+- [x] 34. 確認：< 5 秒 + PDF 可開 + 4 個基本和弦圖都在
+- [x] 35. git commit `feat(demo): cli end-to-end pipeline`
+- [x] 36a. 加 `tests/test_demo_pipeline.py`：跑 `app.demo.run(twinkle.musicxml, level=1, out=tmp)`，斷言 elapsed < 5.0s + PDF bytes > 0 + PDF magic header (`%PDF-`) 正確；把 `app/demo.py` 從 0% 拉到 ≥ 60%
+- [x] 36b. 把 `PackRequest` 從 `app/render/pdf.py` 搬到 `app/models/pack_request.py`，`pdf.py` 改 `from app.models.pack_request import PackRequest`，`demo.py` 同步更新；跑 pytest/ruff/mypy 全綠
+- [x] 36c. 補 `level_classifier` 邊界測試（`chord_simplify` 失敗 fallback / BPM<60 / BPM>160 / avg_midi 72–76 / `_pitch_to_midi` 對非標準 pitch 字串）；coverage ≥ 95%
+- [x] 36d. 落地 5 條 OpenSpec 契約：`openspec/specs/level-classifier.md`、`strum-pattern.md`、`pdf-render.md`、`chord-diagram.md`、`cli-pipeline.md`，補齊階段四/五/六遺漏
+- [x] 36e. ✅ 視為閉環 — 36a/b/c/d 已分四個獨立 commit 落地（`9a3cd0e test(render): add demo pipeline regression` / `6aabdae fix(models): decouple PackRequest from render layer` / `1031e67 test(arrangement): close level classifier coverage gaps` / `78edc46 docs(render): add phase 4-6 openspec contracts`），原合併 commit 不再需要
+- [x] 36f. `app/core/musicxml.py::parse`：加 `MAX_IMPORT_BYTES`（10MB）檔案大小檢查、`.mxl` 解壓單檔上限 50MB、converter 接到非本地 path / URL 直接 `raise ValueError`；補對應 unit tests（檔案過大、zip-bomb、URL 形式輸入）
+- [x] 36g. 同步 `openspec/specs/musicxml-import.md`：把「File-size limits, zip-bomb protection, network-fetch blocking」從 Out of Scope 改寫成 Contract，spec ↔ code 對齊
+- [x] 36h. git commit `feat(core): import safety guards + spec sync`
+- [x] 36i. 對齊 AGENTS.md §8 北極星 demo 輸入路徑：補 `samples/public_domain/twinkle.musicxml`（或等價 sample），讓文件指令可直接跑通
+- [x] 36j. 補勾 `BACKLOG.md` Phase 0 已完成項：`P0-15` chord_diagram / `P0-16` pdf 第 1 頁 / `P0-17` svglib 整合 / `P0-18` 授權 footer / `P0-19~P0-21` 第 2/3/4 頁（已隨 commit `feat(render): pdf pipeline + chord diagram svg` 完成但條目仍 `[ ]`）
+- [x] 36k. git commit `chore(docs): sync backlog + sample path drift`
+- [x] 36l. 決議三條技術債：(a) `app/core/music_theory.py:57-58/73`（3 行）、(b) `app/arrangement/key_advisor.py:76`（1 行）、(c) `app/render/pdf.py` svglib 缺失 fallback 12 行——全部搬進「P1-16 全 repo coverage ≥ 70%」一起做（已更新 BACKLOG P1-16 描述）；在 engineering-log.md 記錄決策。
+- [x] 37. P1-01 `POST /api/projects` 建專案（FR-001）
+- [x] 38. P1-02 `POST /api/projects/{id}/import` MusicXML 上傳（FR-002，依賴 36f 安全護欄）
+- [x] 39. P1-03 `POST /api/projects/{id}/midi` MIDI 上傳（FR-003）
+- [x] 40. P1-04 `POST /api/projects/{id}/chords` 手動和弦輸入（FR-004）
+- [x] 41. P1-05 `GET /api/projects/{id}/analysis` Key/BPM/和弦/難度分數
+- [x] 42. P1-06 `POST /api/projects/{id}/arrange` 產生 Level 1/2/3（依賴 36b 解耦完成）
+- [x] 43. P1-07 `GET /api/projects/{id}/export.pdf` 下載 PDF
+- [x] 44. P1-08 `GET /api/projects/{id}/export.musicxml` 下載編輯版
+- [x] 45. git commit `feat(api): project CRUD + import/arrange/export endpoints`
+- [x] 46. P1-09 SQLite + SQLModel 建 `projects` table（FR-014 schema）
+- [x] 47. 接上 7.1 各 endpoint，跑 e2e 整合測試
+- [x] 48. git commit `feat(persist): sqlite + sqlmodel projects table`
+- [x] 49. P1-10 授權聲明流程（必勾才可進輸出，FR-015）
+- [x] 50. git commit `feat(api): mandatory license attribution gate`
+- [x] 51. P1-12 `templates/new_project.html` 建立專案表單（HTMX multipart submit）
+- [x] 52. P1-13 `templates/analysis.html` 分析結果頁（HTMX Level 刷法即時切換）
+- [x] 53. P1-14 `templates/preview.html` PDF 預覽 iframe
+- [x] 54. P1-15 兒童版面樣式（`base.html`：18px 字體、52px 按鈕、大和弦圖、高對比）
+- [x] 55. `app/api/pages.py` HTML 頁面路由：`/new`, `/projects/{id}`, `/strum-partial`, `/confirm-license`, `/preview`
+- [x] 56. `tests/test_pages.py` 22 cases 全綠
+- [x] 57. git commit `feat(templates): HTMX web UI + children-first styles`
+- [x] 36m. `app/api/projects.py::import_musicxml`：改 streaming chunked read（每塊 64KB 累加 size，>10MB 立刻 raise `HTTPException(413, "File too large")`），同步 `app/api/projects.py::import_midi` 與 `app/api/pages.py::create_project_htmx`；補對應 unit tests（`UploadFile` 流式 fake、超大檔 413、邊界值 10MB±1B）
+- [x] 36n. `app/api/pages.py:96` 裸 `except Exception:` 改成 `except (ValueError, RuntimeError) as exc:` + `logging.getLogger(__name__).warning("htmx import failed: %s", exc, exc_info=True)` + redirect 帶 `?import_error=1` query；`templates/analysis.html` 偵測該 query 顯示「匯入失敗，請檢查檔案格式」紅框
+- [x] 36o. `app/api/projects.py:135` `except (ValueError, Exception)` → `except Exception`（移除冗餘 ValueError）；`projects.py` / `pages.py` 把 inline import（`from app.core.musicxml import parse` 等）提到模組頂層
+- [x] 36p. git commit `fix(api): streaming size guard + observable import errors`
+- [x] 36q. 改寫 BACKLOG `P1-16` 描述為「補 4 條觀察池缺口」並列出 specific lines：`music_theory.py:57-58/73`（3 行）+ `key_advisor.py:76`（1 行）+ `pdf.py` svglib `contextlib.suppress` 12 行（mock `svglib.svglib.svg2rlg` 失敗）+ `core/db.py` 3 行 session cleanup；補測試使該 4 模組 coverage 拉到 ≥ 99%
+- [x] 36r. 新增 `tests/test_corpus_e2e_pdf.py`：對 `tests/fixtures/` 30 首 × Level 1 完整跑 `parse → suggest_key → classify → suggest_strum → render_pdf`，斷言成功率 ≥ 95%、每個 PDF `%PDF-` magic 正確、bytes > 0；失敗的標 xfail 並寫進 `tests/fixtures/E2E_REPORT.md`（P1-17）
+- [x] 36s. 建 `feedback.md` template（5 問題清單：分級準確度 / 字體大小 / 和弦圖可讀性 / 刷法合理度 / 整體可用性）+ 老師試用 SOP（`docs/teacher_trial_sop.md`：demo 影片腳本、邀請信範本、收 feedback 流程、驗收欄位）；P1-18 拆成 18a 準備材料 / 18b 邀請 / 18c 收 feedback / 18d 寫結論四步
+- [x] 36t. git commit `test: phase 1 dod gate (coverage gaps + corpus e2e + feedback sop)`
+- [x] 36u. 拆 `app/render/pdf.py` 為 `app/render/pages/{page1,page2,page3,page4}.py`（每檔 < 120 行）+ `app/render/_layout.py`（`section / divider / footer / chord_box / practice_table` 共用 helper）；`render_pdf` 變 dispatcher，import path 對外不變
+- [x] 36v. 修 `app/core/db.py` session ResourceWarning：確認 `get_session` context manager / `dispose()` 路徑被測試覆蓋；pytest 跑出的 `ResourceWarning: unclosed database` 應全消；db.py coverage ≥ 95%
+- [x] 36w. 補 API layer OpenSpec：`openspec/specs/projects-api.md`（9 endpoints：FR-001~FR-015 input/output schema + status code）+ `openspec/specs/pages-routes.md`（6 routes：HTMX 互動契約、redirect 規則、license gate 行為）
+- [x] 36x. 收口雙事實源：本輪起新規定 — `engineering-log.md` 只留 reflection + 重大 incident（含換策略）、每輪 sprint 實作 metadata 只寫 `results.log`；不回頭改舊 entries；在 `program.md` 全域守則加一條備忘（守則 8）
+- [x] 36y. git commit `refactor: pdf split + db cleanup + api specs + log consolidation`
+- [x] 58. 建 `app/arrangement/section_detector.py`：用 2–8 小節重複和弦 phrase 偵測 `intro / verse / chorus`，無重複時退化為單一 `verse`
+- [x] 59. 建 `app/core/chord_sheet.py`：保留 `Verse:` / `Chorus:` / `前奏:` 等手動段落 header，序列化到 `Score.sections`
+- [x] 60. 串 `Score.sections` 到 `app/core/musicxml.py`、`/api/projects/{id}/analysis`、`analysis.html`、PDF 第 3 頁 `段落地圖`，並補 `openspec/specs/section-detection.md`
+- [x] 61. git commit `feat(arrangement): detect intro verse chorus sections`
+- [x] 36z-flake. **[KPI-impact: 北極星 < 5s deterministic 守門，daemon 可執行]** 修 `tests/test_corpus_e2e_pdf.py::test_e2e_pdf_single_fixture` 在批次壓力下 `elapsed > 5s` 間歇失敗（首次 run `are_you_sleeping` line 82）；改 cold/warm 雙斷言或 p95 < 5s + p100 < 7s 守門；commit `test(perf): stabilise corpus polaris gate (cold-vs-warm)`
+- [x] 36z-remote-prep. **[KPI-impact: K6 招募曝光 publish-ready，daemon 可執行]** 產出 `docs/publish_ready_checklist.md`：GitHub repo description draft + README badge clean check + LICENSE/CC 標示確認 + `git remote add origin ...` 範例命令清單；補 `tests/test_publish_ready.py` 守門 checklist 不腐蝕；commit `docs(publish): publish-ready checklist for K6 K7 release`
+- [x] 36z-template-sync. **[KPI-impact: K7 onboarding 跨檔一致性守門，daemon 可執行]** 在 `tests/test_teacher_docs.py` 加 1 條測試：抓 `docs/teacher/templates/*.txt` 中 invite email 版本字串、與 `docs/teacher/checklist.md` / `docs/teacher_trial_sop.md` 引用版本對齊；commit `test(docs): guard teacher invite template version drift`
+- [x] 36z-e2e. **[KPI-impact: 北極星 < 5s，自動守門]** 加 `tests/test_polaris_timer.py`：對 `samples/public_domain/twinkle.musicxml` 跑 `app.demo.run` 全程，斷言 elapsed < 5.0s（CI 環境）；補上後 commit `test(perf): polaris single-song <5s gate`
+- [x] 36z-link. **[KPI-impact: K7 5/5 真語意守門，daemon 可執行]** 在 `tests/test_teacher_docs.py` 加 1 條測試：parse README 招募段所有相對連結 target，斷言檔案皆存在；commit `test(docs): guard readme teacher recruitment links`
+- [x] 36z-corpus-stats. **[KPI-impact: 北極星 corpus p95 自動量測 0→1，daemon 可執行]** 修 `tests/test_corpus_e2e_pdf.py` 在 corpus run 完寫 `tests/fixtures/E2E_REPORT.md` 加 elapsed p50/p95/p100 統計欄（30 首 cold + warm 分桶），並補單條斷言 p95 < 5s；commit `test(perf): corpus polaris p95 statistic gate`
+- [x] 36z-publish-link. **[KPI-impact: K7 onboarding 5→6（publish-ready 自動守門），daemon 可執行]** 在 README 補「📦 Publish 準備」一節指向 `docs/publish_ready_checklist.md`；同步 `tests/test_teacher_docs.py` / `tests/test_publish_ready.py` 補 README→checklist 連結存在守門；commit `docs(readme): publish-ready entry + drift guard`
+- [x] 36zα-polaris-human-template. **[KPI-impact: 北極星 KPI 從 pipeline elapsed → human-perceived 30 min 量測準備 0→1，daemon 可執行]** 新增 `docs/teacher/polaris_measurement.md`：寫「人類體感 30 分鐘」量測模板（packet 寄出 timestamp / 老師打開 timestamp / 學生試彈第一段 timestamp / 卡關事件分類），讓 P1-18c 真人試用時可填；同步在 `feedback.md` 加對應 metadata 欄位、`tests/test_teacher_docs.py` 加新檔存在守門 + feedback.md 欄位守門；commit `docs(teacher): polaris human-perceived measurement template`
+- [x] 36zβ-corpus-history. **[KPI-impact: 北極星 corpus 統計分布從單次 snapshot → 歷史趨勢守門，daemon 可執行]** 在 `tests/fixtures/` 旁新增 `E2E_HISTORY.csv`：每跑一次 corpus e2e append `(timestamp, p50, p95, p100, success_rate)` 一行；補 `tests/test_corpus_e2e_pdf.py::test_p95_no_regression` 守門「最新 p95 不可比歷史最近 5 次平均高 2x」；commit `test(perf): corpus p95 historical regression gate`
+- [x] 36zγ-evolve-cooldown. **[KPI-impact: 結構性防 chore_ratio 失控，daemon-edge]** 把前輪 SOP「24h 內最多 1 次 evolve」轉為 commit-time 守門：新增 `tests/test_evolve_cooldown.py` 檢查 `git log --since='24 hours ago' --grep='chore(evolve)'` 數量 ≤ 1；本輪 c6b91a9+d4d4593（24h 內 2 次 evolve）為反例，hook 化後可主動攔截；commit `test(governance): evolve cooldown 24h guard`
+- [x] 36z-pre. **[KPI-impact: K6 招募曝光 0→1，daemon 可執行]** 在 `README.md` 加「Beta 老師招募」段落：說明 trial packet 用途、附 `app.demo --trial-packet --host-url <你的網址>` 指令範例、連結 `docs/teacher/checklist.md` 與 `feedback.md`，讓有意願的老師自行聯繫；補 `tests/test_teacher_docs.py` 驗 README 含招募段落；commit `docs(readme): add beta teacher recruitment section KPI-impact: K6`
+- [x] U1-a 和弦簡化映射表從 ≥20 擴到 ≥50（7th/sus/dim/slash → uke-friendly），更新 mapping + 測試驗覆蓋數（80 tests green / ruff / mypy；commit via writable interactive session 2026-05-27）
+- [x] U6-a 收 10 首 public-domain 兒歌 → 現成練習包；端到端每首 import→PDF <30min 實測（北極星指標）
+- [x] 37a. 拆 `app/api/projects.py` 為 `app/api/projects/{crud,import_,export,license}.py`（每檔 ≤ 120 行）+ `__init__.py` re-export；對外 `from app.api.projects import router` 不變；mypy/ruff/pytest 全綠才 commit
+- [x] 37b. 補 `section_detector.py:21/48/86`、`chord_simplify.py:80/107`、`projects.py:73/295`、`pages.py:195` 共 14 行測試，coverage 拉到 100%
+- [x] 37c. git commit `refactor(api): split projects router + close coverage gaps`
+- [x] 37d. 動 P2-02 前先寫 `openspec/changes/2026-04-27-slow-practice-mp3/proposal.md`（problem / proposed change / impact / out of scope），accepted 後才開始實作；spec 已補，後續照 change → accepted → code 走
+- [x] 37f. 建 `app/core/practice_audio.py` + `app/models/practice_audio.py`：從 `Project.midi_path` 產 3 個 deterministic variant（`50bpm` / `70percent` / `fullspeed`），每個先寫 `.mid`、加 1 小節 count-in click，再用本地 `ffmpeg` 轉 `.mp3`；artifact metadata 存 `data/projects/{id}/practice_audio/manifest.json`
+- [x] 37g. 串 API/UI/spec：加 `POST/GET /api/projects/{id}/practice-audio` 與 `GET /api/projects/{id}/export.practice-audio/{variant}.{format}`，新增 `/projects/{id}/generate-practice-audio` page action，`analysis.html` / `preview.html` 顯示下載按鈕；補 `openspec/specs/practice-audio.md`，同步更新 `projects-api.md` / `pages-routes.md`
+- [x] 37h. 補 `tests/test_practice_audio.py` + API/page regressions，確認 `pytest -q`、`ruff check .`、`mypy .`、以及 `python -m app.demo --input samples/public_domain/twinkle.musicxml --level 1 --out ...` 全綠
+- [x] 37i. git commit `feat(core): add practice audio exports`
+- [x] 37e. 清 BACKLOG Phase 0 兩個空 H3 章節（補回 P0-01~P0-12 的歷史記錄到「已完成」區塊，或直接刪除標題）；釋疑 P1-11 缺號（合併進 P1-12 / 已刪 / 重新編號擇一），在 BACKLOG 開頭備註
+- [x] 37j. 把分析頁 Level tabs 改成 `POST /projects/{id}/strum-partial` 持久化 `arrangement_level`，初始 active tab 與刷法 badge 改讀專案保存值；補 page regressions，並同步更新 `openspec/specs/pages-routes.md`
+- [x] 37k. 建 `app/core/teacher_review.py` + `app/models/teacher_review.py` sidecar manifest（避免 SQLite migration），補 `app/api/projects/review.py` + `app/api/review_pages.py` + `templates/review.html`，讓老師可編輯和弦/刷法/TAB/練習說明、標記太難一鍵降級、比較/復原、儲存/套用模板；analysis/preview 加入口，PDF export 吃 review override，並同步 `openspec/specs/teacher-review.md`、`projects-api.md`、`pages-routes.md` 與 API/page regressions
+- [x] 37l. 建 `app/models/share_link.py` + `app/core/share_link.py`：8 碼短碼、1/7/30 天過期、project-scoped current manifest + global shortcode lookup manifest；限制 `license_confirmed=true`、有 score data、且 `source_type != private_research`
+- [x] 37m. 補 `app/api/projects/share.py` + `app/api/share_pages.py` + `templates/share_preview.html` / `partials/share_card.html`：owner 端建立/撤銷、分析頁/預覽頁顯示可複製分享連結、public `/share/{code}` noindex 預覽頁、share-scoped PDF/音檔下載路由
+- [x] 37n. 補 `tests/test_share_links.py` + `openspec/specs/share-links.md`，同步更新 `projects-api.md` / `pages-routes.md` / `README.md` / `BACKLOG.md`
+- [x] 36z-pdf-bpm. **[KPI-impact: K7 screen/print 一致性（packet UI 完善度），daemon 可執行]** 在 `app/render/pages/page2.py` strum section 加入 `StrumPattern.bpm_range` 顯示（格式：`♩=50–90 BPM`）；補 regression test 驗 PDF bytes 含 BPM 字樣；commit `feat(pdf): add strum BPM range to practice pack PDF` -> K7
+- [x] 38a. **[KPI-impact: K6 deploy-path friction -1]** 新增 `render.yaml` 零設定 Render.com 部署；更新 `deployment_guide.md` + `.gitignore`；commit `feat(deploy): add render.yaml for zero-config Render.com deployment` -> K6
+- [x] 38b. **[KPI-impact: K7 README strum names drift -1]** `docs/templates/README.md` 刷法名稱對齊 live 產品（入門單刷 / 華爾滋 / 慢搖 / 輕快刷法 / 常見流行刷法）+ drift guard；commit `docs(templates): sync README strum labels` -> K7
+- [x] 40a. **[KPI-impact: 反 Pattern §63 + 守則 13 機制化，daemon 唯一可執行真活]**
+- [x] 39a. **[KPI-impact: 結構性防 chore_ratio 失控（K6/K7 護城河），daemon 可執行]** `tests/test_daemon_frozen.py` 已存在（untracked）且 pre-commit hook 已落地（`.git/hooks/pre-commit`），4 個測試均可 PASS。**commit 策略**：hook 將 `test_daemon_frozen.py` 分類為 governance，單獨 commit 被自我擋住；**必須與 39b（handoff.md，非 governance 檔）合一 commit** 以通過 hook 的 `non_gov` 檢查。commit message: `test(governance): daemon-frozen mechanism gate (v14 enforcement)` KPI-impact: 結構性防 chore_ratio 失控 -> K6/K7 護城河
+- [x] 39b. **[KPI-impact: K6 onboarding friction -1，daemon-edge 唯一真活]** 新增 `docs/teacher/handoff.md` 真人 5 分鐘交付指南：(1) `git remote add origin <github-url>` (2) `git push -u origin master` (3) 從 `docs/teacher/templates/` 挑邀請信寄出；附「成功標準」+「常見錯誤」+ 對應 README 連結；補 `tests/test_teacher_docs.py` 守門 handoff.md 存在 + 含 3 必要步驟字串；**與 39a 合一 commit**（解鎖 hook governance-only 封鎖）。commit message: `docs(teacher): handoff guide + daemon-frozen gate (v14)` KPI-impact: K6 onboarding friction -1

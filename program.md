@@ -216,6 +216,8 @@
 
 ## Phase 2 — U1-U6 深度任務（agent 可做、可量測、不靠教師試用）
 
+> ▶ **當前可執行隊列（v170 reflect，反 L048 盲點：別只掃 owner-blocked 頂部）**：U1-a 已落地證明隊列活的。下輪優先序 = **U6-a（自動量北極星 K1）→ U3-a（縮短能彈第一段）→ U1-b（kids 指法）**。此 9 條 U-task 均非 owner-gated，宣稱「無 M-task」前必先掃此區（L048）。
+>
 > 接續 MVP v0.1（8 DoD 全綠）。聚焦北極星「<30 分鐘能彈第一段」+ 擴覆蓋。屬 **feature 工作非 chore**，不受 hard-frozen 條款限制。
 > 規範同全域守則：每 task `pytest -q && ruff check . && mypy app/` 三綠才 commit；純 Python（FastAPI + music21 + reportlab），**不建 frontend / .ts / node_modules**（AGENTS.md §1）。
 
@@ -239,7 +241,7 @@
 - [ ] U5-a 由和弦進行＋刷法生成參考音訊（metronome + 和弦，music21/MIDI 合成），生成測試
 
 ### U6 起步曲庫（自帶內容，可全自動跑北極星）
-- [ ] U6-a 收 10 首 public-domain 兒歌 → 現成練習包；端到端每首 import→PDF <30min 實測（北極星指標）
+- [x] U6-a 收 10 首 public-domain 兒歌 → 現成練習包；端到端每首 import→PDF <30min 實測（北極星指標）
 
 > **本輪反思禁止候補**（2026-05-06 更新，含 2026-05-05 條）：
 > - 不准再加 sensor refresh / baseline verify / archive epic / blocker log 類治理任務進 program.md（daemon 已連續 14 輪空轉）

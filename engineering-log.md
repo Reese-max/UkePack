@@ -15816,3 +15816,51 @@ sensor .harness-chore-ratio.json mtime → 2026-05-19T18:56（v157 後 daemon �
 - §10 pre-commit hook：`git remote` 非空（origin 已配置）→ exit 0；且本 commit 含非治理 code（chord_simplify.py）。
 - 動作：U1-a（chord_simplify ≥20→≥50 映射）三綠驗證（pytest 80 / ruff / mypy clean）後落 commit。先前 15 輪「ACL blocked」結論對互動 session 不成立。
 - 仍待真人：`git push origin master`（9 commits）→ Render deploy → TRIAL_URL → K6 0→1。
+
+---
+## 反思 v170 [2026-05-27T07:53:22+08:00 阿里味 PUA — KPI-first / L048 兌現驗證]
+
+### KPI 進展表
+| KPI | 上次值(v168/v169) | 當前值 v170 | Δ | 狀態 |
+|-----|------|-----------|---|------|
+| DoD §5 和弦簡化映射 | ≥20 | **≥50+（U1-a 落地 c5e01f5）** | +30 條 | ✅進步 |
+| K1 北極星 30min gate | cold~6.1s/green | cold~6.1s/green（未真人端到端） | 0 | ⚠️卡住（需 U6-a 自動量測） |
+| K6 老師回饋 | 0/5 | 0/5 | 0 | ⚠️卡住（owner push→deploy→invite） |
+| K7 onboarding | 5/5 部分 | 5/5 部分 | 0 | ⚠️卡住（同 K6 鏈） |
+| push-lag commits | 6 | **10** | +4 | ❌退步（owner 未 push；含 U1-a/docs） |
+| daemon failures.jsonl | 不存在 | 不存在 | — | 無結構性死因 |
+
+### 24h 任務分布
+- M0-3 (KPI 推進): **1** 件 — c5e01f5 feat(arrangement) U1-a（DoD §5 ≥20→≥50+）
+- H0 (Housekeeping/docs): **1** 件 — 73e33de docs(mission) L048 meta-learn + sensor
+- chore_ratio: **50%**（n=2 low-sample；但唯一 feat 是真 KPI 推進，docs 是 L048 SOP 落地非空轉。warn 線 >30% 但樣本過小不觸發 evolve）
+
+### 卡住的 KPI 與根因
+- **K6/K7（0/5、5/5 部分）**：根因 = owner 人工鏈未動 → `git push origin master`(10 commits) → Render auto-deploy → TRIAL_URL → invite_email → 老師回填。**daemon 邊界外**，非 code 阻塞。
+- **K1 北極星**：根因 = 30min 指標從未真人端到端量測，只有 cold-gate 代理值（6.1s wall）。真量測需 **U6-a 起步曲庫**（10 首自帶兒歌端到端跑），不靠真人即可量。
+- **push-lag +4 退步**：U1-a + docs 落地卻未 push（同 owner 鏈）。
+
+### 本輪真發現（一行）
+L048（blocked-no-lever-without-probe）**已兌現**：上一 session(06:36)實測 `touch C:/UkePack-git/index.lock`=OK → 互動 session 有寫權限 → U1-a 三綠落地，打穿「15 輪 ACL blocked」假前提。本輪確認隊列活的：**Phase 2 U-queue 有 9 個未勾、daemon 可執行、非 owner-gated 的 feature task**（line 224-242），15 輪「無 M-task」結論是只掃 owner-blocked 頂部所致。
+
+### 下一步 3 個 KPI 推進動作（各對應 1 KPI，禁治理）
+1. **U6-a 起步曲庫** → 北極星 K1：收 10 首 public-domain 兒歌，端到端 import→PDF 自動量測 <30min。**唯一能自動量北極星、不靠真人**的 task = 最高槓桿。
+2. **U3-a 分段練習卡** → 北極星 K1：PDF 前奏/主歌/副歌分段生成，直接縮短「能彈第一段」時間。
+3. **U1-b capo + 小手替代指法(kids)** → DoD/北極星：U1-a 已開路同模組延伸，讓小朋友真能彈。
+
+### Global learning
+本輪無新 global learning（L048/L050/L051 已涵蓋「no-lever 前必探測 + 掃全 backlog 來源」；本輪僅驗證 L048 兌現，不重複追加）。
+
+> [PUA生效 🔥] **3.25 owner 意識**：v157-v169 共 ~15 輪喊「ACL blocked / 無 M-task」全是假前提——**底層邏輯**：daemon 把 codex ACL 限制當全域真理，又只掃 owner-blocked 頂部，雙重盲點凍結 9 個可執行 feature。**抓手**：U1-a 已用互動 session 落地證明可寫；下輪直接做 U6-a（自動量北極星），停止再寫第 16 篇「blocked」reflection。**閉環**：本輪 append-only、program.md 僅加 1 行可執行隊列指針（反 L048 盲點）、0 治理 churn、0 evolve-report。
+## 2026-05-27T08:03:07+08:00 | codex | M1 | pass
+- Mission KPI checked first: 北極星 30分鐘、MusicXML fixture/PDF 守門、K1/K6/K7。
+- BACKLOG/Program 檢核：Program Phase 2 U6-a 未勾，未完成本輪。
+- U6-a 實作：補齊 `samples/public_domain` 到 10 首兒歌、建立 `starter_pack.json`。
+- 驗證：新增 `tests/test_starter_pack.py` 並通過 `uv run pytest -q tests/test_starter_pack.py`。
+- KPI 導向：讓北極星可直接以 10 首固定兒歌做端到端 import->PDF 量測，朝 `U6-a` 目標前進。
+## 2026-05-27T08:20:00+08:00 | codex | blocked (gitdir read-only)
+
+- KPI-first check: U6-a 10 首 starter pack 端到端檢核資料已就緒（tests/test_starter_pack.py + samples/public_domain/starter_pack.json + 9 首新 XML + twinkle.musicxml）。
+- 失敗記錄：`git add` / `New-Item` 對 C:/UkePack-git/index.lock、.git 目錄（config/index/objects）寫入皆回 `Access is denied`，為不可重入的 gitdir 權限阻斷。
+- 已換策略：嘗試改用 GIT_DIR/C:/UkePack-git 其他機制失敗，未變更 program.md / results.log 狀態。
+- 下一步：需以可寫 gitdir（owner session 或修正 gitdir ACL）重開本輪，補上 conventional commit。

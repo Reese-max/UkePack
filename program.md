@@ -111,7 +111,7 @@
 
 ## Phase 2 — U1-U6 深度任務（agent 可做、可量測、不靠教師試用）
 
-> ▶ **當前可執行隊列（v171 reflect，反 L055 盲點：先 `git status` 掃未 commit done-green 工作）**：U1-a + **U6-a 已落地**（U6-a v171 搶救 commit，原 codex 做完三綠卻卡 daemon ACL 4 天）。下輪優先序 = **U3-a（縮短能彈第一段 K1）→ U1-b（kids 指法）→ U2-a（MIDI 匯入 §2）**。此區 U-task 均非 owner-gated，宣稱「無 M-task」前必先掃此區 + working tree（L048+L055）。
+> ▶ **當前可執行隊列（v172 evolve 2026-05-28，反 L055 盲點：先 `git status` + `git log` 掃 done-green 是否已回填 backlog）**：U1-a + U6-a + **U3-a 已落地**（U3-a 41e77fb 已 commit 但 v171 漏勾 [x]，本輪回填）。下輪優先序 = **U1-b（kids 小手指法 K1）→ U2-a（MIDI 匯入 §2 入口）→ U2-b（ChordPro 匯入）**。此區 U-task 均非 owner-gated，宣稱「無 M-task」前必先掃此區 + working tree + 比對 `git log` 與 [x] 是否同步（L048+L055）。
 >
 > 接續 MVP v0.1（8 DoD 全綠）。聚焦北極星「<30 分鐘能彈第一段」+ 擴覆蓋。屬 **feature 工作非 chore**，不受 hard-frozen 條款限制。
 > 規範同全域守則：每 task `pytest -q && ruff check . && mypy app/` 三綠才 commit；純 Python（FastAPI + music21 + reportlab），**不建 frontend / .ts / node_modules**（AGENTS.md §1）。
@@ -124,7 +124,7 @@
 - [ ] U2-b 支援純文字和弦譜 / ChordPro 匯入，補 fixture + 測試
 
 ### U3 練習包深化（縮短「能彈第一段」）
-- [ ] U3-a 分段練習卡（前奏／主歌／副歌 各一張），PDF 分段生成測試
+- [x] U3-a 分段練習卡（前奏／主歌／副歌 各一張），PDF 分段生成測試（41e77fb embedded in page3；K1 北極星推進，pdf render 全綠）
 - [ ] U3-b 漸進 tempo（慢→原速）標示 + 練習進度頁，測試
 
 ### U4 PDF 輸出深化

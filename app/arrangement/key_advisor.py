@@ -16,8 +16,9 @@ _CANDIDATE_KEYS: tuple[str, ...] = (
 )
 _KEY_PRIORITY: dict[str, int] = {name: index for index, name in enumerate(_CANDIDATE_KEYS)}
 _PREFERRED_CHORDS = {"Am", "C", "F", "G"}
-_BEGINNER_FRIENDLY_CHORDS = {"A7", "Am", "C", "D7", "Dm", "Em", "F", "G", "G7"}
-_CAUTION_CHORDS = {"Ab", "B", "Bb", "Bm", "E", "Eb", "F#m"}
+# Public so capo_advisor (U1-b) shares one source of truth for chord difficulty.
+BEGINNER_FRIENDLY_CHORDS = {"A7", "Am", "C", "D7", "Dm", "Em", "F", "G", "G7"}
+CAUTION_CHORDS = {"Ab", "B", "Bb", "Bm", "E", "Eb", "F#m"}
 _KEY_PATTERN = re.compile(r"^([A-G][#b]?)\s+([a-z]+)$")
 
 
@@ -56,7 +57,7 @@ def _evaluate_candidate(score: Score, candidate_key: str, original_tonic: str) -
     semitone_shift = signed_semitone_shift(original_tonic, target_tonic)
     friendly_chords = _transpose_and_simplify_chords(score, semitone_shift, target_tonic)
     preferred_count = sum(chord in _PREFERRED_CHORDS for chord in friendly_chords)
-    friendly_count = sum(chord in _BEGINNER_FRIENDLY_CHORDS for chord in friendly_chords)
+    friendly_count = sum(chord in BEGINNER_FRIENDLY_CHORDS for chord in friendly_chords)
     score_value = _score_candidate(friendly_chords, preferred_count, friendly_count)
     return _CandidateEvaluation(
         target_key=candidate_key,
@@ -118,7 +119,7 @@ def _transpose_and_simplify_chords(score: Score, semitone_shift: int, target_ton
 
 def _score_candidate(chords: list[str], preferred_count: int, friendly_count: int) -> int:
     """Score candidate keys by how many shapes remain in the beginner set."""
-    caution = sum(chord in _CAUTION_CHORDS for chord in chords)
+    caution = sum(chord in CAUTION_CHORDS for chord in chords)
     accidentals = sum("#" in chord or "b" in chord for chord in chords)
     return preferred_count + friendly_count - (2 * caution) - accidentals
 

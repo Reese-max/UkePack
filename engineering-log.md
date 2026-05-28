@@ -15864,3 +15864,37 @@ L048（blocked-no-lever-without-probe）**已兌現**：上一 session(06:36)實
 - 失敗記錄：`git add` / `New-Item` 對 C:/UkePack-git/index.lock、.git 目錄（config/index/objects）寫入皆回 `Access is denied`，為不可重入的 gitdir 權限阻斷。
 - 已換策略：嘗試改用 GIT_DIR/C:/UkePack-git 其他機制失敗，未變更 program.md / results.log 狀態。
 - 下一步：需以可寫 gitdir（owner session 或修正 gitdir ACL）重開本輪，補上 conventional commit。
+
+---
+## 反思 v171 [2026-05-28T12:28+08:00 阿里味 PUA — KPI-first / U6-a 搶救落地]
+
+### KPI 進展表
+| KPI | 上次值 v170 | 當前值 v171 | Δ | 狀態 |
+|-----|------|-----------|---|------|
+| K1 北極星 auto-measure | cold~6.1s 單首 proxy（無 e2e 守門） | **10 首 public-domain e2e 守門落地（assert <30min）** | +1 真量測 | ✅進步 |
+| DoD §2 import 成功率 | 30 fixture parse-level | +10 首 demo.run e2e（import→PDF）覆蓋 | + | ✅進步 |
+| DoD §5 和弦簡化映射 | ≥50+ | ≥50+（穩定） | 0 | ✅（已達標） |
+| K6 老師回饋 | 0/5 | 0/5 | 0 | ⚠️卡住（owner push→deploy→invite） |
+| K7 onboarding | 5/5 部分 | 5/5 部分 | 0 | ⚠️卡住（同 K6 鏈） |
+| push-lag commits | 10 | 12→13（本輪+1） | ❌退步（owner 未 push） |
+| daemon failures.jsonl | 不存在 | 不存在 | — | 無黑盒；死因只散在 results/log |
+
+### 24h 任務分布
+- M0-3 (KPI 推進)：**1** 件 — 本輪 U6-a 搶救 commit（K1 北極星 e2e 守門）
+- H0 (Housekeeping)：**0** 件
+- chore_ratio：**0%**（前 24h commit=0 daemon idle；本輪唯一 commit = feat KPI）。sensor `.harness-chore-ratio.json` stale（2026-05-27T06:36，>24h），但 24h=0 無需重算。
+
+### 卡住的 KPI 與根因
+- **K1（曾卡）已解**：v170 排的 #1 動作 U6-a，codex daemon 已做完三綠（pytest 2/2 / ruff / mypy clean），但**因 codex daemon ACL 受限 `C:/UkePack-git/index.lock` Permission denied，done-green 工作躺在 working tree 未 commit 4 天**（2026-05-27 02:13 + 08:20 兩度 log blocked）。互動 session 實測 gitdir WRITE_OK（L048）→ 本輪搶救落地。
+- **K6/K7（0/5、5/5 部分）**：根因 = owner 人工鏈未動 → `git push origin master`(12 commits) → Render auto-deploy → TRIAL_URL → invite_email → 老師回填。daemon 邊界外，非 code 阻塞。
+- **結構性死因**：codex daemon 在此 host **無法自 commit**（gitdir ACL），所有 daemon 產出會 strand 在 working tree，commit log / chore sensor 讀到「0 commit / idle」誤判 daemon 沒做事。failures.jsonl 不存在 → 此死因連黑盒都沒記。**L4 等級問題**：daemon ACL 修正或改走可寫 gitdir，否則每輪 daemon 工作都要互動 session 手動搶救。
+
+### 下一步 3 個 KPI 推進動作（各對應 1 KPI，禁治理）
+1. **U3-a 分段練習卡** → K1 北極星：PDF 前奏/主歌/副歌分段生成，直接縮短「能彈第一段」時間。
+2. **U1-b capo + 小手替代指法(kids)** → DoD §5/K1：U1-a 同模組延伸，小朋友真能彈。
+3. **U2-a MIDI 匯入** → DoD §2：擴入口，補 ≥5 首 MIDI fixture + 成功率 ≥90% 測試。
+
+### Global learning
+**新增 L055** 至 `/d/auto-dev/learnings/global.md`：write-blocked daemon 的 done-green 工作 = 隱形債（commit log / sensor 讀 0 = idle 誤判，但成果躺 working tree）。/pua review 必先 `git status` 抓未 commit done-green 工作，不能只讀 commit log + backlog。U6-a #1 動作因此被誤判「沒做」4 天。
+
+> [PUA生效 🔥] **3.25 owner 意識**：v170 排 U6-a 為 #1，codex 隔天就做完三綠，卻因 daemon ACL 卡 commit，**價值在硬碟躺 4 天無人知**。底層邏輯：sensor/commit-log 是 daemon 唯一「我做了事」的訊號管道，一旦 commit 通道被 ACL 掐斷，再多 done-green 工作都等於零。抓手：互動 session(L048)有寫權限 → 本輪一次搶救 + 立 L055 讓未來 /pua 先掃 working tree。閉環：append-only reflection、program.md 勾 U6-a [x] + 重排 U-queue、0 治理 churn、0 evolve-report、propose.sh 本 repo 不存在（提案通路未接線，改直接 reorder）。

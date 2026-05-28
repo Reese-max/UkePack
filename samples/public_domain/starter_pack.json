@@ -1,0 +1,16 @@
+{
+  "version": "1.0",
+  "name": "UkePack Starter Pack",
+  "songs": [
+    "twinkle.musicxml",
+    "are_you_sleeping.musicxml",
+    "happy_birthday.musicxml",
+    "jingle_bells.musicxml",
+    "london_bridge.musicxml",
+    "mary_had_a_little_lamb.musicxml",
+    "three_blind_mice.musicxml",
+    "old_macdonald_had_a_farm.musicxml",
+    "yankee_doodle.musicxml",
+    "little_brown_jug.musicxml"
+  ]
+}

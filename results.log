@@ -417,3 +417,4 @@
 [2026-05-27T08:03:07+08:00] | M1 | PASS | KPI-impact: K1 starter-pack latency 30min gate | U6-a complete: copied 9 首 10 首 public-domain 歌譜到 samples/public_domain，新增 starter_pack.json 與 tests/test_starter_pack.py 驗證每首 import->PDF（%PDF-）及 30 分鐘 KPI
 
 2026-05-27T08:22:18+08:00 | M1 | FAIL | KPI-impact: K1 starter-pack latency 30min gate | blocker: gitdir write denied at C:/UkePack-git (index/config/objects no write) -> unable to stage+commit U6-a payload
+[2026-05-28T15:08:25+0800] | M1 | PASS | KPI-impact: K1 北極星 (分段卡 0→1, first playable segment time reduced) | feat(render): U3-a segment practice cards embedded in page3 — TDD spy test + compact cards (title+range+chords slice); 1 test added, no new pages/dispatcher (surgical 4-page preserved); ruff/mypy clean, pdf render 29/29 green; no unlisted refactor; 24h chore>30% forbid H0; baseline pre/post green. Why: program v171 priority #1 for K1 after U6-a; advances north star without owner-blocked path.

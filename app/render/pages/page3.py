@@ -6,7 +6,7 @@ from reportlab.lib import colors
 from reportlab.pdfgen import canvas as rl_canvas
 
 from app.models.pack_request import PackRequest
-from app.models.score import ChordEvent, ScoreSection
+from app.models.score import ChordEvent, Score, ScoreSection
 from app.render._layout import (
     _CONTENT_W,
     _MARGIN,
@@ -26,6 +26,8 @@ def render_page3(c: rl_canvas.Canvas, req: PackRequest) -> None:
     if req.score.sections:
         y = _section_summary(c, req.score.sections, y)
         y -= 16
+        y = _segment_practice_cards(c, req.score, req.score.sections, y)
+        y -= 8
 
     if req.teacher_review and req.teacher_review.tab_notes:
         y = _tab_notes(c, req.teacher_review.tab_notes, y)
@@ -113,3 +115,38 @@ def _chord_progression(
         c.setFont("Helvetica-Bold", 16)
         c.setFillColor(colors.black)
         c.drawString(x + 4, cy - 37, " / ".join(syms[:4]))
+
+
+def _segment_practice_cards(
+    c: rl_canvas.Canvas, score: Score, sections: list[ScoreSection], y_start: float
+) -> float:
+    """U3-a: compact per-section practice cards (title + chord slice + range)."""
+    if not sections:
+        return y_start
+    labels = {"intro": "前奏", "verse": "主歌", "chorus": "副歌"}
+    c.setFont(_ZH, 10)
+    c.setFillColor(colors.HexColor("#444444"))
+    c.drawString(_MARGIN, y_start, "分段練習卡")
+    y = y_start - 14
+    for sec in sections[:3]:
+        name = labels.get(sec.section, sec.section)
+        seg = [
+            ce.symbol
+            for ce in score.chords
+            if sec.start_measure <= ce.measure <= sec.end_measure
+        ][:4]
+        chord_str = " ".join(seg) if seg else "—"
+        c.setFillColor(colors.HexColor("#E8F4FC"))
+        c.setStrokeColor(colors.HexColor("#7EB8E6"))
+        box_h = 24.0
+        c.roundRect(_MARGIN, y - box_h, _CONTENT_W, box_h, 3, fill=1, stroke=1)
+        c.setFillColor(colors.black)
+        c.setFont(_ZH, 8)
+        c.drawString(
+            _MARGIN + 4, y - 9, f"{name} {sec.start_measure}-{sec.end_measure} | {chord_str}"
+        )
+        c.setFont(_ZH, 7)
+        c.setFillColor(colors.HexColor("#555555"))
+        c.drawString(_MARGIN + 4, y - 19, "練此段 → 刷法見 p.2")
+        y -= box_h + 3
+    return y

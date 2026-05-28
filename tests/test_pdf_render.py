@@ -191,6 +191,34 @@ class TestRenderPdf:
 
         assert called == [2]
 
+    def test_render_page3_draws_segment_practice_cards_when_sections_exist(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """U3-a TDD guard: _segment_practice_cards called for sections (K1 first-segment)."""
+        called: list[int] = []
+
+        def _spy(
+            c: rl_canvas.Canvas, score: Score, sections: list[ScoreSection], y_start: float
+        ) -> float:
+            called.append(len(sections))
+            return y_start
+
+        monkeypatch.setattr(page3_module, "_segment_practice_cards", _spy)
+        buffer = io.BytesIO()
+        canvas = rl_canvas.Canvas(buffer)
+        score = Score(
+            title="Seg",
+            key="C major",
+            measures=4,
+            chords=[ChordEvent(symbol="C", measure=1, beat=1.0)],
+            sections=[ScoreSection(section="verse", start_measure=1, end_measure=4)],
+        )
+
+        page3_module.render_page3(canvas, PackRequest(title="Seg", score=score))
+        canvas.save()
+
+        assert called == [1]
+
     def test_unique_chords_preserves_raw_symbol_when_simplify_fails(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:

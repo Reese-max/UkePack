@@ -117,7 +117,7 @@
 > 規範同全域守則：每 task `pytest -q && ruff check . && mypy app/` 三綠才 commit；純 Python（FastAPI + music21 + reportlab），**不建 frontend / .ts / node_modules**（AGENTS.md §1）。
 
 ### U1 和弦簡化深化（擴覆蓋）
-- [ ] U1-b capo 建議 + 小手替代指法（kids），加單元測試
+- [x] U1-b capo 建議 + 小手替代指法（kids），加單元測試（26913fb：`app/arrangement/capo_advisor.py` suggest_capo / kid_friendly_substitution / hard_for_small_hands + 11 測試；pytest/ruff/mypy 三綠。K1 北極星：capo 讓小手孩子用簡單開放和弦彈）
 
 ### U2 匯入格式擴充（擴入口）
 - [ ] U2-a 支援 MIDI 匯入（music21 已可解析），補 ≥5 首 MIDI fixture + 成功率 ≥90% 測試

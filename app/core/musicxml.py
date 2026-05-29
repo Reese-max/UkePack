@@ -10,6 +10,7 @@ from app.arrangement.section_detector import detect_sections
 from app.models import ChordEvent, MelodyNote, Score
 
 SUPPORTED_EXTENSIONS = {".musicxml", ".mxl", ".xml"}
+MIDI_EXTENSIONS = {".mid", ".midi"}
 _PLACEHOLDER_TITLES = {"Music21 Fragment"}
 
 MAX_IMPORT_BYTES = 10 * 1024 * 1024  # 10 MB hard cap for raw file upload
@@ -30,7 +31,28 @@ def parse(path: Path) -> Score:
     if path.suffix.lower() == ".mxl":
         _check_mxl_zip(path)
 
-    parsed_score = converter.parse(str(path))
+    return _assemble_score(converter.parse(str(path)), path)
+
+
+def parse_midi(path: Path) -> Score:
+    """Parse a MIDI file into the normalized score model (BACKLOG U2-a).
+
+    MIDI carries no chord symbols, so ``chords`` is normally empty; the key is
+    inferred via music21 analysis and may be approximate for short melodies.
+    """
+    # URL check must come before path.exists() to prevent network fetch via music21
+    _reject_url_path(path)
+    if not path.exists():
+        raise FileNotFoundError(path)
+    if path.suffix.lower() not in MIDI_EXTENSIONS:
+        raise ValueError(f"Unsupported MIDI format: {path.suffix}")
+    _check_file_size(path)
+
+    return _assemble_score(converter.parse(str(path)), path)
+
+
+def _assemble_score(parsed_score: Any, path: Path) -> Score:
+    """Build the normalized Score model from a parsed music21 stream."""
     melody_part = _get_melody_part(parsed_score)
     score = Score(
         title=_extract_title(parsed_score, path),

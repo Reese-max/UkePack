@@ -132,7 +132,7 @@
 - [x] U4-b 大字版 + 著色和弦圖（兒童友善）+ 家長指引頁，PDF 測試（PackRequest.large_print 旗標：page1 大字 + page2 和弦圖改 colorable outline（`generate_svg(colorable=True)`）；page4 常駐「家長指引」區塊；3 PDF 測試，三綠）
 
 ### U5 參考音訊生成（直接服務北極星）
-- [ ] U5-a 由和弦進行＋刷法生成參考音訊（metronome + 和弦，music21/MIDI 合成），生成測試
+- [x] U5-a 由和弦進行＋刷法生成參考音訊（metronome + 和弦，music21/MIDI 合成），生成測試（`practice_audio.build_reference_midi`/`render_reference_wav`：GCEA 開放弦+`get_fingering` 算和弦音高，每拍下刷 + 每拍 metronome，復用既有 WAV 合成；4 生成測試，三綠）
 
 ### U6 起步曲庫（自帶內容，可全自動跑北極星）
 - [x] U6-a 10 首 public-domain 兒歌 starter pack + `tests/test_starter_pack.py` 端到端 import→PDF + assert <30min（v171 搶救落地；K1 北極星自動量測 0→1）

@@ -163,6 +163,98 @@ def _build_click_track(
     return track
 
 
+# GCEA re-entrant ukulele open-string MIDI pitches (high-G tuning): G4 C4 E4 A4.
+_UKE_OPEN_MIDI: tuple[int, int, int, int] = (67, 60, 64, 69)
+_REF_TICKS_PER_BEAT = 480
+
+
+def build_reference_midi(chords: list[str], bpm: int, beats_per_bar: int = 4) -> mido.MidiFile:
+    """Build a reference-audio MIDI: a metronome click every beat plus the ukulele
+    chord voicings down-strummed once per beat (BACKLOG U5-a)."""
+    beats_per_bar = max(beats_per_bar, 1)
+    midi = mido.MidiFile(type=1, ticks_per_beat=_REF_TICKS_PER_BEAT)
+    meta = mido.MidiTrack()
+    meta.append(mido.MetaMessage("time_signature", numerator=beats_per_bar, denominator=4, time=0))
+    meta.append(mido.MetaMessage("set_tempo", tempo=mido.bpm2tempo(max(bpm, 1)), time=0))
+    meta.append(mido.MetaMessage("end_of_track", time=0))
+    midi.tracks.append(meta)
+
+    bars = max(len(chords), 1)
+    midi.tracks.append(_reference_click_track(beats_per_bar, bars))
+    midi.tracks.append(_reference_chord_track(chords, beats_per_bar))
+    return midi
+
+
+def render_reference_wav(
+    chords: list[str], bpm: int, wav_path: Path, beats_per_bar: int = 4
+) -> Path:
+    """Synthesize a chords + metronome reference WAV to ``wav_path`` (BACKLOG U5-a)."""
+    _render_wav(build_reference_midi(chords, bpm, beats_per_bar), wav_path)
+    return wav_path
+
+
+def _reference_click_track(beats_per_bar: int, bars: int) -> mido.MidiTrack:
+    track = mido.MidiTrack()
+    track.append(mido.MetaMessage("track_name", name="Metronome", time=0))
+    for beat in range(beats_per_bar * bars):
+        note = 76 if beat % beats_per_bar == 0 else 77
+        track.append(mido.Message("note_on", channel=CLICK_CHANNEL, note=note, velocity=90, time=0))
+        track.append(
+            mido.Message(
+                "note_off", channel=CLICK_CHANNEL, note=note, velocity=0, time=_REF_TICKS_PER_BEAT
+            )
+        )
+    track.append(mido.MetaMessage("end_of_track", time=0))
+    return track
+
+
+def _reference_chord_track(chords: list[str], beats_per_bar: int) -> mido.MidiTrack:
+    track = mido.MidiTrack()
+    track.append(mido.MetaMessage("track_name", name="Chords", time=0))
+    pending = 0
+    for chord in chords:
+        pitches = _chord_pitches(chord)
+        for _beat in range(beats_per_bar):
+            if not pitches:
+                pending += _REF_TICKS_PER_BEAT
+                continue
+            for index, pitch in enumerate(pitches):
+                track.append(
+                    mido.Message("note_on", note=pitch, velocity=80, time=pending if index == 0 else 0)
+                )
+                pending = 0
+            for index, pitch in enumerate(pitches):
+                track.append(
+                    mido.Message(
+                        "note_off",
+                        note=pitch,
+                        velocity=0,
+                        time=_REF_TICKS_PER_BEAT if index == 0 else 0,
+                    )
+                )
+    track.append(mido.MetaMessage("end_of_track", time=0))
+    return track
+
+
+def _chord_pitches(chord: str) -> list[int]:
+    """Map a chord symbol to its ukulele voicing as MIDI pitches (empty if unknown)."""
+    from app.arrangement.chord_simplify import simplify
+    from app.render.chord_diagram import get_fingering
+
+    try:
+        simplified = simplify(chord)
+    except ValueError:
+        return []
+    fingering = get_fingering(simplified)
+    if fingering is None:
+        return []
+    return [
+        open_midi + fret
+        for open_midi, fret in zip(_UKE_OPEN_MIDI, fingering, strict=True)
+        if fret >= 0
+    ]
+
+
 def _copy_shifted_track(track: mido.MidiTrack, shift_ticks: int, scale: float) -> mido.MidiTrack:
     copied = mido.MidiTrack()
     pending_shift = shift_ticks

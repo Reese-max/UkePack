@@ -98,17 +98,17 @@
         </div>
 
         <div class="card" style="margin-top:1rem">
-            <p class="section-title">📄 上傳 MusicXML（選填，可後續補傳）</p>
+            <p class="section-title">📄 上傳 MusicXML / MIDI（選填，可後續補傳）</p>
             <div class="field">
-                <label for="file">選擇 .musicxml / .mxl / .xml 檔</label>
+                <label for="file">選擇 .musicxml / .mxl / .xml / .mid 檔</label>
                 <input
                     type="file"
                     id="file"
                     name="file"
-                    accept=".musicxml,.mxl,.xml"
+                    accept=".musicxml,.mxl,.xml,.mid,.midi"
                 >
                 <small style="color:var(--muted);font-size:0.9rem">
-                    不超過 10 MB。找不到檔案？先建立專案，之後再從分析頁匯入。
+                    不超過 10 MB。MIDI 會自動分析旋律與調性（無和弦符號）。找不到檔案？先建立專案，之後再從分析頁匯入。
                 </small>
             </div>
         </div>

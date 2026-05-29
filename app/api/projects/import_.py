@@ -7,7 +7,11 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
-from app.api.project_uploads import import_musicxml_into_project, save_upload_with_limit
+from app.api.project_uploads import (
+    import_midi_into_project,
+    import_musicxml_into_project,
+    save_upload_with_limit,
+)
 from app.config import get_settings
 
 from ._shared import MIDI_EXTS, MUSICXML_EXTS, SessionDep, get_project_or_404, utc_now
@@ -27,24 +31,21 @@ async def import_musicxml(
     file: Annotated[UploadFile, File()],
     session: SessionDep,
 ) -> dict[str, Any]:
-    """Upload and parse a MusicXML or MXL file."""
+    """Upload and parse a MusicXML/MXL or MIDI file into the project analysis."""
     project = get_project_or_404(session, project_id)
     suffix = Path(file.filename or "").suffix.lower()
-    if suffix not in MUSICXML_EXTS:
-        raise HTTPException(400, f"Unsupported file type '{suffix}'. Use .musicxml / .mxl")
+    if suffix not in MUSICXML_EXTS | MIDI_EXTS:
+        raise HTTPException(400, f"Unsupported file type '{suffix}'. Use .musicxml / .mxl / .mid")
 
     save_path, relative_path = _upload_paths(project_id, suffix)
     await save_upload_with_limit(file, save_path)
 
+    importer = import_midi_into_project if suffix in MIDI_EXTS else import_musicxml_into_project
     try:
-        score, key_rec, playability = import_musicxml_into_project(
-            project,
-            save_path,
-            relative_path=relative_path,
-        )
+        score, key_rec, playability = importer(project, save_path, relative_path=relative_path)
     except Exception as exc:
         save_path.unlink(missing_ok=True)
-        raise HTTPException(422, f"MusicXML parse failed: {exc}") from exc
+        raise HTTPException(422, f"Import failed: {exc}") from exc
 
     session.add(project)
     session.commit()

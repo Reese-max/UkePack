@@ -13,7 +13,11 @@ from fastapi.templating import Jinja2Templates
 from sqlmodel import Session
 
 from app.api.playability import build_playability_payload
-from app.api.project_uploads import import_musicxml_into_project, save_upload_with_limit
+from app.api.project_uploads import (
+    import_midi_into_project,
+    import_musicxml_into_project,
+    save_upload_with_limit,
+)
 from app.arrangement.key_advisor import suggest_key
 from app.arrangement.level_classifier import classify
 from app.arrangement.strum_pattern import suggest_for_level
@@ -42,6 +46,7 @@ _SOURCE_TYPE_OPTIONS = [
 ]
 
 _MUSICXML_EXTS = {".musicxml", ".xml", ".mxl"}
+_MIDI_EXTS = {".mid", ".midi"}
 _VALID_LEVELS = {1, 2, 3}
 
 
@@ -83,7 +88,7 @@ async def create_project_htmx(
 
     if file and file.filename:
         suffix = Path(file.filename).suffix.lower()
-        if suffix in _MUSICXML_EXTS:
+        if suffix in _MUSICXML_EXTS | _MIDI_EXTS:
             settings = get_settings()
             save_dir = settings.data_dir / "projects" / str(project.id)
             save_path = save_dir / f"original{suffix}"
@@ -91,12 +96,11 @@ async def create_project_htmx(
 
             await save_upload_with_limit(file, save_path)
 
+            importer = (
+                import_midi_into_project if suffix in _MIDI_EXTS else import_musicxml_into_project
+            )
             try:
-                import_musicxml_into_project(
-                    project,
-                    save_path,
-                    relative_path=relative_path,
-                )
+                importer(project, save_path, relative_path=relative_path)
                 session.add(project)
                 session.commit()
             except (ValueError, RuntimeError) as exc:
@@ -222,7 +226,7 @@ async def import_musicxml_page(
         raise HTTPException(404, "Project not found")
 
     suffix = Path(file.filename or "").suffix.lower()
-    if suffix not in _MUSICXML_EXTS:
+    if suffix not in _MUSICXML_EXTS | _MIDI_EXTS:
         return RedirectResponse(url=f"/projects/{project_id}?import_error=1", status_code=303)
 
     settings = get_settings()
@@ -231,8 +235,9 @@ async def import_musicxml_page(
 
     await save_upload_with_limit(file, save_path)
 
+    importer = import_midi_into_project if suffix in _MIDI_EXTS else import_musicxml_into_project
     try:
-        import_musicxml_into_project(project, save_path, relative_path=relative_path)
+        importer(project, save_path, relative_path=relative_path)
         session.add(project)
         session.commit()
     except (ValueError, RuntimeError) as exc:

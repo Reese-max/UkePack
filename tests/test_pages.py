@@ -281,6 +281,68 @@ def test_page_import_rejects_wrong_extension(db_client: TestClient) -> None:
     assert "import_error=1" in resp.headers["location"]
 
 
+def test_import_endpoint_accepts_midi(db_client: TestClient) -> None:
+    """U2-a: POST /api/projects/{id}/import accepts MIDI and builds the analysis."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "MIDI Import", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+
+    resp = db_client.post(
+        f"/api/projects/{pid}/import",
+        files={"file": ("song.mid", io.BytesIO(build_test_midi_bytes(bpm=84)), "audio/midi")},
+    )
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["project_id"] == pid
+    assert body["bpm"] == 84
+    assert body["chord_count"] == 0  # MIDI carries no chord symbols
+
+
+def test_page_import_accepts_midi(db_client: TestClient) -> None:
+    """U2-a: the analysis-page import form accepts MIDI (no import_error redirect)."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "MIDI Page Import", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+
+    resp = db_client.post(
+        f"/projects/{pid}/import",
+        files={"file": ("song.mid", io.BytesIO(build_test_midi_bytes()), "audio/midi")},
+        follow_redirects=False,
+    )
+
+    assert resp.status_code == 303
+    assert "import_error" not in resp.headers["location"]
+    page = db_client.get(f"/projects/{pid}")
+    assert "尚未匯入曲譜" not in page.text  # a score was parsed from the MIDI
+
+
+def test_create_project_htmx_with_midi_file(db_client: TestClient) -> None:
+    """U2-a: creating a project with a MIDI upload builds the analysis."""
+    resp = db_client.post(
+        "/projects/create-htmx",
+        data={"title": "MIDI Create", "source_type": "public_domain"},
+        files={"file": ("song.mid", io.BytesIO(build_test_midi_bytes()), "audio/midi")},
+        follow_redirects=False,
+    )
+
+    assert resp.status_code == 303
+    assert "import_error" not in resp.headers["location"]
+    pid = int(resp.headers["location"].split("/")[-1].split("?")[0])
+    page = db_client.get(f"/projects/{pid}")
+    assert "尚未匯入曲譜" not in page.text  # a score was parsed from the MIDI
+
+
+def test_new_project_form_accepts_midi_extension(db_client: TestClient) -> None:
+    """U2-a: the upload control advertises MIDI as an accepted import format."""
+    resp = db_client.get("/new")
+    assert ".mid" in resp.text
+
+
 def test_page_import_404_on_missing_project(db_client: TestClient) -> None:
     """POST /projects/{id}/import for a non-existent project → 404 (not 500)."""
     resp = db_client.post(

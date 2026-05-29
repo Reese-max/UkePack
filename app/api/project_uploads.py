@@ -9,7 +9,7 @@ from fastapi import HTTPException, UploadFile
 
 from app.arrangement.key_advisor import suggest_key
 from app.arrangement.level_classifier import PlayabilityResult, classify
-from app.core.musicxml import MAX_IMPORT_BYTES, parse
+from app.core.musicxml import MAX_IMPORT_BYTES, parse, parse_midi
 from app.models import KeyRecommendation
 from app.models.project import Project
 from app.models.score import Score
@@ -64,10 +64,45 @@ def import_musicxml_into_project(
         raise RuntimeError(f"MusicXML parse failed: {exc}") from exc
 
     project.musicxml_path = relative_path
+    _persist_score(project, score, key_recommendation, playability)
+    return score, key_recommendation, playability
+
+
+def import_midi_into_project(
+    project: Project,
+    save_path: Path,
+    *,
+    relative_path: str,
+) -> tuple[Score, KeyRecommendation, PlayabilityResult]:
+    """Parse a saved MIDI file and persist its analysis onto the project (U2-a).
+
+    Also records ``midi_path`` so the same upload can drive practice audio.
+    MIDI carries no chord symbols, so the arrangement runs from the melody/key.
+    """
+    try:
+        score = parse_midi(save_path)
+        key_recommendation = suggest_key(score)
+        playability = classify(score)
+    except ValueError:
+        raise
+    except Exception as exc:
+        raise RuntimeError(f"MIDI parse failed: {exc}") from exc
+
+    project.midi_path = relative_path
+    _persist_score(project, score, key_recommendation, playability)
+    return score, key_recommendation, playability
+
+
+def _persist_score(
+    project: Project,
+    score: Score,
+    key_recommendation: KeyRecommendation,
+    playability: PlayabilityResult,
+) -> None:
+    """Write parsed-score analysis fields onto the project row."""
     project.score_json = score.model_dump_json()
     project.original_key = score.key
     project.bpm = score.bpm
     project.target_key = key_recommendation.target_key
     project.arrangement_level = playability.recommended_level
     project.updated_at = datetime.now(UTC)
-    return score, key_recommendation, playability

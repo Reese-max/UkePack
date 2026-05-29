@@ -111,7 +111,7 @@
 
 ## Phase 2 — U1-U6 深度任務（agent 可做、可量測、不靠教師試用）
 
-> ▶ **當前可執行隊列（v172 evolve 2026-05-28，反 L055 盲點：先 `git status` + `git log` 掃 done-green 是否已回填 backlog）**：U1-a + U6-a + **U3-a 已落地**（U3-a 41e77fb 已 commit 但 v171 漏勾 [x]，本輪回填）。下輪優先序 = **U1-b（kids 小手指法 K1）→ U2-a（MIDI 匯入 §2 入口）→ U2-b（ChordPro 匯入）**。此區 U-task 均非 owner-gated，宣稱「無 M-task」前必先掃此區 + working tree + 比對 `git log` 與 [x] 是否同步（L048+L055）。
+> ▶ **當前可執行隊列（v173 evolve 2026-05-29，反 L055：先 `git status` + `git log` 掃 done-green 是否已回填 backlog）**：**Phase 2 U1–U6 全數 done-green，隊列清空（0 個 `[ ]`）**。24h 內 9 feat burst：U1-b 26913fb / U2-a 726c1b2+21723f3 / U2-b 9786500 / U3-a 41e77fb / U3-b 52469dd / U4-a f588f99 / U4-b ceb3039 / U5-a 6e2179a / capo 552d33f。DoD §2（30-fixture ≥90%）已由 `tests/test_corpus_e2e_pdf.py` 自動守門（實測 ≥95% + p95 趨勢）；K1 北極星由 `tests/test_starter_pack.py` 守門（< 30min，綠）。**無剩餘非-owner-gated KPI 缺口**；唯一活槓桿 = K6（owner-gated teacher trial，frozen）+ K7（owner push onboarding）。**daemon 正解 = idle，禁止 invent chore/governance task 填空**（守則 10 + 反 Pattern）。宣稱「無 M-task」前仍須掃此區 + working tree + 比對 `git log` 與 [x]（L048+L055）。
 >
 > 接續 MVP v0.1（8 DoD 全綠）。聚焦北極星「<30 分鐘能彈第一段」+ 擴覆蓋。屬 **feature 工作非 chore**，不受 hard-frozen 條款限制。
 > 規範同全域守則：每 task `pytest -q && ruff check . && mypy app/` 三綠才 commit；純 Python（FastAPI + music21 + reportlab），**不建 frontend / .ts / node_modules**（AGENTS.md §1）。

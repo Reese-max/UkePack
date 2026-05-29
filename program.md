@@ -121,7 +121,7 @@
 
 ### U2 匯入格式擴充（擴入口）
 - [x] U2-a 支援 MIDI 匯入（music21 已可解析），補 ≥5 首 MIDI fixture + 成功率 ≥90% 測試（726c1b2：`app/core/musicxml.py::parse_midi` + 6 首公版兒歌 corpus 成功率 100% + 7 tests，三綠。註：parser 層完成＝DoD；接進 /import 端點/UI 屬後續）
-- [ ] U2-b 支援純文字和弦譜 / ChordPro 匯入，補 fixture + 測試
+- [x] U2-b 支援純文字和弦譜 / ChordPro 匯入，補 fixture + 測試（`app/core/chord_sheet.py` 擴充：偵測 ChordPro → 解析行內 `[C]` 和弦 + `{title}`/`{key}`/`{soc}/{eoc}` directive，pipe 路徑行為不變；11 unit + 1 整合測試，三綠。經現有 /chords 文字入口即可匯入 ChordPro）
 
 ### U3 練習包深化（縮短「能彈第一段」）
 - [x] U3-a 分段練習卡（前奏／主歌／副歌 各一張），PDF 分段生成測試（41e77fb embedded in page3；K1 北極星推進，pdf render 全綠）

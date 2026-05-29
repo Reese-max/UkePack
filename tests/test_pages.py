@@ -155,6 +155,24 @@ def test_analysis_page_with_chords(db_client: TestClient) -> None:
     assert "副歌" in resp.text
 
 
+def test_chords_endpoint_accepts_chordpro(db_client: TestClient) -> None:
+    """U2-b: ChordPro pasted into the chord-text entry builds an analysis end-to-end."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "ChordPro Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    db_client.post(
+        f"/api/projects/{pid}/chords",
+        json={"text": "{key: G}\n[G]Amazing [C]grace how [D]sweet the [G]sound"},
+    )
+
+    resp = db_client.get(f"/projects/{pid}")
+
+    assert resp.status_code == 200
+    assert "尚未匯入曲譜" not in resp.text  # a score was parsed from the ChordPro text
+
+
 def test_analysis_page_shows_chord_teaching_hints(db_client: TestClient) -> None:
     create = db_client.post(
         "/api/projects",

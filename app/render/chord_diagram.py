@@ -37,15 +37,19 @@ _DOT_R = 5
 _OPEN_R = 4
 
 
-def generate_svg(chord_name: str) -> str:
-    """Return an SVG string for the named ukulele chord diagram."""
+def generate_svg(chord_name: str, *, colorable: bool = False) -> str:
+    """Return an SVG string for the named ukulele chord diagram.
+
+    When ``colorable`` is True, fretted dots are drawn as white-filled outlines so
+    a child can colour them in (U4-b kid-friendly variant).
+    """
     if chord_name == "N.C.":
         return _nc_svg()
     fingering = _CHORD_FINGERINGS.get(chord_name)
     if fingering is None:
         return _unknown_svg(chord_name)
     start_fret, display = _compute_display(fingering)
-    return _render_svg(chord_name, display, start_fret)
+    return _render_svg(chord_name, display, start_fret, colorable)
 
 
 def get_fingering(chord_name: str) -> tuple[int, int, int, int] | None:
@@ -76,7 +80,7 @@ def _fret_dot_y(display_fret: int) -> float:
 
 
 def _render_svg(
-    name: str, display_frets: list[int], start_fret: int
+    name: str, display_frets: list[int], start_fret: int, colorable: bool = False
 ) -> str:
     p: list[str] = []
     p.append(
@@ -91,7 +95,7 @@ def _render_svg(
         f'font-weight="bold">{safe}</text>'
     )
     _append_grid(p, start_fret)
-    _append_dots(p, display_frets)
+    _append_dots(p, display_frets, colorable)
     p.append("</svg>")
     return "".join(p)
 
@@ -140,12 +144,18 @@ def _append_grid(p: list[str], start_fret: int) -> None:
         )
 
 
-def _append_dots(p: list[str], display_frets: list[int]) -> None:
+def _append_dots(p: list[str], display_frets: list[int], colorable: bool = False) -> None:
     for sx, fret in zip(_STRING_XS, display_frets, strict=False):
         if fret == 0:
             open_cy: float = float(_NUT_Y - 9)
             p.append(
                 f'<circle cx="{sx}" cy="{open_cy}" r="{_OPEN_R}" '
+                f'fill="white" stroke="black" stroke-width="1.2"/>'
+            )
+        elif colorable:
+            dot_cy = _fret_dot_y(fret)
+            p.append(
+                f'<circle cx="{sx}" cy="{dot_cy:.1f}" r="{_DOT_R}" '
                 f'fill="white" stroke="black" stroke-width="1.2"/>'
             )
         else:

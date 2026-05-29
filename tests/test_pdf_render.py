@@ -45,6 +45,25 @@ def _capture_drawn_strings(
     return drawn
 
 
+def _capture_font_sizes(
+    render_fn: Callable[[rl_canvas.Canvas, PackRequest], None], req: PackRequest
+) -> list[float]:
+    """Render a page while capturing every setFont size."""
+    sizes: list[float] = []
+    buffer = io.BytesIO()
+    c = rl_canvas.Canvas(buffer)
+    original_set = c.setFont
+
+    def _capture(name: str, size: float, *args: object, **kwargs: object) -> None:
+        sizes.append(size)
+        original_set(name, size, *args, **kwargs)  # type: ignore[arg-type]
+
+    c.setFont = _capture  # type: ignore[method-assign]
+    render_fn(c, req)
+    c.save()
+    return sizes
+
+
 class TestChordDiagram:
     def test_known_chord_returns_svg(self) -> None:
         svg = generate_svg("C")
@@ -88,6 +107,13 @@ class TestChordDiagram:
         # C = (0,0,0,3) — one fretted string
         svg = generate_svg("C")
         assert 'fill="black"' in svg
+
+    def test_colorable_diagram_renders_outline_dots(self) -> None:
+        # U4-b: colorable diagrams use outline (white-fill) dots kids can color in.
+        normal = generate_svg("C")
+        colorable = generate_svg("C", colorable=True)
+        assert 'fill="black"' in normal  # default: solid fretted dot
+        assert 'fill="black"' not in colorable  # colorable: outline only
 
 
 class TestRenderPdf:
@@ -364,6 +390,38 @@ class TestRenderPdf:
         assert "空刷" in level1
         assert "錄音" in level3
         assert level1 != level3
+
+    def test_large_print_enlarges_page1_fonts(self) -> None:
+        """U4-b: large-print mode renders bigger fonts on the overview page."""
+        score = Score(
+            title="Big",
+            key="C major",
+            measures=4,
+            chords=[ChordEvent(symbol="C", measure=1, beat=1.0)],
+        )
+        normal = max(
+            _capture_font_sizes(page1_module.render_page1, PackRequest(title="Big", score=score))
+        )
+        large = max(
+            _capture_font_sizes(
+                page1_module.render_page1,
+                PackRequest(title="Big", score=score, large_print=True),
+            )
+        )
+        assert large > normal
+
+    def test_page4_includes_parent_guide(self) -> None:
+        """U4-b: page 4 carries a parent-guidance section."""
+        score = Score(
+            title="P",
+            key="C major",
+            measures=4,
+            chords=[ChordEvent(symbol="C", measure=1, beat=1.0)],
+        )
+        drawn = _capture_drawn_strings(
+            page4_module.render_page4, PackRequest(title="P", level=1, score=score)
+        )
+        assert any("家長指引" in t for t in drawn)
 
     def test_page4_shows_progressive_tempo_ladder(self) -> None:
         """U3-b: page 4 prints a slow→original tempo ladder with the song BPM."""

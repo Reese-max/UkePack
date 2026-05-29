@@ -22,3 +22,5 @@ class PackRequest:
     strum_patterns: list[StrumPattern] = field(default_factory=list)
     playability: PlayabilityResult | None = None
     teacher_review: TeacherReviewDraft | None = None
+    # U4-b kid-friendly mode: larger overview fonts + colorable (outline) chord diagrams.
+    large_print: bool = False

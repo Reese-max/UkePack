@@ -129,7 +129,7 @@
 
 ### U4 PDF 輸出深化
 - [x] U4-a Level 2/3 PDF 完整化（現 best-effort），補各 Level 生成成功率測試（`_layout._LEVEL_PRACTICE_STEPS` + page4 改 level-tailored 練習序列（標題帶 Level N），Level 1/2/3 PDF 內容真正有別；新增 page4 各 level 差異測試 + 各 level × 3 fixture 渲染成功率 100% 測試，三綠）
-- [ ] U4-b 大字版 + 著色和弦圖（兒童友善）+ 家長指引頁，PDF 測試
+- [x] U4-b 大字版 + 著色和弦圖（兒童友善）+ 家長指引頁，PDF 測試（PackRequest.large_print 旗標：page1 大字 + page2 和弦圖改 colorable outline（`generate_svg(colorable=True)`）；page4 常駐「家長指引」區塊；3 PDF 測試，三綠）
 
 ### U5 參考音訊生成（直接服務北極星）
 - [ ] U5-a 由和弦進行＋刷法生成參考音訊（metronome + 和弦，music21/MIDI 合成），生成測試

@@ -69,6 +69,19 @@ def render_page4(c: rl_canvas.Canvas, req: PackRequest) -> None:
         ny -= 20
     y -= box_h + 16
 
+    section(c, "家長指引", y)
+    y -= 22
+    for tip in [
+        "・每天 10 分鐘，固定時間最有效",
+        "・先稱讚有彈出聲音，再慢慢要求準確",
+        "・卡住時用 capo 或更慢的速度，不要硬撐",
+    ]:
+        c.setFont(_ZH, 11)
+        c.setFillColor(colors.HexColor("#444444"))
+        c.drawString(_MARGIN + 8, y, tip)
+        y -= 18
+    y -= 10
+
     section(c, "七日練習計畫", y)
     y -= 24
     practice_table(c, y)

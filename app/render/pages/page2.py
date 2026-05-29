@@ -25,7 +25,7 @@ def render_page2(c: rl_canvas.Canvas, req: PackRequest) -> None:
     y -= 44
 
     unique = unique_chords(req.score)
-    bottom = chord_grid(c, unique, _MARGIN, y)
+    bottom = chord_grid(c, unique, _MARGIN, y, colorable=req.large_print)
 
     strum_y = bottom - 30.0
     if req.teacher_review and req.teacher_review.strum_notation and strum_y > _MARGIN + 80:

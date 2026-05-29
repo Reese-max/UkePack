@@ -24,8 +24,9 @@ from app.render._layout import (
 def render_page1(c: rl_canvas.Canvas, req: PackRequest) -> None:
     """P1 — 練習總覽."""
     y = _PAGE_H - _MARGIN
+    lp = 1.4 if req.large_print else 1.0
 
-    c.setFont("Helvetica-Bold", 24)
+    c.setFont("Helvetica-Bold", 24 * lp)
     c.setFillColor(colors.HexColor("#111111"))
     c.drawString(_MARGIN, y - 30, req.title[:50])
     y -= 50
@@ -50,7 +51,7 @@ def render_page1(c: rl_canvas.Canvas, req: PackRequest) -> None:
     section(c, "今日使用和弦", y)
     y -= 22
     unique = unique_chords(req.score)
-    c.setFont(_ZH, 16)
+    c.setFont(_ZH, 16 * lp)
     c.setFillColor(colors.black)
     c.drawString(_MARGIN, y, "  ".join(unique) if unique else "（無和弦資料）")
     y -= 34
@@ -122,16 +123,17 @@ def render_page1(c: rl_canvas.Canvas, req: PackRequest) -> None:
         y -= 8
 
     goals = _LEVEL_GOALS.get(req.level, _LEVEL_GOALS[1])
-    box_h = float(18 + len(goals) * 22)
+    goal_step = 22 * lp
+    box_h = float(18 + len(goals) * goal_step)
     c.setFillColor(colors.HexColor("#F8F5E6"))
     c.setStrokeColor(colors.HexColor("#BBBBBB"))
     c.roundRect(_MARGIN, y - box_h, _CONTENT_W, box_h, 6, fill=1, stroke=1)
     section(c, "今日目標", y - 4, underline=False)
     gy = y - 24
     for goal in goals:
-        c.setFont(_ZH, 13)
+        c.setFont(_ZH, 13 * lp)
         c.setFillColor(colors.black)
         c.drawString(_MARGIN + 14, gy, f"\u2610  {goal}")
-        gy -= 22
+        gy -= goal_step
 
     footer(c, req, 1)

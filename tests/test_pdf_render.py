@@ -365,6 +365,23 @@ class TestRenderPdf:
         assert "錄音" in level3
         assert level1 != level3
 
+    def test_page4_shows_progressive_tempo_ladder(self) -> None:
+        """U3-b: page 4 prints a slow→original tempo ladder with the song BPM."""
+        score = Score(
+            title="T",
+            key="C major",
+            bpm=100,
+            measures=4,
+            chords=[ChordEvent(symbol="C", measure=1, beat=1.0)],
+        )
+        drawn = _capture_drawn_strings(
+            page4_module.render_page4, PackRequest(title="T", level=1, score=score)
+        )
+
+        blob = "\n".join(drawn)
+        assert "漸進速度" in blob
+        assert "100" in blob  # original BPM rung is shown
+
     @pytest.mark.parametrize("level", [1, 2, 3])
     def test_render_succeeds_for_each_level_across_fixtures(self, level: int) -> None:
         """U4-a: every level renders a valid PDF across the whole sample corpus (100%)."""

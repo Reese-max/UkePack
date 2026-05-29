@@ -125,7 +125,7 @@
 
 ### U3 練習包深化（縮短「能彈第一段」）
 - [x] U3-a 分段練習卡（前奏／主歌／副歌 各一張），PDF 分段生成測試（41e77fb embedded in page3；K1 北極星推進，pdf render 全綠）
-- [ ] U3-b 漸進 tempo（慢→原速）標示 + 練習進度頁，測試
+- [x] U3-b 漸進 tempo（慢→原速）標示 + 練習進度頁，測試（新 `app/arrangement/tempo.py::tempo_ladder`（單調、有下限、去重）+ page4 加「漸進速度練習（慢→原速）」勾選清單；5 unit + 1 PDF 測試，三綠）
 
 ### U4 PDF 輸出深化
 - [x] U4-a Level 2/3 PDF 完整化（現 best-effort），補各 Level 生成成功率測試（`_layout._LEVEL_PRACTICE_STEPS` + page4 改 level-tailored 練習序列（標題帶 Level N），Level 1/2/3 PDF 內容真正有別；新增 page4 各 level 差異測試 + 各 level × 3 fixture 渲染成功率 100% 測試，三綠）

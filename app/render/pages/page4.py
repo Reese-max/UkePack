@@ -5,6 +5,7 @@ from __future__ import annotations
 from reportlab.lib import colors
 from reportlab.pdfgen import canvas as rl_canvas
 
+from app.arrangement.tempo import tempo_ladder
 from app.models.pack_request import PackRequest
 from app.render._layout import (
     _CONTENT_W,
@@ -32,6 +33,15 @@ def render_page4(c: rl_canvas.Canvas, req: PackRequest) -> None:
         c.setFont(_ZH, 12)
         c.setFillColor(colors.black)
         c.drawString(_MARGIN + 8, y, step)
+        y -= 18
+    y -= 10
+
+    section(c, "漸進速度練習（慢→原速）", y)
+    y -= 22
+    for tempo_step in tempo_ladder(req.score.bpm):
+        c.setFont(_ZH, 12)
+        c.setFillColor(colors.HexColor("#444444"))
+        c.drawString(_MARGIN + 8, y, f"☐  {tempo_step.label}  ♩= {tempo_step.bpm} BPM")
         y -= 18
     y -= 10
 

@@ -61,3 +61,43 @@ def test_build_playability_payload_handles_unknown_chord_shapes() -> None:
     assert payload["summary"]["highest_fret"] is None
     assert payload["chord_hints"][0]["symbol"] == "C(add9)"
     assert payload["chord_hints"][0]["category"] == "watch"
+
+
+def test_build_playability_payload_includes_capo_for_hard_progression() -> None:
+    score = Score(
+        title="Capo Song",
+        key="Bb major",
+        bpm=90,
+        time_signature="4/4",
+        measures=3,
+        chords=[
+            ChordEvent(symbol="Bb", measure=1, beat=1.0),
+            ChordEvent(symbol="Eb", measure=2, beat=1.0),
+            ChordEvent(symbol="F", measure=3, beat=1.0),
+        ],
+    )
+
+    capo = build_playability_payload(score, classify(score))["capo"]
+
+    assert capo["recommended"] is True
+    assert capo["fret"] == 3
+    assert capo["played_chords"] == ["G", "C", "D"]
+    assert "capo" in capo["reason"]
+
+
+def test_build_playability_payload_capo_not_recommended_for_easy_song() -> None:
+    score = Score(
+        title="Easy Song",
+        key="C major",
+        measures=3,
+        chords=[
+            ChordEvent(symbol="C", measure=1, beat=1.0),
+            ChordEvent(symbol="F", measure=2, beat=1.0),
+            ChordEvent(symbol="G", measure=3, beat=1.0),
+        ],
+    )
+
+    capo = build_playability_payload(score, classify(score))["capo"]
+
+    assert capo["recommended"] is False
+    assert capo["fret"] == 0

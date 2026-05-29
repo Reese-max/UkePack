@@ -176,6 +176,24 @@ def test_analysis_page_shows_chord_teaching_hints(db_client: TestClient) -> None
     assert "先慢練" in resp.text
 
 
+def test_analysis_page_shows_capo_suggestion(db_client: TestClient) -> None:
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Capo Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    db_client.post(
+        f"/api/projects/{pid}/chords",
+        json={"text": "Bb | Eb | F"},
+    )
+
+    resp = db_client.get(f"/projects/{pid}")
+
+    assert resp.status_code == 200
+    assert "小手建議：夾 capo" in resp.text
+    assert "夾 capo 在第 3 格" in resp.text
+
+
 def test_analysis_page_not_found(db_client: TestClient) -> None:
     resp = db_client.get("/projects/99999")
     assert resp.status_code == 404

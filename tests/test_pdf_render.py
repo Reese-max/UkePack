@@ -265,6 +265,66 @@ class TestRenderPdf:
             f"Expected 'BPM' in page 2 strum text; drawn: {drawn_texts}"
         )
 
+    def test_page1_shows_capo_hint_for_hard_key(self) -> None:
+        """Page 1 surfaces a capo hint when the song's chords are hard (K1 small hands)."""
+        score = Score(
+            title="Bb Song",
+            key="Bb major",
+            measures=3,
+            chords=[
+                ChordEvent(symbol="Bb", measure=1, beat=1.0),
+                ChordEvent(symbol="Eb", measure=2, beat=1.0),
+                ChordEvent(symbol="F", measure=3, beat=1.0),
+            ],
+        )
+        req = PackRequest(title="Bb Song", source_type="public_domain", level=1, score=score)
+
+        drawn_texts: list[str] = []
+        buffer = io.BytesIO()
+        c = rl_canvas.Canvas(buffer)
+        original_draw = c.drawString
+
+        def _capture(x: float, y: float, text: str) -> None:
+            drawn_texts.append(str(text))
+            original_draw(x, y, text)
+
+        c.drawString = _capture  # type: ignore[method-assign]
+        page1_module.render_page1(c, req)
+        c.save()
+
+        assert any("capo" in t and "3" in t for t in drawn_texts), (
+            f"Expected capo-3 hint on page 1; drawn: {drawn_texts}"
+        )
+
+    def test_page1_no_capo_hint_for_easy_key(self) -> None:
+        """Page 1 omits the capo hint when chords are already kid-friendly (no clutter)."""
+        score = Score(
+            title="C Song",
+            key="C major",
+            measures=3,
+            chords=[
+                ChordEvent(symbol="C", measure=1, beat=1.0),
+                ChordEvent(symbol="F", measure=2, beat=1.0),
+                ChordEvent(symbol="G", measure=3, beat=1.0),
+            ],
+        )
+        req = PackRequest(title="C Song", source_type="public_domain", level=1, score=score)
+
+        drawn_texts: list[str] = []
+        buffer = io.BytesIO()
+        c = rl_canvas.Canvas(buffer)
+        original_draw = c.drawString
+
+        def _capture(x: float, y: float, text: str) -> None:
+            drawn_texts.append(str(text))
+            original_draw(x, y, text)
+
+        c.drawString = _capture  # type: ignore[method-assign]
+        page1_module.render_page1(c, req)
+        c.save()
+
+        assert not any("capo" in t for t in drawn_texts)
+
 
 class TestTeacherReviewPdfOverrides:
     """Exercises teacher review override paths in page renderers (page1:57-73/100-110,

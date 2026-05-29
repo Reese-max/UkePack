@@ -227,6 +227,22 @@ F | G | C | C |"
                 </div>
                 {% endif %}
             </div>
+            {% if analysis.playability.capo and analysis.playability.capo.recommended %}
+            <div class="data-cell">
+                <small>🎸 小手建議：夾 capo</small>
+                <strong>第 {{ analysis.playability.capo.fret }} 格</strong>
+                {% if analysis.playability.capo.reason %}
+                <p style="margin:0.4rem 0 0; color:var(--muted); font-size:0.875rem">{{ analysis.playability.capo.reason }}</p>
+                {% endif %}
+                {% if analysis.playability.capo.played_chords %}
+                <div style="margin:0.5rem 0 0; display:flex; flex-wrap:wrap; gap:0.3rem">
+                    {% for ch in analysis.playability.capo.played_chords %}
+                    <span class="badge badge-green" style="font-size:0.8rem">{{ ch }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
             {% if analysis.bpm %}
             <div class="data-cell">
                 <small>BPM</small>

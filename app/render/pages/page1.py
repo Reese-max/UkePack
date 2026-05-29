@@ -5,6 +5,7 @@ from __future__ import annotations
 from reportlab.lib import colors
 from reportlab.pdfgen import canvas as rl_canvas
 
+from app.arrangement.capo_advisor import suggest_capo
 from app.models.pack_request import PackRequest
 from app.render._layout import (
     _CONTENT_W,
@@ -53,6 +54,17 @@ def render_page1(c: rl_canvas.Canvas, req: PackRequest) -> None:
     c.setFillColor(colors.black)
     c.drawString(_MARGIN, y, "  ".join(unique) if unique else "（無和弦資料）")
     y -= 34
+
+    capo = suggest_capo(req.score)
+    if capo.capo_fret > 0:
+        section(c, "小手建議：夾 capo", y)
+        y -= 22
+        c.setFont(_ZH, 13)
+        c.setFillColor(colors.HexColor("#333333"))
+        c.drawString(
+            _MARGIN, y, f"夾 capo 第 {capo.capo_fret} 格，改彈 {'  '.join(capo.played_chords)}"
+        )
+        y -= 30
 
     if req.teacher_review and req.teacher_review.strum_notation:
         section(c, "建議刷法", y)

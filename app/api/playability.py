@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.arrangement.capo_advisor import suggest_capo
 from app.arrangement.chord_simplify import simplify as simplify_chord
+from app.arrangement.key_advisor import BEGINNER_FRIENDLY_CHORDS
 from app.arrangement.level_classifier import PlayabilityResult
 from app.models.score import Score
 from app.render.chord_diagram import get_fingering
@@ -17,7 +19,6 @@ _PLAYABILITY_FACTORS: tuple[tuple[str, str, int], ...] = (
     ("bpm", "速度", 10),
     ("layout_readability", "版面可讀性", 5),
 )
-_BEGINNER_FRIENDLY_CHORDS = frozenset({"C", "Dm", "Em", "F", "G", "Am", "A7", "D7", "G7"})
 
 
 def build_playability_payload(score: Score, result: PlayabilityResult) -> dict[str, Any]:
@@ -43,6 +44,19 @@ def build_playability_payload(score: Score, result: PlayabilityResult) -> dict[s
             for key, label, weight in _PLAYABILITY_FACTORS
         ],
         "chord_hints": _build_chord_hints(score),
+        "capo": _build_capo_payload(score),
+    }
+
+
+def _build_capo_payload(score: Score) -> dict[str, Any]:
+    """Serialize a capo suggestion for small hands (U1-b → analysis page / PDF)."""
+    recommendation = suggest_capo(score)
+    return {
+        "fret": recommendation.capo_fret,
+        "recommended": recommendation.capo_fret > 0,
+        "played_chords": recommendation.played_chords,
+        "hard_chords": recommendation.hard_chords,
+        "reason": recommendation.reason,
     }
 
 
@@ -106,7 +120,7 @@ def _classify_chord_hint(symbol: str, simplified: str) -> tuple[str, str, str, s
             f"原和弦先改成 {simplified}，孩子比較容易跟上。",
             simplified,
         )
-    if simplified in _BEGINNER_FRIENDLY_CHORDS:
+    if simplified in BEGINNER_FRIENDLY_CHORDS:
         return (
             "friendly",
             "可直接教",

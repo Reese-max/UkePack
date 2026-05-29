@@ -120,7 +120,7 @@
 - [x] U1-b capo 建議 + 小手替代指法（kids），加單元測試（26913fb：`app/arrangement/capo_advisor.py` suggest_capo / kid_friendly_substitution / hard_for_small_hands + 11 測試；pytest/ruff/mypy 三綠。K1 北極星：capo 讓小手孩子用簡單開放和弦彈）
 
 ### U2 匯入格式擴充（擴入口）
-- [ ] U2-a 支援 MIDI 匯入（music21 已可解析），補 ≥5 首 MIDI fixture + 成功率 ≥90% 測試
+- [x] U2-a 支援 MIDI 匯入（music21 已可解析），補 ≥5 首 MIDI fixture + 成功率 ≥90% 測試（726c1b2：`app/core/musicxml.py::parse_midi` + 6 首公版兒歌 corpus 成功率 100% + 7 tests，三綠。註：parser 層完成＝DoD；接進 /import 端點/UI 屬後續）
 - [ ] U2-b 支援純文字和弦譜 / ChordPro 匯入，補 fixture + 測試
 
 ### U3 練習包深化（縮短「能彈第一段」）

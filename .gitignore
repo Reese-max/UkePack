@@ -98,3 +98,4 @@ git-local3
 .tmp-dry-*.txt
 .tmp-wet-*.txt
 tmp-wet-*.txt
+program.md.bak-*

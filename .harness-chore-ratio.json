@@ -1,11 +1,11 @@
 {
-  "timestamp": "2026-05-28T16:03:00",
-  "total_24h": 2,
-  "chore_count": 0,
-  "ratio_percent": 0.0,
+  "timestamp": "2026-05-30T02:12:00",
+  "total_24h": 12,
+  "chore_count": 3,
+  "ratio_percent": 25.0,
   "micro_polish_ratio": 0.0,
-  "severity": "skip_low_sample",
+  "severity": "healthy",
   "warn_threshold": 30,
   "fail_threshold": 50,
-  "source": "manual-recompute (chore-ratio-sensor.sh not found on host); 24h window 2026-05-27T16:00..2026-05-28T16:03 = 41e77fb feat(render) U3-a + 8f26487 feat(starter-pack) U6-a; both feat + K1-aligned, 0 chore"
+  "source": "in-session git-log recompute (chore-ratio-sensor.sh not on host); window 2026-05-29T02:12..2026-05-30T02:12 = 12 commits (9 feat U-tasks + 3 chore(program) checkbox/evolve sync); prior .json was 34h stale reporting total_24h=2/skip_low_sample (sensor-stale anti-pattern, MISSION L65)"
 }

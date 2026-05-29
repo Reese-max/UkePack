@@ -128,7 +128,7 @@
 - [ ] U3-b 漸進 tempo（慢→原速）標示 + 練習進度頁，測試
 
 ### U4 PDF 輸出深化
-- [ ] U4-a Level 2/3 PDF 完整化（現 best-effort），補各 Level 生成成功率測試
+- [x] U4-a Level 2/3 PDF 完整化（現 best-effort），補各 Level 生成成功率測試（`_layout._LEVEL_PRACTICE_STEPS` + page4 改 level-tailored 練習序列（標題帶 Level N），Level 1/2/3 PDF 內容真正有別；新增 page4 各 level 差異測試 + 各 level × 3 fixture 渲染成功率 100% 測試，三綠）
 - [ ] U4-b 大字版 + 著色和弦圖（兒童友善）+ 家長指引頁，PDF 測試
 
 ### U5 參考音訊生成（直接服務北極星）

@@ -1,6 +1,7 @@
 """Tests for PDF rendering pipeline (program.md tasks 26-30)."""
 
 import io
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -18,10 +19,30 @@ from app.render.chord_diagram import generate_svg, get_fingering
 from app.render.pages import page1 as page1_module
 from app.render.pages import page2 as page2_module
 from app.render.pages import page3 as page3_module
+from app.render.pages import page4 as page4_module
 from app.render.pdf import render_pdf
 
 _FIXTURE_DIR = Path(__file__).parent / "fixtures"
 _SAMPLE_FIXTURES = sorted(_FIXTURE_DIR.glob("*.musicxml"))[:3]
+
+
+def _capture_drawn_strings(
+    render_fn: Callable[[rl_canvas.Canvas, PackRequest], None], req: PackRequest
+) -> list[str]:
+    """Render a page while capturing every drawString call's text."""
+    drawn: list[str] = []
+    buffer = io.BytesIO()
+    c = rl_canvas.Canvas(buffer)
+    original_draw = c.drawString
+
+    def _capture(x: float, y: float, text: str) -> None:
+        drawn.append(str(text))
+        original_draw(x, y, text)
+
+    c.drawString = _capture  # type: ignore[method-assign]
+    render_fn(c, req)
+    c.save()
+    return drawn
 
 
 class TestChordDiagram:
@@ -324,6 +345,49 @@ class TestRenderPdf:
         c.save()
 
         assert not any("capo" in t for t in drawn_texts)
+
+    def test_page4_practice_steps_differ_by_level(self) -> None:
+        """U4-a: page 4 practice steps are tailored per level, not Level-1-generic."""
+
+        def _steps(level: int) -> str:
+            score = Score(
+                title="Lv",
+                key="C major",
+                measures=4,
+                chords=[ChordEvent(symbol="C", measure=1, beat=1.0)],
+            )
+            req = PackRequest(title="Lv", level=level, score=score)
+            return "\n".join(_capture_drawn_strings(page4_module.render_page4, req))
+
+        level1 = _steps(1)
+        level3 = _steps(3)
+        assert "空刷" in level1
+        assert "錄音" in level3
+        assert level1 != level3
+
+    @pytest.mark.parametrize("level", [1, 2, 3])
+    def test_render_succeeds_for_each_level_across_fixtures(self, level: int) -> None:
+        """U4-a: every level renders a valid PDF across the whole sample corpus (100%)."""
+        rendered_ok = 0
+        for fixture_path in _SAMPLE_FIXTURES:
+            score = parse(fixture_path)
+            req = PackRequest(
+                title=score.title,
+                source_type="public_domain",
+                level=level,
+                score=score,
+                key_recommendation=suggest_key(score),
+                playability=classify(score),
+                strum_patterns=suggest_for_level(score, level),
+            )
+            try:
+                pdf = render_pdf(req)
+            except Exception:  # corpus-level success-rate measurement
+                continue
+            if pdf[:4] == b"%PDF" and len(pdf) > 500:
+                rendered_ok += 1
+        rate = rendered_ok / len(_SAMPLE_FIXTURES)
+        assert rate == 1.0, f"Level {level} PDF success rate {rate:.0%}"
 
 
 class TestTeacherReviewPdfOverrides:

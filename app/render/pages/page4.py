@@ -8,6 +8,7 @@ from reportlab.pdfgen import canvas as rl_canvas
 from app.models.pack_request import PackRequest
 from app.render._layout import (
     _CONTENT_W,
+    _LEVEL_PRACTICE_STEPS,
     _MARGIN,
     _PAGE_H,
     _ZH,
@@ -24,16 +25,10 @@ def render_page4(c: rl_canvas.Canvas, req: PackRequest) -> None:
     page_title(c, "老師 / 家長備註", y)
     y -= 44
 
-    section(c, "練習順序建議", y)
+    section(c, f"練習順序建議（Level {req.level}）", y)
     y -= 22
-    for step in [
-        "1. 先認識和弦，手指放對位置",
-        "2. 空刷節奏，習慣拍子",
-        "3. 單小節換和弦練習",
-        "4. 慢速配合節拍器",
-        "5. 加入歌曲段落",
-        "6. 完整演奏一遍",
-    ]:
+    steps = _LEVEL_PRACTICE_STEPS.get(req.level, _LEVEL_PRACTICE_STEPS[1])
+    for step in steps:
         c.setFont(_ZH, 12)
         c.setFillColor(colors.black)
         c.drawString(_MARGIN + 8, y, step)

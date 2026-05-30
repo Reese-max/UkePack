@@ -1,11 +1,12 @@
 {
-  "timestamp": "2026-05-30T02:12:00",
-  "total_24h": 12,
-  "chore_count": 3,
-  "ratio_percent": 25.0,
+  "timestamp": "2026-05-30T22:11:00",
+  "total_24h": 1,
+  "chore_count": 1,
+  "ratio_percent": 100.0,
   "micro_polish_ratio": 0.0,
-  "severity": "healthy",
+  "severity": "low_sample",
+  "min_sample": 3,
   "warn_threshold": 30,
   "fail_threshold": 50,
-  "source": "in-session git-log recompute (chore-ratio-sensor.sh not on host); window 2026-05-29T02:12..2026-05-30T02:12 = 12 commits (9 feat U-tasks + 3 chore(program) checkbox/evolve sync); prior .json was 34h stale reporting total_24h=2/skip_low_sample (sensor-stale anti-pattern, MISSION L65)"
+  "source": "in-session git-log recompute (chore-ratio-sensor.sh not on host); window 2026-05-29T22:11..2026-05-30T22:11 = 1 commit (5bbde48 chore governance rescue). prior 12-commit feat burst (9 U-tasks) aged OUT of the sliding window -> denominator collapsed to N=1. ratio_percent=100 is an N=1 artifact, NOT a chore crisis: queue empty (program.md+BACKLOG.md 0 open [ ]), auto-gated KPIs GREEN (K1 starter-pack <30min + DoD-2 corpus-E2E, 35 tests pass), only gaps owner-gated (K6/K7 frozen) -> legal idle. severity downgraded to low_sample per L074 window-degradation false-FAIL (global.md L2385); prior on-disk value (25%/healthy/02:12, 12-commit window) was ~20h stale -> refreshed per MISSION L65 sensor-stale rule."
 }

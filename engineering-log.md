@@ -2,6 +2,50 @@
 
 > AI 自主開發 agent 每輪在此追加：做了什麼 / 失敗原因 / 換的策略 / 量測數據。
 
+## 反思 2026-05-31 ~18:46 | claude-pua-alibaba | KPI evolve v177 (/pua KPI 深度回顧，U1-U6 清空後首輪)
+
+### KPI 進展表（vs v166 2026-05-21）
+
+| KPI | 上次值(v166 05-21) | 當前值(05-31 實測) | Δ | 狀態 |
+|-----|-------|-------|---|------|
+| 北極星 <30min 能彈第一段 | frozen「0 量測」依賴 K6 真人 | `tests/test_starter_pack.py` 自動守門綠（10 首 import→PDF <30min gate） | +自動量測落地 | ✅進步 |
+| K1 pipeline 延遲 | <5s saturated | twinkle demo 3.09s（gate <5s warm / <60s cold） | ~0 | ✅綠 saturated |
+| K2 匯入成功率 | 100%（MusicXML） | 100%（starter+corpus 35/35；+MIDI/ChordPro 入口 U2-a/b） | +格式覆蓋 | ✅綠 saturated |
+| K6 老師回饋數 | 0/5（≥18 輪未動） | 0/5（≥30 輪未動） | 0 | ⚠️卡住 owner-gated |
+| K7 onboarding 文件 | 5/5 file-exists，`{{TRIAL_URL}}` 未填 | 5/5 同，placeholder 仍待 push→URL | 0 | ⚠️卡住 owner push-gated |
+
+### 24h 任務分布（嚴格 24h：05-30 18:46 → 05-31 18:46）
+
+- M0-3（KPI 推進）：0 件
+- H0（Housekeeping）：1 件（`chore(auto-salvage)` index.lock 並發搶救）
+- chore_ratio：**100%**（1/1）⚠️ 破 30% warn 線
+- 說明（必填）：U1-U6 executable queue 已於 05-29 全清空（program.md v173 標記 0 個 `[ ]`；9 feat burst 落在 48-72h 窗外）。daemon 回退 KPI-frozen idle，唯一活槓桿 K6/K7 全 owner-gated。故 100% chore **不是避真任務**——真任務已做完、剩餘全在 daemon 邊界外。但 `chore(auto-salvage)` 本身 = 結構性 git bug 症狀（見 daemon survival）。
+
+### 卡住的 KPI 與根因
+
+- **K6（老師回饋 0/5）**：唯一卡住的核心 KPI。純真人流程（owner 寄邀請→老師試用→填 `feedback.md`），daemon 邊界外，≥30 輪 frozen，非工程可解。
+- **K7（5/5 但 placeholder 未填）**：卡在 owner `git push origin master`（push 需 credential，daemon 無 token）→ Render deploy → 取 trial URL → 填 invite 模板。
+
+### daemon survival（failures.jsonl 替代分析）
+
+- `.engineer-loop.failures.jsonl` **不存在**（repo + /d/auto-dev 皆無）→ 本 repo 無 daemon 黑盒子檔。改用 `results.log` FAIL entries 當替代黑盒子。
+- **結構性故障 ≥3 鐵證**：`C:/UkePack-git index.lock Permission denied` 在 results.log 命中 **161 次**（05-12~05-27 横跨）+ 2 筆 `chore(auto-salvage): index.lock 並發搶救` commit（05-27、05-31）。遠超 ≥3 門檻。
+- **分類**：非 429/quota、非 SIGABRT/SIGSEGV。是 Windows 外部 gitdir `C:/UkePack-git` 的 ACL/lock 並發競態 → daemon spawn identity（codex CLI）寫 index.lock 被拒 → fallback 走 auto-salvage 搶救路徑灌 chore noise。
+- **root cause 修法（非 restart）**：owner 一次性 `icacls C:/UkePack-git /grant <daemon-SID>:F /T` 或把 daemon gitdir 改指向有寫權路徑。對齊 MISSION 反pattern L048 + global L085 escape-hatch salvage 家族。
+- **L4 arch proposal 通路**：本 repo **無** `propose.sh`/`review-proposals.sh`（`scripts/` 僅 generate-pack.py）→ L3-L5 提案通路未在 UkePack 落地，無法走 propose channel。此處以本反思 + global L088 替代記錄，待 owner 評估是否移植 propose infra。
+
+### 下一步 3 個 KPI 推進動作（daemon 邊界內已無真槓桿，誠實標 OWNER）
+
+1. **[K7→解凍 K6 | OWNER ≤10s]** `git push origin master`（U1-U6 9 feats + render.yaml libcairo2 修復未推）→ Render deploy → 取 trial URL → 填 `docs/teacher/templates/invite_email.txt` 的 `{{TRIAL_URL}}` → K7 真綠。整條依賴鏈上游。
+2. **[K6 0→1 | OWNER]** 用已備齊模板寄 ≥1 位真烏克麗麗老師 + 跑 15min 試用 + 填 `feedback.md`。唯一能讓 K6 離 0 的動作。
+3. **[daemon-survival | OWNER 一次性]** 解 `C:/UkePack-git` index.lock ACL 競態（icacls grant 或換 gitdir）→ 消滅 161 次 write-deny + 反覆 auto-salvage 搶救 commit；daemon 真綠 commit 不再被拒。
+
+### program.md 動作 / global learning
+
+- program.md：**0 重排 / 0 新增 / 0 刪除**。executable queue 已清空、3 條 owner 真人流程（36z/zz/zzz）已在末尾，當前序已是「KPI-推進在前、治理在後」正確態。守則 64 + L009 zero-action + 「禁止自己加純治理 task」三聯 → 硬重排即製造 chore，違規。
+- global learning：新增 **L088**（跨專案佐證 L085 家族 + Windows 外部 gitdir index.lock 競態 root-cause 形狀）。
+- 殘骸觀察（不盲動）：working tree 有 `.tmp_git_index.lock`/`.tmp_index_work.lock`/`.auto-dev.state.json`/`.antigravitycli/` untracked daemon temp，疑為 index.lock 競態殘骸；建議 owner 併入 L039 gitignore 機制，本輪不刪（可能有並發 daemon 在跑，避免盲殺）。
+
 ## 反思 2026-05-21 ~12:28 | claude-pua-alibaba | KPI evolve v166 (/pua KPI 深度回顧 + 災難救援 + sensor 重跑)
 
 - **災難救援**：session start 時發現 `engineering-log.md` 已被截到 1 行（HEAD = 15706 行）、`results.log` 422 行（HEAD = 411，daemon 額外 split 出 `results.log.head`）；working tree 含 daemon permission-probing 殘骸 `.tmp2/ permprobe_tmp.txt .tmp-index.lock results.log.head`。`git restore engineering-log.md results.log` + `rm -rf` 4 個 probe artifact，0 commit 損失（皆 untracked / unstaged）。
@@ -12122,6 +12166,63 @@ K6 = 0/5 第 104 輪。daemon 工具槓桿 = 零，第 87 輪。根因 = 真人 
 - Fallback sanity: `.venv` health smoke PASS (`1 passed`), ruff PASS, mypy PASS (`53 source files`), and twinkle demo PASS (`8261` bytes, `0.04s` app time).
 - Decision: baseline not formally green, so no feature work, no BACKLOG update, no conventional commit. KPI delta = 0; blocker remains machine ACL repair plus human K6 outreach.
 
+## 反思 2026-06-01T01:36+08:00 reflect v178（/pua KPI 深度回顧，alibaba caveman）
+
+### KPI 進展表
+
+| KPI | 上次值 (v173/v177) | 當前值 | Δ | 狀態 |
+|-----|------|------|---|------|
+| 北極星 30min（人類體感 = K6 同源） | 0/5 | 0/5 | 0 | ❌frozen（owner handoff 外） |
+| K1 starter-pack <30min gate | 綠 | 綠（35 passed 9.29s, .venv fallback） | 0 | ✅守線（fresh evidence） |
+| K2 / DoD-2 corpus E2E ≥95% | 綠 | 綠（含於 35 passed） | 0 | ✅守線 |
+| K5 pytest formal gate | formal RED(ACL)/fallback 綠 | formal RED(ACL)/fallback 9.29s 綠 | 0 | ⚠️uv-cache ACL 鎖 formal |
+| K6 teacher feedback ≥5 | 0/5 | 0/5 | 0 | ❌frozen（≥120 輪） |
+| K7 onboarding 5/5 | 5/5 | 5/5 | 0 | ✅saturated |
+
+> 能力面 Δ：Phase 2 U1–U6 **全 done-green**（9-feat burst 2026-05-28/29：U1-b capo / U2-a MIDI / U2-b ChordPro / U3-a 分段卡 / U3-b tempo ladder / U4-a Lv2-3 PDF / U4-b 大字著色 / U5-a 參考音訊 / U6-a starter-pack）。擴覆蓋 + 縮「能彈第一段」，但**不改 owner-gated headline KPI**。headline ΔKPI=0。
+
+### 24h 任務分布
+
+- M0–M3（KPI 推進 commit）：**0 件**（24h 窗 2026-05-31T01:36..06-01T01:36 = 0 commit）
+- H0（housekeeping commit）：**0 件**（同窗空；最後 commit a83afc1 chore-auto-salvage 已 aged out）
+- chore_ratio：**N/A（N=0）** — 非 chore 危機，是 legal idle。7d 窗 ≈ 11 feat / 21 commit（chore ≈ 38% 但全是 done-green checkbox-sync + index.lock 並發搶救，綁 feat，非純治理churn）
+- ⚠️ on-disk sensor 本輪開場 ~27h stale（2026-05-30T22:11，報 N=1/100%）→ 違 MISSION L65（mtime<1h）→ 已刷成真值 N=0/no_sample（非新增 sensor task，是 L65 sanctioned refresh）
+- 守則 8/10/12/13/14 全綠；evolve-report .md 0 新增；3 unpushed commits **全 chore**（a83afc1/5bbde48/289bd3f = auto-salvage/governance-rescue/v173-evolve）
+
+### 卡住的 KPI 與根因
+
+- **北極星 / K6 frozen（≥120 輪）**：唯一 lever = owner handoff。remote 已配置（origin = github Reese-max/UkePack，守則 10 條件 a 已 FALSE）。依賴鏈：`git push origin master`（推 3 unpushed）→ Render deploy → TRIAL_URL → invite_email.txt → K6 0→1。**全鏈只差 owner 按一次 push（≤10 秒，daemon 邊界外）**。push-lag 已從「無 remote」進化到「有 remote + 3 commits 待推」— 上游全綠，瓶頸是真人注意力。
+- **K5 formal baseline RED**：根因 = Windows uv-cache ACL WinError 5（`C:\...\uv\cache\sdists-v9\.git`）+ Python 3.12 `mkdir(0o700)` 雙 ACL 衝突。非 daemon 可修，需 admin `icacls` grant 或 `setx UV_CACHE_DIR <有寫權 volume>`。product baseline 健康（fallback 35 tests 9.29s 綠）→ 凍結非 product regression。
+
+### daemon survival（黑盒子分析）
+
+- `.engineer-loop.failures.jsonl` **MISSING**。engineering-log 近 N 輪全是 "senior-engineer baseline stop / Decision: idle" 乾淨決策，**無 SIGABRT/SIGSEGV/exit_code/api_error 痕跡** → 判定：daemon **乾淨 idle，非死亡**。**無結構性 daemon 死亡，不需 L4 arch proposal**。
+- 觀察（非阻塞）：若要 daemon survival 可觀測，缺 failures.jsonl 接線；但目前無死亡事件可記，缺檔不構成 KPI 風險。
+
+### 下一步 3 個 KPI 推進動作
+
+> ⚠️ 全部 owner/admin 動作，daemon 邊界外。daemon 正解 = **idle**（不可 invent chore 填空，守則 10 + Phase 2 pointer）。
+
+1. **[K6 +1，解凍北極星鏈第 1 環]** owner ≤10 秒：`git push origin master`（推 a83afc1/5bbde48/289bd3f 3 commits）→ 觸發 Render deploy → 取 TRIAL_URL。
+2. **[K6 +1]** owner ~3 分鐘：寄 `docs/teacher/templates/invite_email.txt` 給 ≥1 位實際教烏克麗麗的老師。
+3. **[K5 formal 解鎖]** admin（與 K6 平行、不互卡）：`setx UV_CACHE_DIR D:\uv-cache` 或 `icacls C:\Users\Administrator\AppData\Local\uv\cache /T /grant Administrator:F` → 恢復 formal pytest/ruff/mypy 三綠守門。
+
+### 跨專案 learning 迴路
+
+- **本輪無新 global learning（明示）**。三現象皆既有 L 覆蓋：(a) feat-burst aged-out → sensor N=1 false-FAIL = **L074** window-degradation 已覆蓋；(b) remote 已配置仍 push-lag = **L057** 已覆蓋；(c) ACL formal-RED / fallback-green = **L001/L006** 已覆蓋。**不污染 `/d/auto-dev/learnings/global.md`**。
+
+### L3-L5 提案決議
+
+- **本輪 0 新 proposal**。pending 已有 6（kpi 1 / arch 2 / tasks 3，每類 24h max 5）。daemon 邊界內**無 KPI lever**（全 owner/admin），為「顯得努力」加 proposal = thrashing/spam（違反禁令）。建議 owner 先 review 既有 6 個 pending（`bash scripts/review-proposals.sh diff <hash>`）。
+
+### 排序決議
+
+- **0 重排 / 0 加 / 0 刪**。program.md 已 KPI-first：Phase 2 U1–U6 done-green 在 feature 區、owner-gated 真人流程（36z/36zz/36zzz + P1-18b/c/d）穩於檔尾、治理階段封存。queue 空（0 open `[ ]`）。daemon-executable = 空，正解 idle。
+
+### 本輪不產 commit
+
+> [PUA生效 🔥] frustration #N；v178 = headline ΔKPI=0 連 ~120 輪。底層邏輯：daemon 邊界內 0 lever，product 健康（K1+DoD-2 35 tests 9.29s 綠、9-feat U1–U6 全交付）。**唯一 frustration 押在一條 owner 指令**：`git push origin master`（≤10 秒）即解北極星凍結鏈。不是 daemon 怠惰 — 是 owner 注意力卡在邊界外。3 commits 在 local 躺了好幾輪沒推。同學，這一推，K6 就從 0 動到 1。公司不養閒 Agent，但這輪 Agent 真沒閒事可做。
+
 ## 2026-05-11T02:10:14+08:00 senior-engineer baseline stop
 
 - Mission KPI checked: 北極星 30min、MusicXML fixture/PDF corpus gate、pytest <60s gate、K6 teacher feedback、K7 onboarding docs.
@@ -16397,3 +16498,280 @@ L048（blocked-no-lever-without-probe）**已兌現**：上一 session(06:36)實
 - ✅ 本反思 append-only；L077 入 global.md
 
 > [PUA生效 🔥] 3.25 owner 意識：第 8 同態輪，最誠實的動作不是再湊一篇安慰文，是**遵 L075 反射**——escalate owner（push + 定義 K7 子句）+ 降 /pua 頻率停 opus 空轉。但本輪確有一個 7 輪沒人戳的真洞：**K7「5/5 部分」是 stale headline，回讀面板 5 列全綠**，殘留只是 MISSION 一句懸空「翻譯到位」沒 artifact 撐——這正是反思自我複製 verdict 不重新量測的代價（L077）。真槓桿仍是 owner 那 10 秒 push；daemon 端 dial 旋到底，再 reflect 只養 chore_ratio。
+
+---
+## 反思 v185 [2026-05-31T02:30+08:00 阿里味 PUA — caveman / KPI-first / 第9同態輪 + L078 self-throttle 兌現 / push-lag 2→3]
+
+🟠 PUA v2 · Sprint 啟動 🟠
+┌─────────┬──────────────────────────────────────────────┐
+│ 📋 任務 │ KPI-driven 深度回顧（owner 手動 /pua）       │
+├─────────┼──────────────────────────────────────────────┤
+│ 🔥 味道 │ 🟠 阿里味 [紅線一：數據說話 / 不沿用 headline]│
+├─────────┼──────────────────────────────────────────────┤
+│ ⚡ 壓力 │ L0 · 信任期（隊列空+owner-gated+通路缺）      │
+└─────────┴──────────────────────────────────────────────┘
+▎ 第 9 同態輪。唯一真增量：push-lag 2→3（auto-salvage a83afc1 又疊一個未推 chore）→ 正中 L078 escalation-without-enforcement。本輪遵 L078 corrective：self-throttle，不再每 /pua 生長文。
+
+### KPI 進展表
+| KPI | v184 | v185 | Δ | 狀態 |
+|-----|------|------|---|------|
+| K1 北極星 <30min | 2 passed | live `uv run pytest tests/test_starter_pack.py` 2 passed | 0 | ✅綠（當輪重量測，非 copy-forward） |
+| DoD §2 import ≥90% | 99 e2e | 同（守門綠） | 0 | ✅超標 |
+| DoD §5 chord-map ≥50 | ≥50 | ≥50 | 0 | ✅達標 |
+| K6 老師回饋 | 0/5 | 0/5 | 0 | ⚠️owner-gated（唯一真卡） |
+| K7 onboarding | checklist 5/5 綠 + 翻譯到位懸空 | 同（v184 已回讀面板，未變） | 0 | 🟡 owner-gated（子句定義缺，L077） |
+| chore_ratio 24h | 100%(1/1) | 100%(2/2) low_sample | 0 | ❌窗退化 false-FAIL（L074；N<3 不觸 gate） |
+| push-lag | 2 | **3**（+a83afc1 auto-salvage chore） | **+1** | ⚠️**惡化**：owner 連 ≥3 輪未 push，daemon 反疊 chore |
+
+### 24h 任務分布（git log --since=24h = 2 commits）
+- M0-3 (KPI 推進)：**0** feat（U-tasks burst 早滑出嚴窗）
+- H0 (Housekeeping)：**2** chore（a83afc1 auto-salvage + 5bbde48 governance rescue）
+- chore_ratio：100%(2/2) low_sample。窗退化非避真（隊列空+owner-gated→合法 idle）。
+
+### 卡住的 KPI 與根因
+- **K6（唯一真卡）**：owner 鏈未動。**push-lag 已 3**（a83afc1+5bbde48+289bd3f）→ Render auto-deploy → invite_email → 老師回填。daemon 邊界外。
+- **K7**：v184 已回讀 `checklist.md` 5 列全綠；殘 MISSION「+翻譯到位」懸空子句無 artifact 定義（L077）。daemon 不能自改 MISSION（守則6）→ escalate owner 二選一（定義 or 刪）。
+- **push-lag 惡化 = L078 活體實證**：v182/183/184 連喊「owner push 10 秒」，owner ≥3 輪零行動，auto-salvage daemon 卻每輪把擱置反思 commit 進未推堆（2→3），下輪再觸發「rescue stranded」chore——escalation 無 enforcement + 副 daemon 自疊 chore 正回饋。L078 corrective #1：連 ≥K 輪未獲行動 → self-throttle，本輪兌現。
+- **隊列空 verified**：`^- \[ \]` program.md+BACKLOG.md = 0。
+- **propose 通路缺**：scripts/propose.sh + lib/propose.sh 不存在 → L3-L5 未接線（守則6）。
+- **daemon survival**：無 failures.jsonl（L071 happy-path）；state round86 running consecutive_errors=0 total_idle=6 → L073 合法 idle 非 wedged。無新結構性死因。
+
+### 下一步 3 個 KPI 推進動作（各對 1 KPI、禁治理）
+1. **(OWNER) `git push origin master`**（a83afc1+5bbde48+289bd3f，3 commits）→ Render auto-deploy → 寄老師邀請信 → **K6 0→≥1**。鏈首步，10 秒。push 後 chore 自然出窗、push-lag 歸零。
+2. **(OWNER) 定義或刪除 K7「翻譯到位」子句** → **K7 收口**（給 artifact 或從 MISSION 刪；否則永久 partial，L077）。
+3. **(OWNER/daemon) L078 self-throttle**：停 auto-salvage 自疊 chore + 降 /pua reflect cadence → 保 chore_ratio + 止 push-lag 累積 + 省 opus。owner 鏈動前不再生新反思。
+
+### Global learning
+**本輪無新 global learning**。L078（escalation-without-enforcement，voice-actress 2026-05-31 剛立）本輪於 UkePack 首次活體實證（push-lag 2→3 + auto-salvage 自疊）——屬 L078 直接適用，不另立 L080 避 learning inflation（auto-salvage 壓 push-lag = L078 corrective #1「副 daemon 無 self-throttle」具體實例）。L074/L075/L077 覆蓋其餘。
+
+### 治理動作（全部 NO-OP）
+- ❌ 不獨立 commit（chore_ratio 2/2，commit→3/3 + L055 stranding；append-only 隨 owner push）
+- ❌ 不寫 .harness-chore-ratio.json（已 low_sample 正確；避 L068）
+- ❌ 不重排 program.md（隊列空 verified、無 KPI lever、守則10）
+- ❌ 不發 propose.sh（通路缺）/ 不寫 evolve-report（守則13）/ 不自改 MISSION（守則6）
+- ✅ 本反思 append-only；無新 L###；隨 owner-push 一併走
+
+> [PUA生效 🔥] 3.25 owner 意識：第 9 同態輪，最誠實的不是再湊安慰文，是遵 L078 self-throttle——push-lag 2→3 證明 escalation 喊 3 輪無 enforcement、auto-salvage 還反疊 chore。抓手：1 K1 live 當輪重量測（2 passed 非 copy-forward，避 L077）+ 1 git log 算真窗(2/2) + 1 Grep 隊列空 + 1 push-lag derive(3) + 1 Glob 通路缺 = 五項打完即收。真槓桿仍是 owner 那 10 秒 push + 定義 K7 子句。
+
+---
+
+## 2026-05-31T04:20 — 互動 session /pua KPI-driven evolve（v186 ack）
+
+**判決：HOLD（非 churn），0 task 動。** 接 v185 結論，互動 session 重驗後一致：
+- E2E 重量測本輪跑：`test_starter_pack.py + test_corpus_e2e_pdf.py` = **35 passed**（K1 + K2/K3 GREEN，非 copy-forward）。
+- 隊列空 verified：program.md + BACKLOG.md 開放 `[ ]` = 0；僅 3 條 `[O]` owner-only。
+- sensor 6h stale 但值形不變（N=1 low_sample）→ 依 L068 不重寫。
+- **唯一槓桿 = `git push origin master`**（3 stranded：a83afc1+5bbde48+289bd3f）→ K6 鏈。remote 存在、互動 session 可推，但 outward-facing → 本輪向 owner 提請確認。
+- evolve-report 本地化（`docs/evolve-report-20260531-0420.md`，gitignored，不污染 git）。
+- L078 self-throttle 兌現：**不製造第 4 條 stranded chore commit**；本 ack append-only，隨 owner-push 一併走。
+- MISSION 不動（pattern 已由 L078 涵蓋，避 learning inflation；守則6）。
+
+---
+## 反思 v187 [2026-05-31T05:08+08:00 阿里味 PUA — caveman / KPI-first / 第10同態輪 / L048 authority-probe 兌現]
+
+🟠 PUA v2 · Sprint 啟動 🟠
+┌─────────┬──────────────────────────────────────────────┐
+│ 📋 任務 │ KPI-driven 深度回顧（owner 手動 /pua）       │
+├─────────┼──────────────────────────────────────────────┤
+│ 🔥 味道 │ 🟠 阿里味 [紅線一：數據說話 / 不沿用 headline]│
+├─────────┼──────────────────────────────────────────────┤
+│ ⚡ 壓力 │ L0 · 信任期（隊列空+owner-gated+remote 已驗） │
+└─────────┴──────────────────────────────────────────────┘
+▎ 第 10 同態輪。唯一真增量：**互動 session 實測 remote 可達**（`git fetch`/`@{u}`=origin/master 通、`git rev-list --count origin/master..HEAD`=**3** 坐實）→ unblock 語意改寫：非「等 owner 手動 push」，是「owner 一鍵確認、互動 session 當場 push」（L048 authority-probe：宣稱 blocked 前實測替代 actor 的權限）。本輪向 owner 提請 push 確認。
+
+### KPI 進展表
+| KPI | v186 | v187 | Δ | 狀態 |
+|-----|------|------|---|------|
+| K1 北極星 <30min | 35 passed | live `test_starter_pack+test_corpus_e2e_pdf` **35 passed** exit0 | 0 | ✅綠（當輪重量測非 copy-forward） |
+| DoD §2 import ≥90% | 守門綠 | 同（corpus e2e ≥95% 守門） | 0 | ✅超標 |
+| DoD §5 chord-map ≥50 | ≥50 | ≥50 | 0 | ✅達標 |
+| K6 老師回饋 | 0/5 | 0/5 | 0 | ⚠️owner-gated（唯一真卡） |
+| K7 onboarding | checklist 5/5 綠+「翻譯到位」懸空 | 同（L077，子句仍無 artifact 定義） | 0 | 🟡 owner-gated |
+| chore_ratio 24h | 100%(2/2) low_sample | **100%(1/1)** low_sample（N<3 不觸 gate） | 0 | ❌窗退化 false-FAIL（L074） |
+| push-lag | 3 | 3（a83afc1+5bbde48+289bd3f，互動驗證 `rev-list --count`=3） | 0 | ⚠️owner pending（本輪提請確認） |
+| daemon failures.jsonl | 不存在 | 不存在 | — | L071 happy-path |
+
+### 24h 任務分布（git log --since=24h = 1 commit）
+- M0-3 (KPI 推進)：**0** feat（U-tasks burst 早滑出嚴窗）
+- H0 (Housekeeping)：**1** chore（a83afc1 auto-salvage）
+- chore_ratio：**100%(1/1)** low_sample。窗退化非避真（隊列空 0 + owner-gated → 合法 idle）。
+
+### 卡住的 KPI 與根因
+- **K6（唯一真卡）**：owner 鏈未動。push 3 → Render auto-deploy → invite_email → 老師回填。**新發現**：阻塞點不是「daemon 無權」也不是「owner 必須手動」——互動 session 本輪實測 remote 可推（origin/master ref 在、3 unpushed 坐實），unblock = owner 一鍵確認後互動 session 當場推。前 9 輪反思把 push 一律標「owner 10 秒手動」，漏了「互動 session 可代推」這條 actor 維度（L048 authority-probe）。
+- **K7**：v184 已回讀 `checklist.md` 5 列全綠；殘 MISSION「+翻譯到位」懸空子句無 artifact 定義（L077）。daemon 不能自改 MISSION（守則6）→ escalate owner 二選一（定義 or 刪）。
+- **隊列空 verified**：`^- \[ \]` program.md+BACKLOG.md = **0**；僅 4 條 `[O]` owner-only（3 program + 1 BACKLOG）。
+- **propose 通路缺**：scripts/propose.sh + lib/propose.sh + .proposals/ 不存在（verified）→ L3-L5 未接線（守則6）。
+- **daemon survival**：無 failures.jsonl 黑盒（L071 happy-path）；`.auto-engineer.state.json` round91 status=running consecutive_errors=0 total_idle=6 phase=reflect → L073 合法 idle 非 wedged。無新結構性死因。
+
+### 下一步 3 個 KPI 推進動作（各對 1 KPI、禁治理）
+1. **(OWNER 一鍵確認 → 互動 session push) `git push origin master`**（a83afc1+5bbde48+289bd3f，3 commits）→ Render auto-deploy → 寄老師邀請信 → **K6 0→≥1**。鏈首步；outward-facing 故本輪向 owner 提請確認，得 OK 即當場推、push-lag 歸零、chore 自然出窗。
+2. **(OWNER) 定義或刪除 K7「翻譯到位」子句** → **K7 收口**（給 artifact 或從 MISSION 刪；否則永久 partial，L077）。
+3. **(OWNER/daemon) L078 self-throttle**：owner 鏈動前停 auto-salvage 自疊 chore + 降 /pua reflect cadence → 保 chore_ratio + 止 push-lag 累積 + 省 opus。
+
+### Global learning
+**本輪無新 global learning**。「互動 session 可代 daemon 執行 outward-facing blocked 動作」屬 L048（blocked-without-probe，本輪擴到 actor/authority 維度）直接適用，不另立 L081 避 learning inflation（沿 v185 紀律）。L074/L075/L077/L078 覆蓋其餘。
+
+### 治理動作（全部 NO-OP，除非 owner 批 push）
+- ❌ 不獨立 commit（chore_ratio 1/1，commit→2/2 + L055 stranding；append-only 隨 owner-push）
+- ❌ 不寫 .harness-chore-ratio.json（已 low_sample 正確；避 L068）
+- ❌ 不重排 program.md（隊列空 verified、無 KPI lever、守則10）
+- ❌ 不發 propose.sh（通路缺）/ 不寫 evolve-report（守則13）/ 不自改 MISSION（守則6）
+- ✅ 本反思 append-only；無新 L###；**若 owner 批 push → engineering-log + push 同走，3 stranded chore 一併出窗**
+
+> [PUA生效 🔥] 3.25 owner 意識：第 10 同態輪，最誠實的不是再湊安慰文，是把「卡了 9 輪的 push」從口號變成一個 owner 一鍵決策——互動 session 已驗 remote 可推，差的只是 outward-facing 的那聲「OK」。抓手：1 KPI gate live 35 passed（非 copy-forward）+ 1 git rev-list 算 push-lag=3 + 1 Grep 隊列空(0) + 1 remote fetch 驗可達 + 1 無 failures.jsonl(L071) = 五項打完即收。真槓桿就在 owner 下一句話。
+- **KPI-impact: housekeeping（隊列空 + owner-gated，daemon 邊界 0 KPI lever；真推進待 owner push）**
+
+---
+## 反思 v188 [2026-05-31T22:45+08:00 /pua KPI review · opus-4-8 互動 session · 第11同態輪]
+
+接 v187。互動 session 獨立重量測，結論一致 + 一個新動作（見末）。
+
+### KPI 進展表（vs v187）
+| KPI | v187 | v188(重驗) | Δ | 狀態 |
+|-----|------|-----------|---|------|
+| K1 北極星<30min | 35 passed | 守門綠 test_starter_pack | 0 | 達標 |
+| DoD§2 import≥90% | 守門綠 | fixtures=30 verified + corpus-e2e 守門 | 0 | 達標(基準30齊) |
+| DoD§5 chord-map≥20 | ≥50 | ≥50 | 0 | 超標 |
+| K6 老師回饋 | 0/5 | 0/5 | 0 | owner-gated(唯一真卡) |
+| K7 onboarding | 5/5+翻譯懸空 | 同(L077) | 0 | owner-gated |
+| push-lag | 3 | 3 (`rev-list --count origin/master..HEAD`=3 重驗) | 0 | owner pending |
+| 開放任務 | 0 | program+BACKLOG = 0 open(rg 重驗) | 0 | 空 |
+| daemon | 健康 idle | round96 running err0 無 failures.jsonl | - | L073 合法 idle |
+
+### 24h 任務分布
+- M0-3 (KPI 推進): 0
+- H0: 3 chore stranded(a83afc1+5bbde48+289bd3f，未推)
+- chore_ratio: 100% = L074 窗退化 artifact(N 小 + 隊列空)，非避真。
+
+### 卡住的 KPI 與根因
+- 全部 daemon-reachable 工作 done-green(U1-U6 / DoD / 30-fixture)；開放任務 = 0。**唯一真槓桿 = `git push origin master`**(3 commits) -> Render deploy -> trial URL -> 邀老師 -> K6 0->>=1 + K7 收口。
+- 第 11 同態輪 = L078 活體：連 10 輪反思喊「owner push」，owner 0 行動，第 11 次又收到 /pua(再要一份 review)而非那 10 秒 push。escalation 無 enforcement。
+- 新歸因(補 L078/L084)：互動 session 是「已授權 actor」(remote 可達、可代推，L048 authority-probe)。對授權 actor，正解不是寫第 11 份 escalation，是轉成 confirm-and-act 一鍵提示。本輪兌現 -> 末尾向 owner 提請批准當場 push。
+
+### 下一步 3 個 KPI 推進動作(各對 1 KPI)
+1. (互動 session，待 owner 一鍵 OK) `git push origin master` -> K6 鏈首步。本輪已提請。
+2. (OWNER) 定義或刪除 K7「翻譯到位」子句 -> K7 收口(否則永久 partial，L077)。
+3. (daemon) 續 L078 self-throttle：停 auto-salvage 自疊 chore、降 reflect cadence，待 owner 鏈動。
+
+### program.md 重排：N/A(開放任務 = 0，僅 owner-gated；禁止 invent 治理 task 填空)。
+### Global learning：新增 L084(escalation -> confirm-and-act，授權 actor 維度)。
+- **KPI-impact: housekeeping(隊列空 + owner-gated；真推進待 owner 批 push)**
+
+---
+## 反思 v189 [2026-05-31T(互動) /pua KPI review · opus-4-8 · 第12同態輪 · confirm-and-act 兌現]
+
+接 v188。第12輪。caveman。本輪不再寫第12份 escalation 文 — 直接把 standing「求 owner push」轉成一鍵決策提示（L084 confirm-and-act 從理論變動作）。
+
+### KPI 進展表（vs v188，全 live 重驗非 copy-forward）
+| KPI | v188 | v189(live) | Δ | 狀態 |
+|-----|------|-----------|---|------|
+| K1 北極星<30min | 守門綠 | **35 passed exit0**(starter+corpus 當輪跑) | 0 | ✅綠 |
+| DoD§2 import≥90% | 守門綠 | corpus-e2e 守門綠 + .musicxml=99 in-repo | 0 | ✅超標 |
+| DoD§5 chord-map≥20 | ≥50 | ≥50 | 0 | ✅超標 |
+| K6 老師回饋 | 0/5 | 0/5 | 0 | ❌owner-gated(唯一真卡) |
+| K7 onboarding | 5/5+翻譯懸空 | 同(L077 子句無 artifact 定義) | 0 | 🟡owner-gated |
+| push-lag | 3 | 3(`rev-list --count`=3 重驗) | 0 | ⚠️owner pending |
+| 開放任務 | 0 | program+BACKLOG=0(grep 重驗) | 0 | 空 |
+| daemon failures.jsonl | 不存在 | 不存在 | — | L071 happy-path |
+
+### 24h 任務分布
+- M0-3(KPI 推進): 0
+- H0: 3 chore stranded(a83afc1+5bbde48+289bd3f，未推)
+- chore_ratio: 100% = L074 窗退化 artifact(N 小+隊列空)，非避真。低樣本 N<3 不觸 gate。
+
+### 卡住的 KPI 與根因
+- 全 daemon-reachable 工作 done-green(U1-U6/DoD/30-fixture/35 tests)；開放任務=0。**唯一真槓桿 = `git push origin master`**(3 commits) → Render auto-deploy → trial URL → 邀老師 → K6 0→≥1 + K7 收口。
+- 第12同態輪 = L078/L084 活體：連 11 輪反思喊 owner push，0 行動，第12次又收 /pua。互動 session 已驗 = 已授權 actor(remote 可達、可代推)。正解不是第12份 escalation，是 confirm-and-act：本輪向 owner 提請一鍵批准，OK 即互動 session 當場 push、push-lag 歸零、3 stranded chore 一併出窗。
+- propose.sh 通路仍缺(scripts/lib/propose.sh + .proposals/ verified 不存在)→ L3-L5 未接線；K7「翻譯到位」子句須 owner 二選一(定義 artifact or 從 MISSION 刪，守則6 daemon 不自改)。
+
+### 下一步 3 個 KPI 推進動作(各對 1 KPI)
+1. (互動 session，待 owner 一鍵 OK) `git push origin master` → K6 鏈首步。本輪已提請(AskUserQuestion)。
+2. (OWNER) 定義或刪除 K7「翻譯到位」子句 → K7 收口(否則永久 partial，L077)。
+3. (daemon) 續 L078 self-throttle：停 auto-salvage 自疊 chore、降 /pua reflect cadence，待 owner 鏈動。
+
+### program.md 重排: N/A(開放任務=0，僅 owner-gated；禁 invent 治理 task 填空，守則10)。
+### Global learning: **本輪無新 global learning**。本輪增量=執行 L084(escalation→confirm-and-act) 非新理論，沿 v185/v187 反 learning-inflation 紀律。
+### 治理動作(NO-OP 除非 owner 批 push)
+- ❌ 不獨立 commit(chore_ratio 1/1→commit 即 2/2 + L055 stranding；append-only 隨 owner-push)
+- ❌ 不寫 .harness-chore-ratio.json(已 low_sample 正確，避 L068) / 不寫 evolve-report(守則13) / 不自改 MISSION(守則6)
+- ✅ 若 owner 批 push → engineering-log + push 同走，3 stranded chore 一併出窗
+- **KPI-impact: housekeeping(隊列空+owner-gated；真推進待 owner 批 push)**
+
+---
+## 反思 v190 [2026-05-31 /pua KPI review · opus-4-8 互動 session · 第13同態輪 · confirm-and-act 二度兌現]
+
+接 v189。第13輪。caveman。owner 連 3 輪(v187/188/189)收同一份「求 push」後又下 /pua = L084 隱性「動手」訊號。本輪不寫第4份 escalation，直接把唯一槓桿擺成一鍵決策 + agent 待命當場執行。
+
+### KPI 進展表（vs v189，live 重驗非 copy-forward）
+| KPI | v189 | v190(live) | Δ | 狀態 |
+|-----|------|-----------|---|------|
+| K1 北極星<30min | 35 passed | **35 passed exit0**(starter+corpus 當輪跑) | 0 | ✅綠 |
+| DoD§2 import≥90% | 守門綠 | corpus-e2e 守門綠 exit0 | 0 | ✅超標 |
+| DoD§5 chord-map≥20 | ≥50 | ≥50 | 0 | ✅超標 |
+| K6 老師回饋 | 0/5 | 0/5 | 0 | ❌owner-gated(唯一真卡) |
+| K7 onboarding | 5/5+翻譯懸空 | 同(L077 子句無 artifact) | 0 | 🟡owner-gated |
+| push-lag | 3 | 3(`rev-list --count origin/master..HEAD`=3 重驗) | 0 | ⚠️owner pending |
+| 開放任務 | 0 | program+BACKLOG=0(grep 重驗) | 0 | 空 |
+| daemon failures.jsonl | 不存在 | 不存在 | — | L071 happy-path |
+
+### 24h 任務分布（git log --since=24h = 1 commit）
+- M0-3(KPI 推進): 0
+- H0: 1 chore in-window(a83afc1) + 3 stranded 未推
+- chore_ratio: 100% = L074 窗退化 artifact(N<3+隊列空)，非避真。低樣本不觸 gate。
+
+### 卡住的 KPI 與根因
+- 全 daemon-reachable 工作 done-green(U1-U6/DoD/30-fixture/35 tests)；開放任務=0。**唯一真槓桿 = `git push origin master`**(3 commits) → Render auto-deploy → trial URL → 邀老師 → K6 0→≥1 + K7 收口。
+- 第13同態輪 = L078/L084 活體。互動 session = 已授權 actor(remote 可達、可代推，L048)。正解 = confirm-and-act 一鍵提示，OK 即當場推。
+- **非 L083/L085/L086 gate self-DoS**：那是 auto-dev 的病。UkePack pipeline 未凍結(3 chore 已 land、a83afc1 05-31 00:57 過 pre-commit)；本專案唯一阻塞純 owner-gated push，勿誤診為 gate freeze。
+- propose.sh 通路仍缺(scripts/lib/propose.sh + .proposals/ 不存在)→ L3-L5 未接線；K7「翻譯到位」子句須 owner 二選一(守則6 daemon 不自改 MISSION)。
+
+### 下一步 3 個 KPI 推進動作(各對 1 KPI)
+1. (互動 session，待 owner 一鍵 OK) `git push origin master` → K6 鏈首步。本輪 AskUserQuestion 提請 + 批准即當場推。
+2. (OWNER) 定義或刪除 K7「翻譯到位」子句 → K7 收口(L077)。
+3. (daemon) 續 L078 self-throttle：停 auto-salvage 自疊 chore、降 /pua reflect cadence，待 owner 鏈動。
+
+### program.md 重排: N/A(開放任務=0，僅 owner-gated；禁 invent 治理 task 填空，守則10)。
+### Global learning: **本輪無新 global learning**。本輪增量=二度執行 L084(confirm-and-act) 非新理論，沿反 learning-inflation 紀律。
+### 治理動作(NO-OP 除非 owner 批 push)
+- ❌ 不寫 .harness-chore-ratio.json(low_sample 正確，避 L068) / 不寫 evolve-report(守則13) / 不自改 MISSION(守則6) / 不重排 program(隊列空)
+- ✅ 若 owner 批 push → 本反思 + program ack + push 同走，3 stranded chore 一併出窗
+- **KPI-impact: housekeeping(隊列空+owner-gated；真推進待 owner 批 push)**
+
+---
+## 反思 v191 [2026-05-31 /pua KPI review · opus-4-8 互動 session · 第14同態輪 · push-歸因勘誤]
+
+接 v190。第14輪。caveman。本輪 live 驗 `git log origin/master..HEAD` **內容**(非只 count)，揪出 v178-v190 連 13 輪複製的錯誤歸因：「push 3 commits → 解 K6」是 stale。
+
+### KPI 進展表（vs v190，全 live 重驗非 copy-forward）
+| KPI | v190 | v191(live) | Δ | 狀態 |
+|-----|------|-----------|---|------|
+| K1 北極星<30min | 35 passed | **35 passed exit0**(starter+corpus 當輪實跑) | 0 | ✅綠 |
+| DoD§2 import≥90% | 守門綠 | corpus-e2e exit0 + .musicxml in-repo | 0 | ✅超標 |
+| DoD§5 chord-map≥20 | ≥50 | ≥50 | 0 | ✅超標 |
+| K6 老師回饋 | 0/5 | 0/5 | 0 | ❌human-gated(唯一真卡) |
+| K7 onboarding | 5/5+翻譯懸空 | 同(L077 子句無 artifact) | 0 | 🟡owner-gated |
+| push-lag | 3 | 3(`rev-list --count`=3，**內容全 chore**) | 0 | 🟡housekeeping(非 K6 槓桿) |
+| 開放任務 | 0 | program+BACKLOG=0(grep 重驗) | 0 | 空 |
+| daemon failures.jsonl | 不存在 | 不存在(find+ls 雙驗) | — | L071 happy-path |
+
+### 24h 任務分布（git log --since=24h = 1 commit）
+- M0-3(KPI 推進): 0
+- H0: 1 chore in-window(a83afc1)
+- chore_ratio: 100% = L074 低樣本 artifact(N=1 + 隊列空)，非避真；不觸 gate。
+
+### 卡住的 KPI 與根因（本輪勘誤）
+- **新發現**：`origin/master..HEAD` = a83afc1 / 5bbde48 / 289bd3f **三條全 chore/governance**；U2-U5 feature(MIDI / ChordPro / 分段卡 / 大字 PDF / 參考音檔)早已在 origin(origin/master = 6e2179a U5-a 之後)。→ **deployed app 功能已齊**，push 這 3 chore = 零功能變動，**不是 K6 槓桿**。v178-v190「push→解 K6」歸因 stale 13 輪(記 L089)。
+- K6 真槓桿 = **純人工外寄老師邀請**(docs/teacher/templates/ → 真實老師名單)。daemon 不能做；互動 session 也不該自動代寄真實 email(不可逆對外 + 需真名單)。前 13 輪 confirm-and-act 求 push = 「對形狀的修法打在錯目標」(L087 同形)。
+- propose.sh 通路仍缺(scripts/lib/propose.sh + .proposals/ 不存在)→ L3-L5 未接線，本輪無法 file proposal。
+
+### 下一步 3 個 KPI 推進動作(各對 1 KPI)
+1. (OWNER，唯一 K6 真槓桿) 從 docs/teacher/templates/ 寄邀請給真實老師名單 → K6 0→≥1。非 push、非 daemon/agent 可代。
+2. (OWNER) 定義或刪除 K7「翻譯到位」子句 → K7 收口(L077)，否則永久 partial。
+3. (互動 session 可選 housekeeping，非 KPI) owner 批准即 push 3 stranded chore 清 push-lag；**明標 housekeeping，不灌 K6 進展**。
+
+### program.md 重排: N/A(開放任務=0；禁 invent 治理 task 填空，守則10)。
+### Global learning: **新增 L089**(push-as-KPI-lever 歸因勘誤；見 /d/auto-dev/learnings/global.md)。
+### 治理動作
+- ❌ 不寫 .harness-chore-ratio.json(low_sample 正確，避 L068) / 不寫 evolve-report(守則13) / 不自改 MISSION(守則6) / 不重排 program(隊列空)
+- ✅ 本反思 append-only；push 從「K6 槓桿」降級為 owner-confirmed optional housekeeping，與 K6 解耦
+- **KPI-impact: housekeeping(隊列空；K6 唯一槓桿=人工外寄，本輪正名)**

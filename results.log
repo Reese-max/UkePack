@@ -418,3 +418,4 @@
 
 2026-05-27T08:22:18+08:00 | M1 | FAIL | KPI-impact: K1 starter-pack latency 30min gate | blocker: gitdir write denied at C:/UkePack-git (index/config/objects no write) -> unable to stage+commit U6-a payload
 [2026-05-28T15:08:25+0800] | M1 | PASS | KPI-impact: K1 北極星 (分段卡 0→1, first playable segment time reduced) | feat(render): U3-a segment practice cards embedded in page3 — TDD spy test + compact cards (title+range+chords slice); 1 test added, no new pages/dispatcher (surgical 4-page preserved); ruff/mypy clean, pdf render 29/29 green; no unlisted refactor; 24h chore>30% forbid H0; baseline pre/post green. Why: program v171 priority #1 for K1 after U6-a; advances north star without owner-blocked path.
+[2026-06-03T21:16:08+0000] | -- | DAEMON IDLE | KPI-impact: none | 633 passed/ruff/mypy green; 5 commits unpushed; K6=0/5 owner-gated; K7=5/5 saturated; no M0-M3 executable task; owner must git push origin master + Render deploy + teacher outreach

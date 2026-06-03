@@ -1,12 +1,11 @@
 {
-  "timestamp": "2026-06-01T01:36:00",
+  "timestamp": "2026-06-04T01:15:47",
   "total_24h": 0,
   "chore_count": 0,
-  "ratio_percent": null,
-  "micro_polish_ratio": 0.0,
-  "severity": "no_sample",
-  "min_sample": 3,
+  "ratio_percent": 0,
+  "chore_ratio_pct_broad": 0,
+  "chore_ratio_pct_pure": 0,
+  "severity": "skip_low_sample",
   "warn_threshold": 30,
-  "fail_threshold": 50,
-  "source": "in-session git-log recompute (chore-ratio-sensor.sh not on host); window 2026-05-31T01:36..2026-06-01T01:36 = 0 commit. prior on-disk value (N=1/100%/2026-05-30T22:11) was ~27h stale and itself an N=1 artifact -> refreshed per MISSION L65 sensor-stale rule. 24h N=0 == legal idle, NOT chore crisis: program.md+BACKLOG.md queue empty (0 open [ ]), auto-gated KPIs GREEN (K1 starter-pack <30min + DoD-2 corpus-E2E, 35 tests pass 9.29s via .venv fallback). only gaps owner-gated (K6/K7 frozen) + admin-gated (uv-cache ACL). chore_ratio non-applicable at N=0 per L074 window-degradation guard."
+  "fail_threshold": 50
 }

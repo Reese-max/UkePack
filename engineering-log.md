@@ -16775,3 +16775,84 @@ L048（blocked-no-lever-without-probe）**已兌現**：上一 session(06:36)實
 - ❌ 不寫 .harness-chore-ratio.json(low_sample 正確，避 L068) / 不寫 evolve-report(守則13) / 不自改 MISSION(守則6) / 不重排 program(隊列空)
 - ✅ 本反思 append-only；push 從「K6 槓桿」降級為 owner-confirmed optional housekeeping，與 K6 解耦
 - **KPI-impact: housekeeping(隊列空；K6 唯一槓桿=人工外寄，本輪正名)**
+
+---
+## 反思 v192 [2026-06-01 /pua KPI review · opus-4-8 互動 session · 第15同態輪 · L078 self-throttle 催繳]
+
+接 v191。第15輪。caveman。本輪 live 重驗 KPI gate（實跑 pytest exit0）+ git log 內容 + propose 通路存在性。
+
+### KPI 進展表（vs v191，全 live 重驗非 copy-forward）
+| KPI | v191 | v192(live) | Δ | 狀態 |
+|-----|------|-----------|---|------|
+| K1 北極星<30min | 35 passed | **35 passed [100%]**(starter+corpus 當輪實跑 exit0) | 0 | ✅綠 |
+| DoD§2 import≥90% | exit0 | 35 dots [100%] exit0 | 0 | ✅超標(~99 fixture) |
+| DoD§5 chord-map≥20 | ≥50 | ≥50 | 0 | ✅超標 |
+| K6 老師回饋 | 0/5 | 0/5 | 0 | ❌human-gated(唯一真卡) |
+| K7 onboarding | 5/5+懸空 | 同(L087 懸空子句無 artifact) | 0 | 🟡owner-gated |
+| push-lag | 3 | 4(96c06bd auto-salvage 新增；4 條**全 chore**) | +1 | 🟡housekeeping(非 K6 槓桿) |
+| 開放任務 | 0 | program+BACKLOG=0(grep 重驗) | 0 | 空 |
+| daemon failures.jsonl | 不存在 | 不存在(find+ls 雙驗) | — | L071 happy-path gap |
+
+### 24h 任務分布（git log --since 05-31 04:00 = 1 commit）
+- M0-3(KPI 推進): 0
+- H0: 1(96c06bd chore auto-salvage index.lock 並發搶救)
+- chore_ratio: 100% = L074 低樣本 artifact(N=1+隊列空)，非避真，不觸 gate。過去 72h: 4 commit 全 chore/governance、0 feat — 但隊列空+owner-gated，**idle 是正解**(守則10)。最後一筆 feat = 6e2179a U5-a(05-29 17:34)，自此純治理 churn。
+
+### 卡住的 KPI 與根因（本輪聚焦結構性病灶）
+- 第15同態輪。全 daemon-reachable 工作 done-green。K6 唯一真槓桿 = **OWNER 人工外寄老師邀請**(docs/teacher/templates/ → 真實老師名單)；非 push、非 agent 可代(L089 已正名)。K7 懸空子句待 owner 二選一(L087)。
+- **結構性病灶確認 = auto-salvage index.lock churn**：96c06bd / a83afc1 / 33d7078 三條 `chore(auto-salvage): index.lock 並發搶救` + 殘留死鎖檔 `.tmp_git_index.lock`(05-26) `.tmp_index_work.lock`(05-27)。根因 = 外部排程器繞過 repo stop gate 仍 fire round + `C:/UkePack-git` 外部 gitdir ACL → index.lock 競爭。**這正是 L078(escalation-without-enforcement)活體**：escalation 已喊 15 輪、owner 未行動、daemon 未 self-throttle → treadmill 不收斂，反思 docs 自身推高 chore ratio(正回饋惡化)。
+- **L4 arch proposal 無法 file**：`scripts/propose.sh` / `lib/propose.sh` / `.proposals/` 在本專案**不存在**(連 3 輪確認)，/pua 指令描述的 L3-L5 通路在 UkePack 未接線。結構性 bug 改寫進本 reflection + escalate owner，不假裝 file。
+- failures.jsonl 不存在 = 無 daemon 黑盒(L071 happy-path)；consecutive_errors=0 / status=running 三健康訊號掩蓋「真活在 metric 視野外」(L072)。
+
+### 下一步 3 個 KPI 推進動作（各對 1 KPI）
+1. (OWNER，唯一 K6 真槓桿) 從 `docs/teacher/templates/` 寄邀請給真實老師名單 → K6 0→≥1。非 push、非 daemon/agent 可代。
+2. (OWNER) 定義或刪除 K7「翻譯到位」懸空子句 → K7 收口(L087)，否則永久 partial。
+3. (OWNER，兌現 L078 self-throttle) **停掉本專案 auto-dev daemon / 降 /pua reflect cadence**。15 同態輪燒 opus 確認「無事可做」+ auto-salvage index.lock churn = 正回饋惡化；board 已飽和、唯一 lever 在 owner 手，daemon 該休眠不該再 reflect 第 16 輪。
+
+### program.md 重排: N/A(開放任務=0；禁 invent 治理 task 填空，守則10)。
+### Global learning: **本輪無新 global learning**。情境被 L039/L040/L041/L042/L072/L074/L078/L087/L089 全覆蓋；增量=15 輪未兌現 L078 self-throttle，屬「既有 learning 未 action」非新理論(反 learning-inflation，L029 紀律)。
+### 治理動作（NO-OP 除非 owner 三動作）
+- ❌ 不寫 .harness-chore-ratio.json(low_sample 正確，避 L068) / 不寫 evolve-report(守則13) / 不自改 MISSION(守則6) / 不重排 program(隊列空) / 不 file proposal(通路缺)
+- ✅ 本反思 append-only；push 維持 housekeeping(與 K6 解耦，L089)
+- **KPI-impact: housekeeping(隊列空+owner-gated；真推進待 owner 三動作，daemon 應 self-throttle)**
+
+---
+## 反思 v193 [2026-06-01 07:44 /pua KPI review · opus-4-8 互動 session · 第16同態輪 · churn 根因勘誤(ACL→並發) + 套用 L090/L091]
+
+接 v192。第16輪。caveman。本輪不再 copy-forward churn 根因假設——套用今日 auto-dev 新寫的 L090/L091 SOP，對 UkePack gitdir 跑 token-scoped 探針 + icacls，**坐實並勘誤**。
+
+### KPI 進展表（vs v192，全 live 重驗 exit0）
+| KPI | v192 | v193(live) | Δ | 狀態 |
+|-----|------|-----------|---|------|
+| K1 北極星<30min | 35 passed | **35 passed exit0**(starter+corpus 當輪實跑 `…×35 [100%]`) | 0 | ✅綠 |
+| DoD§2 import≥90% | 守門綠 | corpus-e2e exit0 | 0 | ✅超標(~99 fixture) |
+| DoD§5 chord-map≥20 | ≥50 | ≥50 | 0 | ✅超標 |
+| K6 老師回饋 | 0/5 | 0/5 | 0 | ❌human-gated(唯一真卡) |
+| K7 onboarding | 5/5+懸空 | 同(懸空子句無 artifact) | 0 | 🟡owner-gated |
+| push-lag | 4 | 4(`origin/master..HEAD`=4，**內容全 chore**，L089) | 0 | 🟡housekeeping(非 K6 槓桿) |
+| 開放任務 | 0 | program+BACKLOG grep=0 | 0 | 空 |
+| daemon failures.jsonl | 不存在 | 不存在(find+ls 雙驗) | — | L071 happy-path gap |
+
+### 24h 任務分布（git log --since 24h = 1 commit）
+- M0-3(KPI 推進): 0
+- H0: 1(96c06bd chore auto-salvage index.lock 並發搶救)
+- chore_ratio: 100% = L074 低樣本 artifact(N=1+隊列空)，非避真，不觸 gate。72h: 1 chore in-window；最後一筆 feat=6e2179a U5-a(05-29 17:34)。
+
+### 卡住的 KPI 與根因（本輪勘誤 churn 根因：ACL → 並發）
+- **v192 假設錯，本輪勘誤**：v192 判 auto-salvage churn 根因 = `C:/UkePack-git` 外部 gitdir **ACL**。套 L091 SOP 實測：(a) owner-session token-scoped 探針 `set -o noclobber; echo > $GD/index.lock` → **CREATE_OK + DELETE_OK**；(b) `icacls C:/UkePack-git` → 只有 `(I)(OI)(CI)(RX,W)` **ALLOW**，**無 `(DENY)(W,D)` orphan ACE**。→ UkePack **非 ACL 病**（與 auto-dev L088/L090/L091 的 orphan-SID-DENY 案不同），根因是**純 index.lock 並發競爭**：外部排程器繞過 repo stop-gate fire overlapping rounds，兩 git proc 搶同一 `index.lock`，輸的那個把 stranded 成果落成 `chore(auto-salvage)`。commit message 自述「並發搶救」即鐵證。
+- **修法隨之改變**：ACL 病修法 = `icacls /remove:d`；並發病修法 = **single-instance lock / 修好 stop-gate**（owner 停 daemon 即根除）。診斷不分清 → 會去 `icacls` 一個沒 DENY 的 gitdir，白工。
+- K6 唯一真槓桿 = **OWNER 人工外寄老師邀請**(`docs/teacher/templates/` → 真實老師名單)；非 push、非 agent 可代(L089 已正名)。K7 懸空子句待 owner 二選一(L087)。
+- 第16同態輪 = L078(escalation-without-enforcement)活體：喊 16 輪、owner 未行動、daemon 未 self-throttle → churn 不收斂、反思 docs 自身推高 chore ratio(正回饋惡化)。
+- L4 arch proposal 仍無法 file：`scripts/propose.sh`/`lib/propose.sh`/`.proposals/` 在 UkePack **不存在**(連 4 輪確認)，/pua 描述的 L3-L5 通路未接線。結構性 bug 改寫進本 reflection + escalate owner。
+
+### 下一步 3 個 KPI 推進動作（各對 1 KPI）
+1. (OWNER，唯一 K6 真槓桿) 從 `docs/teacher/templates/` 寄邀請給真實老師名單 → K6 0→≥1。非 push、非 daemon/agent 可代。
+2. (OWNER) 定義或刪除 K7「翻譯到位」懸空子句 → K7 收口(L087)，否則永久 partial。
+3. (OWNER，兌現 L078 self-throttle，根除並發 churn) **停掉本專案 auto-dev daemon**(state.json status=running/phase=reflect)。16 同態輪燒 opus 確認「無事可做」+ 並發 index.lock churn 是正回饋惡化；board 飽和、lever 全在 owner 手，daemon 該休眠不該 reflect 第 17 輪。停 daemon = 根除並發競爭根因(本輪勘誤所指)。
+
+### program.md 重排: N/A(開放任務=0；禁 invent 治理 task 填空，守則10)。
+### Global learning: **新增 L092**(auto-salvage/index.lock churn 別預設 ACL；icacls 無 DENY + owner-probe OK = 純並發，修法 single-instance/stop-gate 非 icacls；鏡像 L090/L091；見 /d/auto-dev/learnings/global.md)。
+### 治理動作（NO-OP 除非 owner 三動作）
+- ❌ 不寫 .harness-chore-ratio.json(low_sample 正確，避 L068) / 不寫 evolve-report(守則13) / 不自改 MISSION(守則6) / 不重排 program(隊列空) / 不 file proposal(通路缺) / 不刪殘留 lock 檔(cosmetic churn 不治本，避 L078 自疊)
+- ✅ 本反思 append-only；push 維持 housekeeping(與 K6 解耦，L089)；churn 根因從 ACL 勘誤為並發(L092)
+- **KPI-impact: housekeeping(隊列空+owner-gated；真推進待 owner 三動作，daemon 應 stop 以根除並發 churn)**

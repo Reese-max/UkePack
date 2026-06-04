@@ -16903,3 +16903,45 @@ L048（blocked-no-lever-without-probe）**已兌現**：上一 session(06:36)實
 - pytest 親測 EXIT=0 全綠（648）；results.log 08:09 exit=4 為 harness usage-error glitch，非真實失敗。
 - Meta-learn confirmed：auto-salvage-chore-spam-no-Ktag（5x：05-27/05-31/06-01/06-04x2），已追加 MISSION 反 Pattern（tag 2026-06-04）。
 - owner-only unblock：git push origin master -> Render deploy -> teacher invite（K6 0->1）。
+
+---
+## 反思 v195 [2026-06-04 11:30+08:00 /pua KPI review · opus-4-8 互動 session · 第18輪 · 三大勘誤+兌現17輪積欠L4]
+
+接 v194。第18輪但**非同態** — 三條前輪「結論」全被 live 探針推翻，並兌現積欠 17 輪的 L4 proposal。caveman。
+
+### KPI 進展表（vs v194，全 live 重驗非 copy-forward）
+| KPI | v194 | v195(live) | Δ | 狀態 |
+|-----|------|-----------|---|------|
+| K1 北極星<30min | starter 2 passed | **starter_pack 2 passed exit0**（本輪親跑 `uv run pytest tests/test_starter_pack.py`）| 0 | ✅綠 |
+| DoD§2 import≥90% | 超標 | 超標(~99 fixture 守門) | 0 | ✅ |
+| DoD§5 chord-map≥50 | ≥50 | ≥50 | 0 | ✅ |
+| K6 老師回饋 | 0/5 | 0/5 | 0 | ❌human-gated(唯一真卡) |
+| K7 onboarding | 5/5+懸空 | 同 | 0 | 🟡owner-gated |
+| push-lag | 6 | **9**(`origin/master..HEAD`=9，**含真 feat 9770ed4 困 local**) | +3 | 🔴惡化(非純 housekeeping，見下) |
+| 開放任務 | 0 | program+BACKLOG [ ]=0 | 0 | 空(但≠nothing-to-do，L096) |
+| daemon failures.jsonl | 不存在 | 不存在；但 `.auto-dev.state.json` 黑盒在(round156/fail0/err0) | — | L071 |
+
+### 24h 任務分布（git log --since=24h = 5 commit）
+- M0-3(KPI 推進): **2**（9770ed4 feat practice = K1北極星真 feat 832行 + 421a920 fix pages mypy baseline-green）
+- H0: 3（4dafb88 chore evolve + 27cda51/3e4588b 2× chore auto-salvage）
+- chore_ratio: 60%(3/5) >30% warn。但**非避真**：本輪有真北極星 feat；扣 2 條並發污染 auto-salvage(L092 churn 非工作) 則 1/3=33%。最後一筆 feat 從 v194「05-29 6天前」更新為 **06-04 當日**(practice page)。
+
+### 卡住的 KPI 與根因（本輪三大勘誤，全 live 探針坐實）
+- **勘誤① propose 通路 EXISTS（推翻 v178-v194 連17輪「不存在」）**：前 17 輪只 grep 專案本地 `scripts/propose.sh`→全 miss→每輪複製「通路未接線、L4 無法 file」。本輪兌現 L095：查中央倉 `公司/auto-dev/lib/propose.sh` **EXISTS**，Git Bash 環境(python3/GNU date/md5sum)全綠，**實 file 2 proposal exit0**(arch f1144db1 single-instance flock 修 churn；tasks b32ef3bc practice 深化)落 `proposals/{arch,tasks}/`。17 輪積欠動作本輪清。
+- **勘誤② 主排程器已 Disabled（推翻 v192-v194「owner 未停 daemon、enforcement-gap 惡化」）**：本輪兌現 L094 re-probe，`Get-ScheduledTask`：Auto-Dev-Daemon/Repo-Watcher/Heartbeat-Monitor/watchdog-tick **全 Disabled**，只 `Auto-Dev-Selfheal`=Ready。→ owner 早已靜默停主排程器，前 3 輪沿用「State=Ready」舊快照虛報凍結。**churn 真源頭勘誤**：非「owner 未停」，而是**殘留 daemon pid49304(mimo round156, ALIVE, last_update 11:25) 被 Selfheal=Ready 復活** → 並發 index.lock churn(L092)續發。根除動作精確化：停 pid49304 + Disable Auto-Dev-Selfheal(單停主排程器不夠，Selfheal 會復活)。
+- **勘誤③ board 非飽和（推翻 v159-v194 連17輪「無事可做、idle 正解」）**：backlog [ ]=0，但 06-04 daemon 真 land practice page(competitor-research vs UkeBuddy)。→「[ ]=0」≠「KPI 推不動」。北極星深化槓桿不在 backlog 裡，要掃競品才浮現(L096 新增)。
+- **exit=4 坐實為 glitch**：results.log verify:pytest 連兩天 exit=4(08:09/10:05)，本輪親跑 starter_pack **exit0**→pytest usage-error(harness 傳壞參數/路徑)，非真 test fail。harness runner 該修參數，不阻 KPI。
+- K6 仍唯一真卡：human-gated。但**push-lag 9 含真 feat = K6 隱藏前置**(修正 L089 邊界)：practice page 困 local 未 push→未 deploy→老師體驗不到→K6 永遠 0。當 local 含真北極星 feat 時，push→deploy 不再與 K6 解耦，是 K6 真前置鏈。
+
+### 下一步 3 個 KPI 推進動作（各對 1 KPI）
+1. (DAEMON 真槓桿，K1) 領 tasks proposal b32ef3bc：practice page 深化(per-song segment 練習卡 + metronome 預設)。**daemon-reachable**，打破 17 輪 idle，非治理 task。
+2. (OWNER，K6 前置鏈) push origin master(9 commits 含 practice feat)→Render deploy→老師能用 practice page→寄 `docs/teacher/templates/` 邀請。push-lag 不再純 housekeeping(L089 邊界修正)。
+3. (OWNER+機制，根除 churn) 領 arch proposal f1144db1：single-instance flock；同時停 pid49304 + Disable Auto-Dev-Selfheal(光 Disable 主排程器不夠，勘誤②)。SOP 喊停 18 輪壓不住 Selfheal 復活→須機制擋(守則10)。
+
+### program.md 重排: N/A(開放 [ ]=0；本輪已透過 propose.sh tasks 補真 K1 task，非 invent 治理 task，守則10 不違)。
+### Global learning: **新增 L097**(daemon 宣稱 board 飽和前須跑競品+旅程掃描找 daemon-reachable 槓桿，[ ]=0≠nothing-to-do；與 L078 互補；L096 已被 voice-actress R206 占用故讓號)。L095(propose 通路查中央倉)本輪兌現落地。
+### 治理動作
+- ✅ 本反思 append-only；**實 file 2 proposal(arch+tasks)兌現 L095 積欠**；新增 L096
+- ✅ push 維持(與 K6 部分耦合，L089 邊界修正)
+- ❌ 不自改 MISSION/conf/BACKLOG(守則6，走 propose.sh)；不刪殘留 lock 檔(cosmetic，避 L078 自疊)
+- **KPI-impact: 本輪實推進=兌現 L4 proposal 通路(17輪首次)+補 daemon-reachable K1 task；真 KPI 數值推進待 owner push/deploy + daemon 領 task**

@@ -417,11 +417,126 @@
         color: #fff;
     }
 
+    /* ── Transition drill ── */
+    .transition-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+
+    .transition-card {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.5rem 1rem;
+        border: 2px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        background: var(--surface);
+        transition: all 0.15s;
+    }
+
+    .transition-card:hover {
+        border-color: var(--accent);
+        background: #fff7ee;
+        transform: translateY(-1px);
+    }
+
+    .transition-card.active {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #fff;
+    }
+
+    .transition-arrow {
+        color: var(--muted);
+        font-size: 0.85rem;
+    }
+
+    .transition-card.active .transition-arrow { color: #ffe0c0; }
+
+    .drill-area {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f0f7ff 0%, #e8f4e8 100%);
+        border: 2px solid #b8d4e8;
+        border-radius: var(--radius);
+        margin-bottom: 1rem;
+    }
+
+    .drill-area.visible { display: flex; }
+
+    .drill-chords {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .drill-chord-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 1rem;
+        border-radius: var(--radius-sm);
+        border: 3px solid transparent;
+        transition: all 0.2s;
+        min-width: 100px;
+    }
+
+    .drill-chord-box.active-chord {
+        border-color: var(--accent);
+        background: #fff7ee;
+        transform: scale(1.05);
+    }
+
+    .drill-chord-box .drill-chord-name {
+        font-size: 2rem;
+        font-weight: 900;
+        color: var(--accent-strong);
+    }
+
+    .drill-chord-box svg { width: 100px; height: auto; }
+
+    .drill-arrow-big {
+        font-size: 2rem;
+        color: var(--accent);
+        animation: pulse-glow 1s infinite;
+    }
+
+    .drill-status {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #2d6a4f;
+    }
+
+    .drill-count {
+        font-size: 0.95rem;
+        color: var(--muted);
+    }
+
+    .drill-controls {
+        display: flex;
+        gap: 0.75rem;
+    }
+
     /* ── Responsive ── */
     @media (max-width: 560px) {
         .chord-display { gap: 1rem; padding: 1rem; }
         .chord-display .chord-name { font-size: 2.5rem; }
         .chord-display svg { width: 90px; }
+        .drill-chords { gap: 1rem; }
+        .drill-chord-box .drill-chord-name { font-size: 1.5rem; }
+        .drill-chord-box svg { width: 80px; }
     }
 </style>
 {% endblock %}
@@ -557,6 +672,49 @@
             aria-checked="{% if loop.index0 == 0 %}true{% else %}false{% endif %}"
         >{{ sp.label }} {{ sp.bpm }}</button>
         {% endfor %}
+    </div>
+    {% endif %}
+
+    {# ── Chord transition drill ── #}
+    {% if chord_transitions %}
+    <div class="card" style="margin-bottom:1rem" id="transition-section">
+        <p class="section-title">🔄 和弦轉換練習</p>
+        <p style="text-align:center; color:var(--muted); font-size:0.85rem; margin-bottom:0.75rem">
+            選一組練習：聽第一個和弦 → 跟著節拍換到下一個
+        </p>
+        <div class="transition-grid" id="transition-grid">
+            {% for t in chord_transitions %}
+            <button
+                type="button"
+                class="transition-card"
+                data-idx="{{ loop.index0 }}"
+                onclick="startDrill({{ loop.index0 }})"
+                aria-label="練習 {{ t.from }} 轉換到 {{ t.to }}"
+            >
+                {{ t.from }} <span class="transition-arrow">→</span> {{ t.to }}
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="drill-area" id="drill-area" role="region" aria-label="和弦轉換練習模式">
+        <p class="drill-status" id="drill-status">準備開始</p>
+        <div class="drill-chords">
+            <div class="drill-chord-box" id="drill-from-box">
+                <span class="drill-chord-name" id="drill-from-name"></span>
+                <div id="drill-from-svg"></div>
+            </div>
+            <span class="drill-arrow-big">→</span>
+            <div class="drill-chord-box" id="drill-to-box">
+                <span class="drill-chord-name" id="drill-to-name"></span>
+                <div id="drill-to-svg"></div>
+            </div>
+        </div>
+        <p class="drill-count" id="drill-count">已練習 0 次</p>
+        <div class="drill-controls">
+            <button type="button" class="ctrl-btn ctrl-btn-primary" id="drill-toggle-btn" onclick="toggleDrill()">▶ 開始練習</button>
+            <button type="button" class="ctrl-btn ctrl-btn-ghost" onclick="stopDrill()">✕ 退出</button>
+        </div>
     </div>
     {% endif %}
 
@@ -944,6 +1102,118 @@ document.addEventListener('keydown', (e) => {
     else if (e.key === 'ArrowLeft') { e.preventDefault(); prevChord(); }
     else if (e.key === ' ') { e.preventDefault(); togglePlay(); }
 });
+
+/* ── Transition drill ── */
+const TRANSITIONS = [{% for t in chord_transitions %}{ from: {{ t.from | tojson }}, to: {{ t.to | tojson }} }{% if not loop.last %},{% endif %}{% endfor %}];
+let drillActive = false;
+let drillTimer = null;
+let drillCount = 0;
+let drillIdx = -1;
+let drillShowingFirst = true;
+
+function startDrill(idx) {
+    // Stop auto-play if running
+    if (isPlaying) stopPlay();
+
+    drillIdx = idx;
+    drillCount = 0;
+    drillShowingFirst = true;
+    const t = TRANSITIONS[idx];
+
+    // Highlight active card
+    document.querySelectorAll('.transition-card').forEach(function(btn, i) {
+        btn.classList.toggle('active', i === idx);
+    });
+
+    // Show drill area
+    var area = document.getElementById('drill-area');
+    area.classList.add('visible');
+
+    // Set chord names and SVGs
+    document.getElementById('drill-from-name').textContent = t.from;
+    document.getElementById('drill-to-name').textContent = t.to;
+    document.getElementById('drill-from-svg').innerHTML = buildChordSvg(t.from, FINGERINGS[t.from] || [0,0,0,0]);
+    document.getElementById('drill-to-svg').innerHTML = buildChordSvg(t.to, FINGERINGS[t.to] || [0,0,0,0]);
+
+    document.getElementById('drill-count').textContent = '已練習 0 次';
+    document.getElementById('drill-status').textContent = '按 ▶ 開始自動練習';
+
+    // Highlight first chord
+    document.getElementById('drill-from-box').classList.add('active-chord');
+    document.getElementById('drill-to-box').classList.remove('active-chord');
+
+    drillActive = false;
+    if (drillTimer) { clearTimeout(drillTimer); drillTimer = null; }
+    var btn = document.getElementById('drill-toggle-btn');
+    btn.textContent = '▶ 開始練習';
+    btn.classList.remove('playing');
+
+    // Play first chord immediately
+    playChordAudio(t.from);
+}
+
+function toggleDrill() {
+    if (drillActive) {
+        pauseDrill();
+    } else {
+        resumeDrill();
+    }
+}
+
+function resumeDrill() {
+    drillActive = true;
+    var btn = document.getElementById('drill-toggle-btn');
+    btn.textContent = '⏸ 暫停';
+    btn.classList.add('playing');
+    drillTick();
+}
+
+function pauseDrill() {
+    drillActive = false;
+    if (drillTimer) { clearTimeout(drillTimer); drillTimer = null; }
+    var btn = document.getElementById('drill-toggle-btn');
+    btn.textContent = '▶ 繼續';
+    btn.classList.remove('playing');
+}
+
+function drillTick() {
+    if (!drillActive || drillIdx < 0) return;
+    var t = TRANSITIONS[drillIdx];
+    var chord = drillShowingFirst ? t.from : t.to;
+    var beatMs = (60 / bpm) * 1000;
+
+    // Play chord
+    playChordAudio(chord);
+
+    // Update visual
+    if (drillShowingFirst) {
+        document.getElementById('drill-from-box').classList.add('active-chord');
+        document.getElementById('drill-to-box').classList.remove('active-chord');
+        document.getElementById('drill-status').textContent = t.from + ' → 準備換…';
+    } else {
+        document.getElementById('drill-from-box').classList.remove('active-chord');
+        document.getElementById('drill-to-box').classList.add('active-chord');
+        document.getElementById('drill-status').textContent = t.to + ' → 換回來…';
+        drillCount++;
+        document.getElementById('drill-count').textContent = '已練習 ' + drillCount + ' 次';
+    }
+
+    // Toggle for next tick
+    drillShowingFirst = !drillShowingFirst;
+
+    // Schedule next chord after 2 beats
+    drillTimer = setTimeout(drillTick, beatMs * 2);
+}
+
+function stopDrill() {
+    drillActive = false;
+    if (drillTimer) { clearTimeout(drillTimer); drillTimer = null; }
+    drillIdx = -1;
+    document.getElementById('drill-area').classList.remove('visible');
+    document.querySelectorAll('.transition-card').forEach(function(btn) {
+        btn.classList.remove('active');
+    });
+}
 
 /* ── Init ── */
 updateDisplay();

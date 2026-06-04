@@ -1011,3 +1011,57 @@ def test_get_fingerings_json_returns_known_chords() -> None:
     assert data["G"] == [0, 2, 3, 2]
 
 
+# ── Chord transition drill ─────────────────────────────────────────────
+
+
+def test_practice_page_includes_chord_transitions(db_client: TestClient) -> None:
+    """Practice page should render chord transition drill section."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Transition Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    with TWINKLE.open("rb") as fh:
+        db_client.post(
+            f"/api/projects/{pid}/import",
+            files={"file": ("twinkle.musicxml", fh, "application/xml")},
+        )
+
+    resp = db_client.get(f"/projects/{pid}/practice")
+    assert resp.status_code == 200
+    assert "和弦轉換練習" in resp.text
+    assert "transition-card" in resp.text
+    assert "drill-area" in resp.text
+
+
+def test_chord_transitions_deduplicated(db_client: TestClient) -> None:
+    """Chord transitions should not contain duplicate from→to pairs."""
+    from app.core.musicxml import parse
+
+    score = parse(TWINKLE)
+    # Simulate the same dedup logic used in the route
+    unique_chords: list[str] = []
+    seen: set[str] = set()
+    for ch in score.chords:
+        sym = ch.symbol
+        if sym not in seen:
+            seen.add(sym)
+            unique_chords.append(sym)
+
+    trans_seen: set[tuple[str, str]] = set()
+    transitions: list[dict[str, str]] = []
+    for i in range(len(unique_chords) - 1):
+        pair = (unique_chords[i], unique_chords[i + 1])
+        if pair not in trans_seen:
+            trans_seen.add(pair)
+            transitions.append({"from": pair[0], "to": pair[1]})
+
+    # All pairs should be unique
+    assert len(transitions) == len(trans_seen)
+    # Should have at least 1 transition for twinkle
+    assert len(transitions) >= 1
+    # No transition should be from→same
+    for t in transitions:
+        assert t["from"] != t["to"]
+
+

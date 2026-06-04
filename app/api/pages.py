@@ -318,6 +318,15 @@ def project_practice_page(
             seen.add(sym)
             unique_chords.append(sym)
 
+    # Compute unique chord transitions for drill mode
+    transitions: list[dict[str, str]] = []
+    trans_seen: set[tuple[str, str]] = set()
+    for i in range(len(unique_chords) - 1):
+        pair = (unique_chords[i], unique_chords[i + 1])
+        if pair not in trans_seen:
+            trans_seen.add(pair)
+            transitions.append({"from": pair[0], "to": pair[1]})
+
     return _TEMPLATES.TemplateResponse(
         request=request,
         name="practice.html",
@@ -327,6 +336,7 @@ def project_practice_page(
             "unique_chords": unique_chords,
             "fingerings_json": get_fingerings_json(unique_chords),
             "practice_speeds": analysis.get("practice_speeds"),
+            "chord_transitions": transitions,
         },
     )
 

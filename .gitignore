@@ -99,3 +99,13 @@ git-local3
 .tmp-wet-*.txt
 tmp-wet-*.txt
 program.md.bak-*
+
+# auto-dev daemon artifacts + stale index locks — mechanical guard for the
+# confirmed auto-salvage-chore-spam anti-pattern (MISSION 反 Pattern #9, 5x).
+# These slip past .auto-engineer.* rules (different name) and re-surface in git
+# status every wake, feeding bare chore(auto-salvage) commits with no K-tag.
+# Ignoring the source stops the daemon from re-discovering them. (evolve 2026-06-04)
+.auto-dev.state.json
+auto-dev-summary.md
+.antigravitycli/
+.tmp_*.lock

@@ -386,6 +386,37 @@
         border: 1px solid #ffc107;
     }
 
+    /* ── Speed presets ── */
+    .speed-presets {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .speed-btn {
+        padding: 0.5rem 1.1rem;
+        border: 2px solid var(--border);
+        border-radius: 999px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        background: var(--surface);
+        transition: all 0.15s;
+    }
+
+    .speed-btn:hover {
+        border-color: var(--accent);
+        background: #fff7ee;
+    }
+
+    .speed-btn.active {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #fff;
+    }
+
     /* ── Responsive ── */
     @media (max-width: 560px) {
         .chord-display { gap: 1rem; padding: 1rem; }
@@ -502,15 +533,32 @@
                 id="bpm-slider"
                 min="40"
                 max="160"
-                value="{{ analysis.bpm or 100 }}"
+                value="{{ (practice_speeds[0].bpm if practice_speeds else (analysis.bpm or 100)) }}"
                 aria-label="每分鐘拍數"
                 oninput="updateBpm(this.value)"
             >
-            <span class="bpm-val" id="bpm-val">{{ analysis.bpm or 100 }}</span>
+            <span class="bpm-val" id="bpm-val">{{ (practice_speeds[0].bpm if practice_speeds else (analysis.bpm or 100)) }}</span>
             <span style="font-size:0.85rem; color:var(--muted)">BPM</span>
         </div>
         <button type="button" class="ctrl-btn ctrl-btn-ghost" id="strum-btn" onclick="playCurrentStrum()" aria-label="播放刷法">🎸 刷一下</button>
     </div>
+
+    {# ── Speed presets (50% / 70% / 100%) ── #}
+    {% if practice_speeds %}
+    <div class="speed-presets" role="radiogroup" aria-label="練習速度">
+        {% for sp in practice_speeds %}
+        <button
+            type="button"
+            class="speed-btn {% if loop.index0 == 0 %}active{% endif %}"
+            data-bpm="{{ sp.bpm }}"
+            data-idx="{{ loop.index0 }}"
+            onclick="setSpeedPreset({{ sp.bpm }}, {{ loop.index0 }})"
+            role="radio"
+            aria-checked="{% if loop.index0 == 0 %}true{% else %}false{% endif %}"
+        >{{ sp.label }} {{ sp.bpm }}</button>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     {# ── Practice timer ── #}
     <div class="timer-bar" id="timer-bar" role="region" aria-label="練習計時器">
@@ -547,11 +595,14 @@ const CHORD_MEASURES = [{% for ch in analysis.chords %}{{ ch.measure }}{% if not
 /* ── GCEA open-string frequencies (Hz) ── */
 const OPEN_FREQS = [392.00, 261.63, 329.63, 440.00]; // G4, C4, E4, A4
 
+/* ── Speed presets from server ── */
+const SPEED_PRESETS = [{% for sp in practice_speeds %}{ bpm: {{ sp.bpm }}, label: {{ sp.label | tojson }} }{% if not loop.last %},{% endif %}{% endfor %}];
+
 /* ── State ── */
 let currentIdx = 0;
 let isPlaying = false;
 let playTimer = null;
-let bpm = {{ analysis.bpm or 100 }};
+let bpm = {{ (practice_speeds[0].bpm if practice_speeds else (analysis.bpm or 100)) }};
 let selectedStrumIdx = 0;
 let activeSection = 'all';
 
@@ -732,6 +783,22 @@ function prevChord() {
 function updateBpm(val) {
     bpm = parseInt(val, 10);
     document.getElementById('bpm-val').textContent = bpm;
+    // Sync speed preset active state
+    document.querySelectorAll('.speed-btn').forEach(function(btn) {
+        const btnBpm = parseInt(btn.dataset.bpm, 10);
+        btn.classList.toggle('active', btnBpm === bpm);
+        btn.setAttribute('aria-checked', btnBpm === bpm ? 'true' : 'false');
+    });
+}
+
+function setSpeedPreset(targetBpm, idx) {
+    bpm = targetBpm;
+    document.getElementById('bpm-slider').value = targetBpm;
+    document.getElementById('bpm-val').textContent = targetBpm;
+    document.querySelectorAll('.speed-btn').forEach(function(btn, i) {
+        btn.classList.toggle('active', i === idx);
+        btn.setAttribute('aria-checked', i === idx ? 'true' : 'false');
+    });
 }
 
 function selectStrum(idx) {

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 from sqlmodel import Session
 
@@ -299,7 +299,7 @@ def project_practice_page(
     request: Request,
     project_id: int,
     session: SessionDep,
-) -> HTMLResponse:
+) -> Response:
     """Interactive chord practice page with audio playback and metronome."""
     project = session.get(Project, project_id)
     if project is None:

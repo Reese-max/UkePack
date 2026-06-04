@@ -16945,3 +16945,48 @@ L048（blocked-no-lever-without-probe）**已兌現**：上一 session(06:36)實
 - ✅ push 維持(與 K6 部分耦合，L089 邊界修正)
 - ❌ 不自改 MISSION/conf/BACKLOG(守則6，走 propose.sh)；不刪殘留 lock 檔(cosmetic，避 L078 自疊)
 - **KPI-impact: 本輪實推進=兌現 L4 proposal 通路(17輪首次)+補 daemon-reachable K1 task；真 KPI 數值推進待 owner push/deploy + daemon 領 task**
+
+---
+## 反思 v196 [2026-06-04 13:32+08:00 /pua KPI review · opus-4-8 互動 session · 第19輪 · 兌現 b32ef3bc + 救孤兒 K1 WIP + 新 L098]
+
+接 v195。**非同態** — v195 開的 daemon-reachable task 已被領、在製品坐實，但帶 gate-red 困死工作樹被 churn 孤兒化；本輪修綠落地 + 揭出新結構性死結。caveman。全 live 探針。
+
+### KPI 進展表（vs v195，全 live 重驗）
+| KPI | v195 | v196(live) | Δ | 狀態 |
+|-----|------|-----------|---|------|
+| K1 北極星<30min | starter 2 passed | **starter 2 passed exit0 + practice_plan.py 141行 song-specific 7-day plan 修綠落地(71c64df)** | +1 真深化已 commit | ✅綠+深化落地 |
+| DoD§2 import≥90% | 超標 | 超標(~99 fixture 守門) | 0 | ✅ |
+| DoD§5 chord-map≥50 | ≥50 | ≥50 | 0 | ✅ |
+| K6 老師回饋 | 0/5 | 0/5 | 0 | ❌human-gated(唯一真卡，第19輪) |
+| K7 onboarding | 5/5+懸空 | 同 | 0 | 🟡owner-gated |
+| push-lag | 9 | **12**(`origin/master..HEAD`，含 71c64df 真 feat) | +3 | 🔴惡化(含真 K1 feat 困 local，K6 前置鏈斷) |
+| churn(auto-salvage) | v194後3條 | **v195(11:30)後又2條: 1018922@12:32 + 1d76cab@13:20(8分前活體)** | +2 | 🔴未停，arch proposal f1144db1 未領 |
+| daemon failures.jsonl | 不存在 | 不存在(雙驗) | — | L071 happy-path gap |
+
+### 24h 任務分布（git log --since=24h = 7 commit + 本輪 71c64df=8）
+- M0-3(KPI 推進): **3**（9770ed4 feat practice K1 + 421a920 fix mypy + **71c64df feat practice_plan K1 深化(本輪)**）
+- H0: 5（1d76cab/1018922/27cda51/3e4588b 4× auto-salvage churn + 4dafb88 chore evolve）
+- chore_ratio: 5/8=63% >30% warn。**非避真**：本輪真 land 第2條北極星 feat；扣 4 條並發污染 auto-salvage(L092 churn 非工作) 則 1/4=25%。最後一筆真 feat = 本輪 13:32（非飽和）。
+
+### 卡住的 KPI 與根因（本輪核心發現：salvage 撿垃圾丟金子 → 新 L098）
+- **在製 K1 金子被孤兒化（新結構性死結）**：daemon 已領 v195 proposal b32ef3bc，落 `practice_plan.py`(141行 song-specific 7-day plan，已接線 page4，直擊北極星「小朋友知道每天練什麼」)。但檔帶 mypy `name-defined`(字串註解 `"rl_canvas.Canvas"`+import 塞函式內) + 5 ruff 錯 → 過不了 CI gate `ruff check .` → 永遠不 commit → 工作樹 `??` 被 index.lock 並發 churn。**同時** auto-salvage 反覆 fire 卻只撿 `.gitignore`／治理 artifact(本就綠)，真 feature 跳過。死結=gate 擋→不 commit→salvage 撿旁邊噪音→金子仍卡。→ **新 L098**。
+- **本輪兌現(agent-reachable 真 lever)**：修綠該 WIP——module-level `rl_canvas` import(照 page4/_layout 慣例)、ruff --fix + 手動清 RUF002(×→x)/F841(col_detail 死變數)；ruff+mypy+K1 gate 三聯綠 → commit 71c64df 帶 `KPI-impact: K1`，**取代本會是的裸 chore(auto-salvage)**(避反 Pattern #68)，脫離 churn 風險。
+- **churn 仍未停**：v195 開的 arch proposal f1144db1(single-instance flock)無人領；Selfheal 復活進程續 fire(13:20 最新，8分前)。SOP 喊停 19 輪壓不住排程器本能(守則10：須機制擋)。
+- K6 仍唯一真卡 human-gated；push-lag 12 含 2 條真北極星 feat 困 local → K6 前置鏈(push→deploy→老師能用)仍斷(L089 邊界)。
+
+### 下一步 3 個 KPI 推進動作（各對 1 KPI）
+1. (DAEMON 真槓桿，K1) **領 proposal b32ef3bc 剩餘深化**：practice_plan 已落地(本輪)，下一步 per-segment 練習卡 + metronome 預設綁進 practice page；**領前先驗工作樹 `??`+gate(L098)**，別再孤兒化。
+2. (OWNER，K6 前置鏈) push origin master(12 commits 含 2 條 practice feat)→Render deploy→老師能用 practice→寄 `docs/teacher/templates/` 邀請。push-lag 不再純 housekeeping(L089 修正：含真 feat)。
+3. (OWNER+機制，根除 churn) 領 arch proposal f1144db1 single-instance flock + 停 Selfheal-復活進程(13:20 活體)；SOP 喊停 19 輪無效→機制擋(守則10)。
+
+### program.md 重排
+N/A(開放 [ ]=0；proposal b32ef3bc 第一段已被本輪落地，剩餘深化走 propose 通路非 invent 治理 task，守則10 不違)。**禁 invent 治理 task 填空。**
+
+### Global learning
+**新增 L098**(autosave/salvage 只撿已綠 housekeeping，過不了 gate 的高價 WIP 永久孤兒化；宣稱飽和/idle 前必 grep 工作樹 ??+M 並跑 gate；與 L097 互補)。本輪實落地 = 修綠 WIP + 救 K1 金子，非新理論灌水。
+
+### 治理動作
+- ✅ 本反思 append-only；**修綠並 commit daemon 孤兒 K1 WIP(71c64df，正確 K-tag)**；新增 L098
+- ✅ push 維持 owner-gated(含真 feat，與 K6 部分耦合，L089 修正)
+- ❌ 不自改 MISSION/conf/BACKLOG(守則6，走 propose.sh)；不重複 file b32ef3bc/f1144db1(v195 已 file，避 spam guard)；不刪殘留 lock 檔(cosmetic，避 L078 自疊)
+- **KPI-impact: K1 本輪實推進=daemon 孤兒 practice_plan WIP 修綠落地(71c64df, song-specific 7-day plan)；真 KPI 數值前進待 owner push/deploy + daemon 領 b32ef3bc 剩餘**

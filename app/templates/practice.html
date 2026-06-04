@@ -754,7 +754,7 @@ const CHORD_MEASURES = [{% for ch in analysis.chords %}{{ ch.measure }}{% if not
 const OPEN_FREQS = [392.00, 261.63, 329.63, 440.00]; // G4, C4, E4, A4
 
 /* ── Speed presets from server ── */
-const SPEED_PRESETS = [{% for sp in practice_speeds %}{ bpm: {{ sp.bpm }}, label: {{ sp.label | tojson }} }{% if not loop.last %},{% endif %}{% endfor %}];
+const SPEED_PRESETS = [{% if practice_speeds %}{% for sp in practice_speeds %}{ bpm: {{ sp.bpm }}, label: {{ sp.label | tojson }} }{% if not loop.last %},{% endif %}{% endfor %}{% endif %}];
 
 /* ── State ── */
 let currentIdx = 0;

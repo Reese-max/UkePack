@@ -111,7 +111,7 @@
 
 ## Phase 2 — U1-U6 深度任務（agent 可做、可量測、不靠教師試用）
 
-> ▶ **當前可執行隊列（v173 evolve 2026-05-29，反 L055：先 `git status` + `git log` 掃 done-green 是否已回填 backlog）**：**Phase 2 U1–U6 全數 done-green，隊列清空（0 個 `[ ]`）**。24h 內 9 feat burst：U1-b 26913fb / U2-a 726c1b2+21723f3 / U2-b 9786500 / U3-a 41e77fb / U3-b 52469dd / U4-a f588f99 / U4-b ceb3039 / U5-a 6e2179a / capo 552d33f。DoD §2（30-fixture ≥90%）已由 `tests/test_corpus_e2e_pdf.py` 自動守門（實測 ≥95% + p95 趨勢）；K1 北極星由 `tests/test_starter_pack.py` 守門（< 30min，綠）。**無剩餘非-owner-gated KPI 缺口**；唯一活槓桿 = K6（owner-gated teacher trial，frozen）+ K7（owner push onboarding）。**daemon 正解 = idle，禁止 invent chore/governance task 填空**（守則 10 + 反 Pattern）。宣稱「無 M-task」前仍須掃此區 + working tree + 比對 `git log` 與 [x]（L048+L055）。
+> ▶ **當前可執行隊列（v197 evolve 2026-06-04，反 L055：先 `git status` + `git log` 掃 done-green 是否已回填 backlog）**：**Phase 2 U1–U7 全數 done-green，隊列清空（0 個 `[ ]`）**。本輪回填 U7 K1 practice-page burst（9770ed4 互動練習頁 / 71c64df 7 日練習計畫 / 60dbcf7 速度分級 / aaae648 和弦轉換 drill，+ practice_plan 測試 d894ffa/5d6d981）為 done-green。前輪 9 feat：U1-b 26913fb / U2-a 726c1b2+21723f3 / U2-b 9786500 / U3-a 41e77fb / U3-b 52469dd / U4-a f588f99 / U4-b ceb3039 / U5-a 6e2179a / capo 552d33f。DoD §2（30-fixture ≥90%）已由 `tests/test_corpus_e2e_pdf.py` 自動守門（實測 ≥95% + p95 趨勢）；K1 北極星由 `tests/test_starter_pack.py` 守門（< 30min，綠）。**無剩餘非-owner-gated KPI 缺口**；唯一活槓桿 = K6（owner-gated teacher trial，frozen）+ K7（owner push onboarding）。**daemon 正解 = idle，禁止 invent chore/governance task 填空**（守則 10 + 反 Pattern）。宣稱「無 M-task」前仍須掃此區 + working tree + 比對 `git log` 與 [x]（L048+L055）。
 >
 > 接續 MVP v0.1（8 DoD 全綠）。聚焦北極星「<30 分鐘能彈第一段」+ 擴覆蓋。屬 **feature 工作非 chore**，不受 hard-frozen 條款限制。
 > 規範同全域守則：每 task `pytest -q && ruff check . && mypy app/` 三綠才 commit；純 Python（FastAPI + music21 + reportlab），**不建 frontend / .ts / node_modules**（AGENTS.md §1）。
@@ -136,6 +136,12 @@
 
 ### U6 起步曲庫（自帶內容，可全自動跑北極星）
 - [x] U6-a 10 首 public-domain 兒歌 starter pack + `tests/test_starter_pack.py` 端到端 import→PDF + assert <30min（v171 搶救落地；K1 北極星自動量測 0→1）
+
+### U7 互動練習頁深化（K1 北極星 — 直接縮短「能彈第一段」；v197 回填 done-green）
+- [x] U7-a 互動和弦練習頁（Web Audio 撥放 + 節拍器）`/projects/{id}/practice`（9770ed4；13 測試；K1 北極星 — 互動練習降低 time-to-first-play）
+- [x] U7-b 曲目專屬 7 日練習計畫進 PDF pack（71c64df；`app/render/practice_plan.py`；K1 北極星 practice 深化）
+- [x] U7-c 速度分級 50%/70%/100% BPM（60dbcf7；ARIA radiogroup + slider sync）+ chord transition drill 針對性配對練習（aaae648；2 測試）
+- [x] U7-d practice_plan PDF 輸出覆蓋守門（d894ffa 17 測試 + 5d6d981 空和弦/段名 correctness fix；6ed6c3a None guard）
 
 > **本輪反思禁止候補**（2026-05-06 更新，含 2026-05-05 條）：
 > - 不准再加 sensor refresh / baseline verify / archive epic / blocker log 類治理任務進 program.md（daemon 已連續 14 輪空轉）

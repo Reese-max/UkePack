@@ -1,11 +1,15 @@
 {
-  "timestamp": "2026-06-04T08:59:32",
-  "total_24h": 1,
-  "chore_count": 0,
-  "ratio_percent": 0,
-  "chore_ratio_pct_broad": 0,
-  "chore_ratio_pct_pure": 0,
-  "severity": "skip_low_sample",
+  "timestamp": "2026-06-04T19:05:00",
+  "total_24h": 15,
+  "auto_salvage_exempt": 3,
+  "counted_24h": 12,
+  "chore_count": 3,
+  "ratio_percent": 25,
+  "chore_ratio_pct_broad": 40,
+  "chore_ratio_pct_pure": 25,
+  "micro_polish_ratio": 0,
+  "severity": "ok",
   "warn_threshold": 30,
-  "fail_threshold": 50
+  "fail_threshold": 50,
+  "note": "manual refresh: FS sensor stale 9h (08:59->19:05); chore=v196-log/gitignore/evolve; all feat/fix carry K1 KPI-impact => micro_polish~0"
 }

@@ -15,9 +15,9 @@ from app.render._layout import (
     _ZH,
     footer,
     page_title,
-    practice_table,
     section,
 )
+from app.render.practice_plan import draw_practice_plan
 
 
 def render_page4(c: rl_canvas.Canvas, req: PackRequest) -> None:
@@ -82,8 +82,6 @@ def render_page4(c: rl_canvas.Canvas, req: PackRequest) -> None:
         y -= 18
     y -= 10
 
-    section(c, "七日練習計畫", y)
-    y -= 24
-    practice_table(c, y)
+    y = draw_practice_plan(c, req, y)
 
     footer(c, req, 4)

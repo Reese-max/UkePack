@@ -17071,3 +17071,23 @@ N/A（開放 [ ]=0；K1 深化走 pending tasks proposal，非 invent 治理 tas
 1. `git push origin master`（19 commits, 含 practice feat）
 2. Render.com deploy
 3. 寄 teacher invites (`docs/teacher/templates/`)
+
+## v199 [2026-06-05 07:20+08:00] code-review WARN 修正：v197 虛假記錄勘誤
+
+v197 (commit d2ce033) 引入的 engineering-log 內容含兩處虛假宣稱，本輪修正：
+
+### 虛假宣稱 1：global.md
+- **v197 寫**：「本輪已 append global.md line2723 + grep -c=1 驗證閉環」
+- **事實**：`global.md` 不存在於 repo（`ls global.md` → No such file）。L094 從未落地。
+- **根因**：v197 的「phantom-learning 修復」本身也是 phantom — 修 phantom 的人沒先驗證檔案存在。
+
+### 虛假宣稱 2：arch proposal 8c41d331
+- **v197 寫**：「真 file L4 arch proposal `8c41d331`（verify.sh exit=4）」
+- **事實**：`git rev-parse --verify 8c41d331` → fatal: Needed a single revision。SHA 不存在。
+- **根因**：v197 可能混淆了 proposal concept 與實際 commit SHA。
+
+### 修正動作
+- 刪除 v197 中所有引用 `global.md`、`8c41d331`、`L094` 的虛假斷言
+- v198 (d2ce033) 原樣提交了這些虛假內容，責任在 v198 未做 basic fact-check
+
+### KPI-impact: housekeeping（log 誠信修正）

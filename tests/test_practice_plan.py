@@ -20,11 +20,11 @@ def _req(
     """Build a minimal PackRequest for testing."""
     chord_events = [
         ChordEvent(symbol=s, measure=i + 1, beat=1.0)
-        for i, s in enumerate(chords or ["C", "G", "Am", "F"])
+        for i, s in enumerate(chords if chords is not None else ["C", "G", "Am", "F"])
     ]
     score_sections = [
         ScoreSection(section=s, start_measure=a, end_measure=b)
-        for s, a, b in (sections or [])
+        for s, a, b in (sections if sections is not None else [])
     ]
     score = Score(
         title="Test Song",
@@ -67,9 +67,11 @@ class TestBuildPlan:
     def test_level_2_mentions_sections_when_available(self) -> None:
         sections = [("verse", 1, 8), ("chorus", 9, 16)]
         plans = build_plan(_req(level=2, sections=sections))
-        # Day 3/4 should mention section names
+        # build_plan uses raw section names from _section_names (no translation)
         day3_detail = plans[2].detail
-        assert "主歌" in day3_detail or "verse" in day3_detail
+        day4_detail = plans[3].detail
+        assert "verse" in day3_detail
+        assert "chorus" in day4_detail
 
     def test_level_3_mentions_section_chain(self) -> None:
         sections = [("intro", 1, 4), ("verse", 5, 12), ("chorus", 13, 16)]
@@ -86,6 +88,8 @@ class TestBuildPlan:
     def test_no_chords_still_produces_plan(self) -> None:
         plans = build_plan(_req(level=1, chords=[]))
         assert len(plans) == 7
+        # Empty chords triggers fallback text, not specific chord names
+        assert "歌曲和弦" in plans[0].detail
 
     def test_many_chords_truncated_at_4_in_summary(self) -> None:
         chords = ["C", "G", "Am", "F", "Dm", "Em"]

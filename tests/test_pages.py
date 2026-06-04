@@ -894,3 +894,120 @@ def test_analysis_page_shows_practice_speeds_when_bpm_present(
     assert "BPM" in resp.text
 
 
+# ── /projects/{id}/practice ──────────────────────────────────────────────────
+
+
+def test_practice_page_renders_with_imported_song(db_client: TestClient) -> None:
+    """Practice page should render with chord data and interactive elements."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Practice Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    with TWINKLE.open("rb") as fh:
+        db_client.post(
+            f"/api/projects/{pid}/import",
+            files={"file": ("twinkle.musicxml", fh, "application/xml")},
+        )
+
+    resp = db_client.get(f"/projects/{pid}/practice")
+    assert resp.status_code == 200
+    assert "互動練習" in resp.text
+    assert "chord-btn" in resp.text
+    assert "WebAudio" in resp.text or "AudioContext" in resp.text
+    assert "FINGERINGS" in resp.text
+
+
+def test_practice_page_redirects_without_score(db_client: TestClient) -> None:
+    """Practice page should redirect to analysis when no score data exists."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Empty Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+
+    resp = db_client.get(f"/projects/{pid}/practice", follow_redirects=False)
+    assert resp.status_code == 303
+    assert f"/projects/{pid}" in resp.headers["location"]
+
+
+def test_practice_page_contains_chord_buttons(db_client: TestClient) -> None:
+    """Practice page should have one button per chord in the progression."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Chord Btn Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    with TWINKLE.open("rb") as fh:
+        db_client.post(
+            f"/api/projects/{pid}/import",
+            files={"file": ("twinkle.musicxml", fh, "application/xml")},
+        )
+
+    resp = db_client.get(f"/projects/{pid}/practice")
+    assert resp.status_code == 200
+    # Twinkle is in C major with chords C, F, G (or similar)
+    assert 'class="chord-btn' in resp.text
+    # Should have at least 2 chord buttons
+    assert resp.text.count('class="chord-btn') >= 2
+
+
+def test_practice_page_has_metronome_controls(db_client: TestClient) -> None:
+    """Practice page should include BPM slider and play/pause button."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Metronome Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    with TWINKLE.open("rb") as fh:
+        db_client.post(
+            f"/api/projects/{pid}/import",
+            files={"file": ("twinkle.musicxml", fh, "application/xml")},
+        )
+
+    resp = db_client.get(f"/projects/{pid}/practice")
+    assert resp.status_code == 200
+    assert "bpm-slider" in resp.text
+    assert "自動播放" in resp.text
+
+
+def test_analysis_page_links_to_practice(db_client: TestClient) -> None:
+    """Analysis page should have a link to the practice page when score exists."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Link Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    with TWINKLE.open("rb") as fh:
+        db_client.post(
+            f"/api/projects/{pid}/import",
+            files={"file": ("twinkle.musicxml", fh, "application/xml")},
+        )
+
+    resp = db_client.get(f"/projects/{pid}")
+    assert resp.status_code == 200
+    assert f"/projects/{pid}/practice" in resp.text
+    assert "互動練習" in resp.text
+
+
+def test_practice_page_404_for_missing_project(db_client: TestClient) -> None:
+    """Practice page should 404 for non-existent project."""
+    resp = db_client.get("/projects/99999/practice")
+    assert resp.status_code == 404
+
+
+def test_get_fingerings_json_returns_known_chords() -> None:
+    """get_fingerings_json should return JSON mapping for known chord names."""
+    from app.render.chord_diagram import get_fingerings_json
+    import json
+
+    result = get_fingerings_json(["C", "G", "Am", "Unknown"])
+    data = json.loads(result)
+    assert "C" in data
+    assert "G" in data
+    assert "Am" in data
+    assert "Unknown" not in data
+    assert data["C"] == [0, 0, 0, 3]
+    assert data["G"] == [0, 2, 3, 2]
+
+

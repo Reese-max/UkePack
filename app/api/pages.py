@@ -29,6 +29,7 @@ from app.core.share_link import SHARE_TTL_OPTIONS, load_share_link, share_link_s
 from app.core.teacher_review import has_teacher_review
 from app.models.project import Project, ProjectCreate
 from app.models.score import Score
+from app.render.chord_diagram import get_fingerings_json
 
 router = APIRouter(tags=["pages"])
 logger = logging.getLogger(__name__)
@@ -289,6 +290,42 @@ def project_preview_page(
             "share_created": request.query_params.get("share_created") == "1",
             "share_revoked": request.query_params.get("share_revoked") == "1",
             "share_error": request.query_params.get("share_error") == "1",
+        },
+    )
+
+
+@router.get("/projects/{project_id}/practice", response_class=HTMLResponse)
+def project_practice_page(
+    request: Request,
+    project_id: int,
+    session: SessionDep,
+) -> HTMLResponse:
+    """Interactive chord practice page with audio playback and metronome."""
+    project = session.get(Project, project_id)
+    if project is None:
+        raise HTTPException(404, "Project not found")
+
+    analysis = _build_analysis(project)
+    if analysis is None:
+        return RedirectResponse(url=f"/projects/{project_id}", status_code=303)
+
+    # Deduplicate chords in progression order for the practice view
+    seen: set[str] = set()
+    unique_chords: list[str] = []
+    for ch in analysis["chords"]:
+        sym = ch["symbol"]
+        if sym not in seen:
+            seen.add(sym)
+            unique_chords.append(sym)
+
+    return _TEMPLATES.TemplateResponse(
+        request=request,
+        name="practice.html",
+        context={
+            "project": project.model_dump(),
+            "analysis": analysis,
+            "unique_chords": unique_chords,
+            "fingerings_json": get_fingerings_json(unique_chords),
         },
     )
 

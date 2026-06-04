@@ -1,6 +1,9 @@
 """SVG chord diagram generator for GCEA ukulele (PRD §9.9)."""
 
+from __future__ import annotations
+
 import html as _html
+import json as _json
 
 # (G_fret, C_fret, E_fret, A_fret) — string order left-to-right on diagram
 # -1 would mean muted; all known beginner chords are open-or-fretted here
@@ -55,6 +58,20 @@ def generate_svg(chord_name: str, *, colorable: bool = False) -> str:
 def get_fingering(chord_name: str) -> tuple[int, int, int, int] | None:
     """Return (G, C, E, A) fret tuple for the chord, or None if unknown."""
     return _CHORD_FINGERINGS.get(chord_name)
+
+
+def get_fingerings_json(chord_names: list[str]) -> str:
+    """Return a JSON object mapping chord names to their fret tuples.
+
+    Unknown chords are omitted.  Intended for embedding in an HTML page so
+    client-side JavaScript can synthesise chord audio via Web Audio API.
+    """
+    data: dict[str, list[int]] = {}
+    for name in chord_names:
+        f = _CHORD_FINGERINGS.get(name)
+        if f is not None:
+            data[name] = list(f)
+    return _json.dumps(data, separators=(",", ":"))
 
 
 # ── private helpers ────────────────────────────────────────────────────────

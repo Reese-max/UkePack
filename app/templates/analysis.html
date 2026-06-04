@@ -108,6 +108,9 @@
             <a class="btn btn-primary btn-sm" href="/projects/{{ project.id }}/preview">🎼 預覽 PDF</a>
             <a class="btn btn-ghost btn-sm" href="/api/projects/{{ project.id }}/export.pdf">⬇ 下載 PDF</a>
             {% endif %}
+            {% if analysis %}
+            <a class="btn btn-ghost btn-sm" href="/projects/{{ project.id }}/practice">🎵 互動練習</a>
+            {% endif %}
         </div>
     </div>
 

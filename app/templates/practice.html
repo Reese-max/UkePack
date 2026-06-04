@@ -1,0 +1,658 @@
+{% extends "base.html" %}
+
+{% block title %}🎵 {{ project.title }} 互動練習 — UkePack AI{% endblock %}
+
+{% block head %}
+<style>
+    /* ── Practice-specific tokens ── */
+    .practice-hero {
+        text-align: center;
+        padding: 1.25rem;
+        background: linear-gradient(135deg, #fff7ee 0%, #ffe8d6 100%);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        margin-bottom: 1.5rem;
+    }
+
+    /* ── Chord progression strip ── */
+    .chord-strip {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .chord-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.6rem 1rem;
+        min-width: 72px;
+        min-height: 56px;
+        background: var(--surface);
+        border: 2.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--text);
+        transition: all 0.15s;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .chord-btn:hover {
+        border-color: var(--accent);
+        background: #fff7ee;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .chord-btn.active {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #fff;
+        transform: scale(1.08);
+        box-shadow: var(--shadow);
+    }
+
+    .chord-btn .chord-idx {
+        font-size: 0.7rem;
+        font-weight: 600;
+        opacity: 0.6;
+    }
+
+    /* ── Big chord diagram display ── */
+    .chord-display {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+        padding: 1.5rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 1.5rem;
+    }
+
+    .chord-display .chord-name {
+        font-size: clamp(2.5rem, 10vw, 4.5rem);
+        font-weight: 900;
+        color: var(--accent-strong);
+        line-height: 1;
+    }
+
+    .chord-display svg {
+        width: 120px;
+        height: auto;
+    }
+
+    .tap-hint {
+        font-size: 0.95rem;
+        color: var(--muted);
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    /* ── Controls bar ── */
+    .controls-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .ctrl-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        min-height: var(--btn-min-h);
+        padding: 0.75rem 1.5rem;
+        border-radius: 999px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+
+    .ctrl-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+
+    .ctrl-btn-primary { background: var(--accent); color: #fff; }
+    .ctrl-btn-primary:hover { background: var(--accent-hover); }
+    .ctrl-btn-primary.playing { background: #e06716; animation: pulse-glow 1s infinite; }
+    .ctrl-btn-ghost {
+        background: var(--surface);
+        color: var(--text);
+        border-color: var(--border);
+    }
+
+    @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(255, 139, 61, 0.4); }
+        50% { box-shadow: 0 0 0 8px rgba(255, 139, 61, 0); }
+    }
+
+    /* ── BPM slider ── */
+    .bpm-control {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: var(--surface-soft);
+        padding: 0.75rem 1.25rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+    }
+
+    .bpm-control label {
+        font-weight: 700;
+        font-size: 0.95rem;
+        white-space: nowrap;
+    }
+
+    .bpm-control input[type="range"] {
+        width: 120px;
+        accent-color: var(--accent);
+    }
+
+    .bpm-val {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--accent-strong);
+        min-width: 3ch;
+        text-align: center;
+    }
+
+    /* ── Progress indicator ── */
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: #f3e6da;
+        border-radius: 999px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+
+    .progress-fill {
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+        background: var(--accent);
+        transition: width 0.3s ease;
+    }
+
+    .progress-label {
+        text-align: center;
+        font-size: 0.9rem;
+        color: var(--muted);
+        margin-bottom: 1rem;
+    }
+
+    /* ── Strum pattern selector ── */
+    .strum-selector {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+
+    .strum-opt {
+        padding: 0.5rem 1rem;
+        border: 2px solid var(--border);
+        border-radius: 999px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        background: var(--surface);
+        transition: all 0.15s;
+    }
+
+    .strum-opt:hover, .strum-opt.active {
+        border-color: var(--accent);
+        background: #fff7ee;
+        color: var(--accent-strong);
+    }
+
+    .strum-visual {
+        font-family: monospace;
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: var(--accent-strong);
+        text-align: center;
+        letter-spacing: 0.3em;
+        margin-bottom: 0.25rem;
+    }
+
+    .strum-beat {
+        transition: opacity 0.1s;
+    }
+
+    .strum-beat.hit {
+        color: var(--accent);
+        transform: scale(1.3);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 560px) {
+        .chord-display { gap: 1rem; padding: 1rem; }
+        .chord-display .chord-name { font-size: 2.5rem; }
+        .chord-display svg { width: 90px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div>
+    <a class="back-link" href="/projects/{{ project.id }}">← 回分析頁</a>
+
+    <div class="practice-hero">
+        <h1 class="page-title">🎵 {{ project.title }}</h1>
+        <p class="page-subtitle" style="margin-bottom:0">點擊和弦聽聲音，跟著節拍練習！</p>
+        {% if analysis.bpm %}
+        <span class="badge badge-orange">原曲 {{ analysis.bpm }} BPM</span>
+        {% endif %}
+        <span class="badge badge-green">{{ analysis.key_recommendation.target_key }}</span>
+    </div>
+
+    {# ── Current chord display ── #}
+    <div class="chord-display" id="chord-display" aria-live="polite" role="region" aria-label="目前和弦">
+        <div class="chord-name" id="chord-name">{{ unique_chords[0] if unique_chords else '?' }}</div>
+        <div id="chord-svg" aria-hidden="true"></div>
+    </div>
+
+    <p class="tap-hint">👆 點下方和弦條播放 · 按 ▶ 自動跟著節拍走</p>
+
+    {# ── Chord progression strip ── #}
+    <div class="chord-strip" id="chord-strip" role="group" aria-label="和弦進行">
+        {% for ch in analysis.chords %}
+        <button
+            type="button"
+            class="chord-btn {% if loop.index0 == 0 %}active{% endif %}"
+            data-idx="{{ loop.index0 }}"
+            data-symbol="{{ ch.symbol }}"
+            aria-label="第 {{ loop.index0 + 1 }} 個和弦：{{ ch.symbol }}"
+            onclick="jumpTo({{ loop.index0 }})"
+        >
+            <span class="chord-idx">{{ loop.index0 + 1 }}</span>
+            {{ ch.symbol }}
+        </button>
+        {% endfor %}
+    </div>
+
+    {# ── Progress ── #}
+    <div class="progress-bar"><span class="progress-fill" id="progress-fill" style="width:0%"></span></div>
+    <p class="progress-label" id="progress-label">1 / {{ analysis.chords | length }}</p>
+
+    {# ── Strum pattern selector ── #}
+    {% if analysis.strum_patterns %}
+    <div class="card" style="margin-bottom:1rem">
+        <p class="section-title">🥁 刷法</p>
+        <div class="strum-selector" role="radiogroup" aria-label="選擇刷法">
+            {% for sp in analysis.strum_patterns %}
+            <button
+                type="button"
+                class="strum-opt {% if loop.index0 == 0 %}active{% endif %}"
+                data-pattern-idx="{{ loop.index0 }}"
+                data-strokes="{{ sp.notation }}"
+                data-name="{{ sp.name }}"
+                onclick="selectStrum({{ loop.index0 }})"
+                role="radio"
+                aria-checked="{% if loop.index0 == 0 %}true{% else %}false{% endif %}"
+            >{{ sp.name }}</button>
+            {% endfor %}
+        </div>
+        <p class="strum-visual" id="strum-visual" aria-live="polite">
+            {% if analysis.strum_patterns %}{{ analysis.strum_patterns[0].notation }}{% endif %}
+        </p>
+        <p style="text-align:center; color:var(--muted); font-size:0.85rem; margin:0" id="strum-desc">
+            {% if analysis.strum_patterns %}{{ analysis.strum_patterns[0].description }}{% endif %}
+        </p>
+    </div>
+    {% endif %}
+
+    {# ── Controls ── #}
+    <div class="controls-bar">
+        <button type="button" class="ctrl-btn ctrl-btn-ghost" onclick="prevChord()" aria-label="上一個和弦">⏮ 上一個</button>
+        <button type="button" class="ctrl-btn ctrl-btn-primary" id="play-btn" onclick="togglePlay()" aria-label="播放或暫停">▶ 自動播放</button>
+        <button type="button" class="ctrl-btn ctrl-btn-ghost" onclick="nextChord()" aria-label="下一個和弦">下一個 ⏭</button>
+    </div>
+
+    <div class="controls-bar">
+        <div class="bpm-control">
+            <label for="bpm-slider">速度</label>
+            <input
+                type="range"
+                id="bpm-slider"
+                min="40"
+                max="160"
+                value="{{ analysis.bpm or 100 }}"
+                aria-label="每分鐘拍數"
+                oninput="updateBpm(this.value)"
+            >
+            <span class="bpm-val" id="bpm-val">{{ analysis.bpm or 100 }}</span>
+            <span style="font-size:0.85rem; color:var(--muted)">BPM</span>
+        </div>
+        <button type="button" class="ctrl-btn ctrl-btn-ghost" id="strum-btn" onclick="playCurrentStrum()" aria-label="播放刷法">🎸 刷一下</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* ── Chord fingerings from server ── */
+const FINGERINGS = {{ fingerings_json | safe }};
+/* ── Chord progression ── */
+const CHORDS = [{% for ch in analysis.chords %}"{{ ch.symbol }}"{% if not loop.last %},{% endif %}{% endfor %}];
+/* ── Strum patterns from server ── */
+const STRUMS = [{% for sp in analysis.strum_patterns %}
+  { name: {{ sp.name | tojson }}, notation: {{ sp.notation | tojson }}, desc: {{ sp.description | tojson }}, strokes: {{ sp.strokes | list | tojson }} }{% if not loop.last %},{% endif %}
+{% endfor %}];
+
+/* ── GCEA open-string frequencies (Hz) ── */
+const OPEN_FREQS = [392.00, 261.63, 329.63, 440.00]; // G4, C4, E4, A4
+
+/* ── State ── */
+let currentIdx = 0;
+let isPlaying = false;
+let playTimer = null;
+let bpm = {{ analysis.bpm or 100 }};
+let selectedStrumIdx = 0;
+
+/* ── Web Audio context (lazy init on user gesture) ── */
+let audioCtx = null;
+function getAudioCtx() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+}
+
+/* ── Synthesise a plucked ukulele chord ── */
+function playChordAudio(chordName) {
+    const fingering = FINGERINGS[chordName];
+    if (!fingering) return;
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
+
+    fingering.forEach((fret, i) => {
+        const freq = OPEN_FREQS[i] * Math.pow(2, fret / 12);
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(2500, now);
+        filter.Q.setValueAtTime(1, now);
+
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.22, now + 0.005);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now + i * 0.015); // slight stagger for realism
+        osc.stop(now + 1.3);
+    });
+}
+
+/* ── Play a strum pattern (sequential strokes) ── */
+function playStrumAudio(chordName) {
+    const pattern = STRUMS[selectedStrumIdx];
+    if (!pattern) { playChordAudio(chordName); return; }
+
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
+    const beatSec = 60 / bpm;
+    const strokes = pattern.strokes;
+
+    strokes.forEach((stroke, idx) => {
+        if (stroke === '-') return; // rest
+        const offset = now + idx * beatSec;
+        // Highlight the beat visually
+        setTimeout(() => highlightStrumBeat(idx), (offset - now) * 1000);
+
+        const fingering = FINGERINGS[chordName];
+        if (!fingering) return;
+
+        fingering.forEach((fret, si) => {
+            const freq = OPEN_FREQS[si] * Math.pow(2, fret / 12);
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            const filter = ctx.createBiquadFilter();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, offset);
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(stroke === 'D' ? 2000 : 3000, offset);
+
+            gain.gain.setValueAtTime(0, offset);
+            gain.gain.linearRampToValueAtTime(0.18, offset + 0.005);
+            gain.gain.exponentialRampToValueAtTime(0.001, offset + beatSec * 0.8);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start(offset + si * 0.01);
+            osc.stop(offset + beatSec * 0.9);
+        });
+    });
+}
+
+/* ── UI helpers ── */
+function updateDisplay() {
+    const sym = CHORDS[currentIdx];
+    document.getElementById('chord-name').textContent = sym;
+
+    // Update SVG
+    const svgContainer = document.getElementById('chord-svg');
+    const fingering = FINGERINGS[sym];
+    if (fingering) {
+        svgContainer.innerHTML = buildChordSvg(sym, fingering);
+    } else {
+        svgContainer.innerHTML = '<span style="color:var(--muted);font-size:0.9rem">無指法圖</span>';
+    }
+
+    // Update strip highlight
+    document.querySelectorAll('.chord-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === currentIdx);
+    });
+
+    // Update progress
+    const pct = CHORDS.length > 1 ? (currentIdx / (CHORDS.length - 1)) * 100 : 0;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-label').textContent = (currentIdx + 1) + ' / ' + CHORDS.length;
+}
+
+function jumpTo(idx) {
+    currentIdx = Math.max(0, Math.min(idx, CHORDS.length - 1));
+    updateDisplay();
+    playChordAudio(CHORDS[currentIdx]);
+}
+
+function nextChord() {
+    if (currentIdx < CHORDS.length - 1) {
+        currentIdx++;
+        updateDisplay();
+        playChordAudio(CHORDS[currentIdx]);
+    }
+}
+
+function prevChord() {
+    if (currentIdx > 0) {
+        currentIdx--;
+        updateDisplay();
+        playChordAudio(CHORDS[currentIdx]);
+    }
+}
+
+function updateBpm(val) {
+    bpm = parseInt(val, 10);
+    document.getElementById('bpm-val').textContent = bpm;
+}
+
+function selectStrum(idx) {
+    selectedStrumIdx = idx;
+    const pattern = STRUMS[idx];
+    document.getElementById('strum-visual').textContent = pattern.notation;
+    document.getElementById('strum-desc').textContent = pattern.desc;
+    document.querySelectorAll('.strum-opt').forEach((btn, i) => {
+        btn.classList.toggle('active', i === idx);
+        btn.setAttribute('aria-checked', i === idx ? 'true' : 'false');
+    });
+}
+
+function highlightStrumBeat(idx) {
+    const el = document.getElementById('strum-visual');
+    if (!el) return;
+    const notation = STRUMS[selectedStrumIdx].notation;
+    // Re-render with highlight on current beat
+    const parts = notation.split(' ');
+    el.innerHTML = parts.map((p, i) =>
+        '<span class="strum-beat' + (i === idx ? ' hit' : '') + '">' + p + '</span>'
+    ).join(' ');
+    // Reset after a short delay
+    setTimeout(() => { el.textContent = notation; }, 200);
+}
+
+/* ── Play controls ── */
+function togglePlay() {
+    if (isPlaying) {
+        stopPlay();
+    } else {
+        startPlay();
+    }
+}
+
+function startPlay() {
+    isPlaying = true;
+    const btn = document.getElementById('play-btn');
+    btn.textContent = '⏸ 暫停';
+    btn.classList.add('playing');
+    tick();
+}
+
+function stopPlay() {
+    isPlaying = false;
+    if (playTimer) clearTimeout(playTimer);
+    playTimer = null;
+    const btn = document.getElementById('play-btn');
+    btn.textContent = '▶ 自動播放';
+    btn.classList.remove('playing');
+}
+
+function tick() {
+    if (!isPlaying) return;
+    playChordAudio(CHORDS[currentIdx]);
+    updateDisplay();
+
+    const beatMs = (60 / bpm) * 1000;
+    const strokes = STRUMS[selectedStrumIdx] ? STRUMS[selectedStrumIdx].strokes : ['D'];
+    const barMs = beatMs * strokes.length;
+
+    // Move to next chord after one full bar
+    playTimer = setTimeout(() => {
+        if (currentIdx < CHORDS.length - 1) {
+            currentIdx++;
+            tick();
+        } else {
+            // Loop back to start
+            currentIdx = 0;
+            tick();
+        }
+    }, barMs);
+}
+
+function playCurrentStrum() {
+    playStrumAudio(CHORDS[currentIdx]);
+}
+
+/* ── Build SVG chord diagram (client-side, mirrors server chord_diagram.py) ── */
+function buildChordSvg(name, frets) {
+    const W = 80, H = 115;
+    const stringXs = [12, 28, 44, 60];
+    const stringLabels = ['G', 'C', 'E', 'A'];
+    const nutY = 30, fretSpacing = 16, fretLines = 5;
+    const dotR = 5, openR = 4;
+
+    // Compute display frets (shift if highest > 4)
+    const nonZero = frets.filter(f => f > 0);
+    let startFret = 1;
+    let display = [...frets];
+    if (nonZero.length && Math.max(...nonZero) > 4) {
+        startFret = Math.min(...nonZero);
+        display = frets.map(f => f > 0 ? f - startFret + 1 : 0);
+    }
+
+    let svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '">';
+    // Chord name
+    svg += '<text x="' + (W/2) + '" y="12" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="bold">' + escHtml(name) + '</text>';
+
+    // Grid
+    const x1 = stringXs[0], x2 = stringXs[3];
+    const bottomY = nutY + (fretLines - 1) * fretSpacing;
+    for (const sx of stringXs) {
+        svg += '<line x1="' + sx + '" y1="' + nutY + '" x2="' + sx + '" y2="' + bottomY + '" stroke="black" stroke-width="1"/>';
+    }
+    const nutW = startFret === 1 ? 3 : 1;
+    svg += '<line x1="' + x1 + '" y1="' + nutY + '" x2="' + x2 + '" y2="' + nutY + '" stroke="black" stroke-width="' + nutW + '"/>';
+    for (let i = 1; i < fretLines; i++) {
+        const fy = nutY + i * fretSpacing;
+        svg += '<line x1="' + x1 + '" y1="' + fy + '" x2="' + x2 + '" y2="' + fy + '" stroke="black" stroke-width="1"/>';
+    }
+    if (startFret > 1) {
+        svg += '<text x="' + (x2 + 4) + '" y="' + (nutY + 5) + '" font-family="Helvetica,Arial,sans-serif" font-size="8">' + startFret + 'fr</text>';
+    }
+    for (let i = 0; i < 4; i++) {
+        svg += '<text x="' + stringXs[i] + '" y="' + (bottomY + 12) + '" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="7">' + stringLabels[i] + '</text>';
+    }
+
+    // Dots
+    for (let i = 0; i < 4; i++) {
+        const sx = stringXs[i];
+        const fret = display[i];
+        if (fret === 0) {
+            const cy = nutY - 9;
+            svg += '<circle cx="' + sx + '" cy="' + cy + '" r="' + openR + '" fill="white" stroke="black" stroke-width="1.2"/>';
+        } else {
+            const cy = nutY + (fret - 0.5) * fretSpacing;
+            svg += '<circle cx="' + sx + '" cy="' + cy.toFixed(1) + '" r="' + dotR + '" fill="black"/>';
+        }
+    }
+
+    svg += '</svg>';
+    return svg;
+}
+
+function escHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/* ── Keyboard shortcuts ── */
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') { e.preventDefault(); nextChord(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); prevChord(); }
+    else if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+});
+
+/* ── Init ── */
+updateDisplay();
+</script>
+{% endblock %}

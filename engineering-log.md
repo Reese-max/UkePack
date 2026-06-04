@@ -16990,3 +16990,84 @@ N/A(開放 [ ]=0；proposal b32ef3bc 第一段已被本輪落地，剩餘深化�
 - ✅ push 維持 owner-gated(含真 feat，與 K6 部分耦合，L089 修正)
 - ❌ 不自改 MISSION/conf/BACKLOG(守則6，走 propose.sh)；不重複 file b32ef3bc/f1144db1(v195 已 file，避 spam guard)；不刪殘留 lock 檔(cosmetic，避 L078 自疊)
 - **KPI-impact: K1 本輪實推進=daemon 孤兒 practice_plan WIP 修綠落地(71c64df, song-specific 7-day plan)；真 KPI 數值前進待 owner push/deploy + daemon 領 b32ef3bc 剩餘**
+
+## 反思 v197 [2026-06-04 18:40+08:00 /pua KPI review · opus-4-8 互動 session · 第20輪 · 揭穿 phantom-learning 斷鏈 + file L4 arch 修 exit=4]
+
+接 v196。全 live 探針。caveman。本輪核心：v194-v196 宣稱的 global learning 全是空號 + verify:pytest exit=4 坐實為結構性 harness bug。
+
+### KPI 進展表（vs v196，全 live 重驗）
+| KPI | v196 | v197(live) | Δ | 狀態 |
+|-----|------|-----------|---|------|
+| K1 北極星<30min | starter 2 passed + 7-day plan landed | **starter+north-star 3 passed exit0**(north-star ~0.16s,threshold 5→15s flaky 修 1aae747)；今日 +4 K1 feat(interactive 9770ed4 / speed presets 60dbcf7 / drill aaae648 / 7-day 71c64df)+17 unit test practice_plan(d894ffa) | +多條真深化已 commit | ✅進步 |
+| DoD§2 import≥90% | ~99 fixture | 同(守門) | 0 | ✅ |
+| DoD§5 chord-map≥50 | ≥50 | 同 | 0 | ✅ |
+| baseline 全測 | 648 | **~660 全綠 exit0**(本輪親跑) | + | ✅ |
+| K6 老師回饋 | 0/5 | 0/5 | 0 | ❌human-gated(第20輪) |
+| K7 onboarding | 5/5 | 5/5 | 0 | 🟡owner-gated |
+| push-lag | 12 | **19**(`origin/master..HEAD`,含5條 practice feat) | +7 | 🔴惡化(真K1 feat 困 local,K6 前置鏈斷) |
+| churn(auto-salvage) | v196後續發 | **12:32後5h 無新**(last 1018922@12:32;gitignore 1d76cab@13:20 plausible 機制) | 暫停未確死 | ⚠️ |
+| daemon failures.jsonl | 不存在 | 不存在(三驗) | — | ❌L071 happy-path gap |
+
+### 24h 任務分布（git log --since=24h = 15 commit）
+- M0-3(KPI 推進): **9**（5條 K1 feat: 9770ed4/60dbcf7/aaae648/71c64df + d894ffa test + 6ed6c3a/5d6d981/1aae747 K1-path test fix + 421a920 mypy gate）
+- H0: 6（833ef57 chore log + 1d76cab chore governance + 4dafb88 chore evolve + 3× auto-salvage 3e4588b/27cda51/1018922）
+- chore_ratio: 6/15=**40% >30% warn**。**非避真**：本窗 land 5 條真北極星 feat。扣 3 條並發污染 auto-salvage(L092 churn 非工作)=3/12=**25%**。真意圖 chore ratio 持平 25%，headline 改善(v196 63%→40%)因真 feat 灌入分母（注意 L093：分母稀釋 ≠ 治本，churn 絕對數本窗才剛降）。
+
+### 卡住的 KPI 與根因
+- **K6 唯一真卡 human-gated（第20輪）**：push-lag 19 含 5 條真北極星 feat 困 local → K6 前置鏈(push→deploy→老師能用 practice page→K6 才可能動)仍斷(L089 邊界：local 含真 feat 時 push-lag 非純 housekeeping)。
+- **daemon survival — 黑盒不存在**：`.auto-dev.state.json` STALE(last_update 05-26 9天前 / round29 / 0-pass-9-fail / pid39876 / codex / opus-4-7) → 非今日產 commit 的 process。**無 `.engineer-loop.failures.jsonl`**(三驗) → daemon 黑盒從未建立，無法做 api_error_status/engine/exit_code 分布(L071 happy-path observability gap)。唯一失敗訊號 = results.log `verify:pytest FAIL exit=4` ×4(08:09/10:05/14:17/16:20，**同 signal ≥3 = 結構性**)。
+- **exit=4 根因坐實 + 已 file L4 arch proposal**：grep harness → `lib/verify.sh:42` 用 bare `python -m pytest`，解析到 uv tool cache/系統 python(無 project deps)→ pytest 收集失敗回 exit=4(usage error)，非真 test fail(`.venv/Scripts/python -m pytest` 手跑全綠)。**本輪 file arch proposal `8c41d331`**(verify.sh:42→偵測優先用 project .venv python,跨平台 fallback)。
+- **phantom-learning 斷鏈（本輪核心發現）**：v194-v196 連 3 輪 reflection 宣稱新增 global `L096/L097/L098`，`grep -nE '^##? *L09[4-9]' global.md` → **0 筆**，檔內 latest 仍 L093。5 個被宣稱的 global learning 全是空號 → 學習迴路自報閉環卻沒落地（紅線一在 meta 層）。**本輪真 append L094 + grep -c=1 驗證(line2723)**。
+- **churn 暫停未確死**：12:32→17:27 5h 無新 auto-salvage（vs 歷史 2-7h cycle，未過數個故障週期，依診斷紀律不宣稱修好）；gitignore 1d76cab@13:20 為 plausible 機制；arch flock proposals(f1144db1/21216ee3 等)仍 pending owner review。
+
+### 下一步 3 個 KPI 推進動作（各對 1 KPI）
+1. (OWNER，K6 前置鏈) **push origin master(19 commits 含 5 條 practice feat)→Render deploy→老師能用 practice page→寄 `docs/teacher/templates/` 邀請**。push-lag 不再純 housekeeping(L089:含真 feat)。
+2. (OWNER，K1 量測誠信) **review+merge arch proposal `8c41d331`**(verify.sh .venv python)→消滅 results.log 假 exit=4 FAIL → KPI 量測 path 才可信(假 FAIL 會誤導每輪收斂判斷)。
+3. (OWNER+機制，根除 churn) **review pending arch flock proposal** + 確認 12:32 後無新 salvage 是 gitignore 1d76cab 治本還是巧合(再觀察 ≥1 故障週期)；SOP 喊停 20 輪壓不住排程器本能 → 須機制擋(守則10)。
+
+### program.md 重排
+N/A（開放 [ ]=0；K1 深化走 pending tasks proposal，非 invent 治理 task，守則10 不違）。**禁 invent 治理 task 填空。**
+
+### Global learning
+**新增 L094**(phantom-learning：reflection 宣稱新增 L### ≠ 真 append，須 grep 檔案驗證；紅線一在學習層鏡像)。本輪已 append global.md line2723 + `grep -c=1` 驗證閉環（非 v194-196 的空號）。**勘誤**：前 3 輪 L096-L098 phantom 號作廢，後續取號以 global.md grep 實況為準(現 latest=L094)，不沿用 phantom 號。
+
+### 治理動作
+- ✅ 本反思 append-only；**真 file L4 arch proposal `8c41d331`**(verify.sh exit=4)；**真 append+驗證 L094**(非 phantom)
+- ✅ 親跑 K1 gate(starter+north-star 3 passed exit0) + 全測 ~660 綠，拿閉環證據
+- ❌ 不自改 MISSION/conf/BACKLOG(守則6，走 propose.sh)；不重複 file flock proposal(已存 f1144db1/21216ee3，避 spam guard)；不刪殘留 lock(cosmetic，避 L078 自疊)
+- **KPI-impact: 本輪實推進 = 揭穿+修復 phantom-learning 斷鏈(真 L094) + file harness exit=4 修復通路(8c41d331，讓 K1 量測誠信)；真 KPI 數值前進待 owner push/deploy + merge proposals**
+
+---
+
+## v198 [2026-06-05 06:25+08:00 /pua KPI review · 第21輪 · baseline 綠，無可執行任務]
+
+接 v197。互動 session。caveman。
+
+### KPI 進展表
+| KPI | v197 | v198 | Δ | 狀態 |
+|-----|------|------|---|------|
+| K1 北極星<30min | +4 feat landed | 同（5 feat local unpushed） | 0 | ✅code done, 待 push |
+| DoD§2 import≥90% | ~99 fixture | 同 | 0 | ✅ |
+| DoD§5 chord-map≥50 | ≥50 | 同 | 0 | ✅ |
+| baseline 全測 | ~660 綠 | 660+ 綠（親跑 pytest/ruff/mypy） | 0 | ✅ |
+| K6 老師回饋 | 0/5 | 0/5 | 0 | ❌human-gated 第21輪 |
+| K7 onboarding | 5/5 | 5/5 | 0 | 🟡owner-gated |
+| push-lag | 19 | 19（origin/master..HEAD） | 0 | 🔴owner must push |
+| 24h commits | 15 | 0 | — | daemon idle |
+
+### 本輪動作
+- 驗 baseline：660+ tests pass, ruff OK, mypy 0 errors
+- 驗 north-star/starter_pack: 2 passed (36.7s)
+- 驗 corpus E2E: 33 passed
+- 驗 pages: 70 passed
+- 無 M0-M3 可執行任務，不做未列 refactor
+
+### 卡住原因（同 v197，結構性未變）
+- K6 唯一真卡 human-gated
+- push-lag 19 含 5 條真 K1 feat 困 local
+- owner 需 push → deploy → teacher outreach
+
+### 下一步（owner action required）
+1. `git push origin master`（19 commits, 含 practice feat）
+2. Render.com deploy
+3. 寄 teacher invites (`docs/teacher/templates/`)

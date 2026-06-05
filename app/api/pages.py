@@ -18,9 +18,11 @@ from app.api.project_uploads import (
     import_musicxml_into_project,
     save_upload_with_limit,
 )
+from app.arrangement.capo_advisor import suggest_capo
 from app.arrangement.key_advisor import suggest_key
 from app.arrangement.level_classifier import classify
 from app.arrangement.strum_pattern import suggest_for_level
+from app.core.music_theory import transpose_chord_symbol
 from app.config import get_settings
 from app.core.chord_sheet import parse_chord_sheet
 from app.core.db import get_session
@@ -180,6 +182,49 @@ def persist_strum_partial(
     session.add(project)
     session.commit()
     return _render_strum_partial(request, project, level)
+
+
+@router.get("/projects/{project_id}/chords-transposed", response_class=HTMLResponse)
+def chords_transposed_partial(
+    request: Request,
+    project_id: int,
+    session: SessionDep,
+    semitones: int = 0,
+    capo_fret: int = 0,
+) -> HTMLResponse:
+    """HTMX partial: return transposed chord list for a given semitone shift or capo fret.
+
+    If ``capo_fret`` > 0, it overrides ``semitones`` (capo fret N = shift of -N semitones
+    for the shapes the player frets).
+    """
+    project = session.get(Project, project_id)
+    if project is None:
+        raise HTTPException(404, "Project not found")
+
+    score = _score_from_project(project)
+    shift = -capo_fret if capo_fret > 0 else semitones
+    prefer_flats = _prefer_flats(score.key)
+
+    transposed: list[str] = []
+    seen: set[str] = set()
+    for ch in score.chords:
+        t = transpose_chord_symbol(ch.symbol, shift, prefer_flats)
+        if t not in seen:
+            seen.add(t)
+            transposed.append(t)
+
+    capo_info = {"fret": capo_fret} if capo_fret > 0 else None
+    return _TEMPLATES.TemplateResponse(
+        request=request,
+        name="partials/chords_transposed.html",
+        context={"chords": transposed, "capo_info": capo_info},
+    )
+
+
+def _prefer_flats(key: str) -> bool:
+    """Return True when the key conventionally uses flat note names."""
+    flat_keys = {"F", "Bb", "Eb", "Ab", "Db", "Gb", "Cb", "Dm", "Gm", "Cm", "Fm", "Bbm"}
+    return key in flat_keys
 
 
 @router.post("/projects/{project_id}/confirm-license")
@@ -450,3 +495,90 @@ def _share_payload(project: Project, request: Request) -> dict[str, Any] | None:
         "url": f"{str(request.base_url).rstrip('/')}{path}",
         "expires_label": manifest.expires_at.strftime("%Y-%m-%d %H:%M UTC"),
     }
+
+
+# ── Song Library (competitor-research: vs Ultimate Guitar / Chordify) ──
+
+_LIBRARY_DIR = Path(__file__).resolve().parents[2] / "samples" / "public_domain"
+
+
+def _scan_library_songs() -> list[dict[str, Any]]:
+    """Scan public_domain samples and return lightweight metadata for the library grid."""
+    from app.core.musicxml import parse as parse_musicxml
+
+    songs: list[dict[str, Any]] = []
+    if not _LIBRARY_DIR.is_dir():
+        return songs
+    for mxl in sorted(_LIBRARY_DIR.glob("*.musicxml")):
+        try:
+            score = parse_musicxml(mxl)
+            songs.append({
+                "filename": mxl.name,
+                "title": score.title or mxl.stem.replace("_", " ").title(),
+                "key": score.key or "?",
+                "bpm": score.bpm or 0,
+                "measures": score.measures or 0,
+            })
+        except Exception:
+            songs.append({
+                "filename": mxl.name,
+                "title": mxl.stem.replace("_", " ").title(),
+                "key": "?",
+                "bpm": 0,
+                "measures": 0,
+            })
+    return songs
+
+
+@router.get("/library", response_class=HTMLResponse)
+def library_page(request: Request) -> HTMLResponse:
+    """Song library — pick a pre-loaded song and start practising instantly."""
+    songs = _scan_library_songs()
+    return _TEMPLATES.TemplateResponse(
+        "library.html",
+        {"request": request, "songs": songs},
+    )
+
+
+@router.post("/library/{filename}/quick-start")
+def library_quick_start(filename: str, session: SessionDep) -> RedirectResponse:
+    """One-click: create project from a library song → import → redirect to analysis."""
+    # Sanitize: only allow simple filenames from the library dir
+    if "/" in filename or "\\" in filename or ".." in filename:
+        raise HTTPException(400, "Invalid filename")
+    source = _LIBRARY_DIR / filename
+    if not source.is_file():
+        raise HTTPException(404, "Song not found in library")
+
+    title = source.stem.replace("_", " ").title()
+    project = Project(
+        **ProjectCreate(
+            title=title,
+            source_type="public_domain",
+            usage_type="private",
+        ).model_dump()
+    )
+    session.add(project)
+    session.commit()
+    session.refresh(project)
+
+    # Copy file into project data dir and import
+    settings = get_settings()
+    save_dir = settings.data_dir / "projects" / str(project.id)
+    save_dir.mkdir(parents=True, exist_ok=True)
+    save_path = save_dir / f"original{source.suffix}"
+    save_path.write_bytes(source.read_bytes())
+    relative_path = str(save_path.relative_to(settings.data_dir))
+
+    try:
+        import_musicxml_into_project(project, save_path, relative_path=relative_path)
+        session.add(project)
+        session.commit()
+    except (ValueError, RuntimeError) as exc:
+        logger.warning("library import failed: %s", exc, exc_info=True)
+        return RedirectResponse(
+            url=f"/projects/{project.id}?import_error=1",
+            status_code=303,
+        )
+
+    return RedirectResponse(url=f"/projects/{project.id}", status_code=303)

@@ -1250,8 +1250,9 @@ let drillIdx = -1;
 let drillShowingFirst = true;
 
 function startDrill(idx) {
-    // Stop auto-play if running
+    // Stop auto-play and play-along if running
     if (isPlaying) stopPlay();
+    if (paPlaying) pausePlayAlong();
 
     drillIdx = idx;
     drillCount = 0;

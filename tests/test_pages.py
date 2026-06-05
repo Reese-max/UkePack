@@ -1065,3 +1065,57 @@ def test_chord_transitions_deduplicated(db_client: TestClient) -> None:
         assert t["from"] != t["to"]
 
 
+# ── GET /projects/{id}/chords-transposed ─────────────────────────────────
+
+
+def test_chords_transposed_identity(db_client: TestClient) -> None:
+    """Semitones=0 returns original chords."""
+    create = db_client.post(
+        "/api/projects", json={"title": "Transpose Test", "source_type": "public_domain"}
+    )
+    pid = create.json()["id"]
+    db_client.post(f"/api/projects/{pid}/chords", json={"text": "C | G | Am | F"})
+
+    resp = db_client.get(f"/projects/{pid}/chords-transposed?semitones=0")
+    assert resp.status_code == 200
+    assert "C</span>" in resp.text
+    assert "G</span>" in resp.text
+
+
+def test_chords_transposed_up_one(db_client: TestClient) -> None:
+    """Semitones=1 transposes C→C#, G→G#, etc."""
+    create = db_client.post(
+        "/api/projects", json={"title": "Transpose Up", "source_type": "public_domain"}
+    )
+    pid = create.json()["id"]
+    db_client.post(f"/api/projects/{pid}/chords", json={"text": "C | G | Am | F"})
+
+    resp = db_client.get(f"/projects/{pid}/chords-transposed?semitones=1")
+    assert resp.status_code == 200
+    assert "C#</span>" in resp.text
+    assert "G#</span>" in resp.text
+    assert "Bbm</span>" in resp.text or "A#m</span>" in resp.text
+
+
+def test_chords_transposed_capo(db_client: TestClient) -> None:
+    """Capo fret 3 shifts chords down 3 semitones for shape display."""
+    create = db_client.post(
+        "/api/projects", json={"title": "Capo Test", "source_type": "public_domain"}
+    )
+    pid = create.json()["id"]
+    db_client.post(f"/api/projects/{pid}/chords", json={"text": "C | G | Am | F"})
+
+    resp = db_client.get(f"/projects/{pid}/chords-transposed?capo_fret=3")
+    assert resp.status_code == 200
+    # C down 3 = A, G down 3 = E, Am down 3 = F#m/Fm, F down 3 = D
+    assert "A</span>" in resp.text
+    assert "E</span>" in resp.text
+    assert "capo" in resp.text.lower()
+
+
+def test_chords_transposed_not_found(db_client: TestClient) -> None:
+    """Nonexistent project returns 404."""
+    resp = db_client.get("/projects/99999/chords-transposed?semitones=1")
+    assert resp.status_code == 404
+
+

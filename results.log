@@ -438,3 +438,4 @@
 2026-06-05 06:37:24 | verify:pytest | FAIL | exit=4
 [2026-06-05T07:20:00+08:00] | M0 | PASS | KPI-impact: housekeeping — log 誠信修正 v197 虛假 global.md/8c41d331 宣稱 | baseline 659 passed / ruff OK / mypy 56 OK; 修正 engineering-log.md 中 v197 兩處虛假宣稱(global.md 不存在 + SHA 8c41d331 不存在)
 2026-06-05 07:30:11 | verify:pytest | PASS | exit=0
+[2026-06-05T11:37:00+08:00] | M1 | FAIL | KPI-impact: K6 blocked on git push (24 unpushed commits) | baseline ruff+mypy+pytest green; Phase 2 U1-U7 all done; K6=0/5 owner-gated ≥50 rounds; K7=5/5; 24h chore_ratio ~63%; only unblock = git push origin master (user unconfirmed); no daemon-executable M-task

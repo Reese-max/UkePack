@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}歌曲庫 — UkePack AI{% endblock %}
+
+{% block content %}
+<a class="back-link" href="/">← 回到首頁</a>
+
+<h1 class="page-title">🎵 歌曲庫</h1>
+<p class="page-subtitle">選一首歌，一鍵產生練習包。全部是公版兒歌，免上傳。</p>
+
+{% if songs %}
+<div style="display:grid; gap:1rem; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));">
+    {% for song in songs %}
+    <div class="card" style="display:flex; flex-direction:column; gap:0.6rem;">
+        <strong style="font-size:1.15rem;">{{ song.title }}</strong>
+        <div class="data-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="data-cell">
+                <small>調性</small>
+                <strong>{{ song.key }}</strong>
+            </div>
+            <div class="data-cell">
+                <small>BPM</small>
+                <strong>{{ song.bpm if song.bpm else '—' }}</strong>
+            </div>
+        </div>
+        <form method="post" action="/library/{{ song.filename }}/quick-start" style="margin-top:auto;">
+            <button class="btn btn-primary btn-sm" style="width:100%;" type="submit">
+                一鍵產生練習包 →
+            </button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">
+    目前沒有預載歌曲。請先將 <code>.musicxml</code> 檔案放到 <code>samples/public_domain/</code> 目錄。
+</div>
+{% endif %}
+{% endblock %}

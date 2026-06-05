@@ -1,0 +1,11 @@
+{# Transposed chord list — HTMX partial for one-click transpose #}
+<div id="chord-list-transposed" style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:0.5rem">
+    {% for ch in chords %}
+    <span class="badge badge-green" style="font-size:0.9rem">{{ ch }}</span>
+    {% endfor %}
+</div>
+{% if capo_info %}
+<p style="margin:0.4rem 0 0; color:var(--muted); font-size:0.85rem">
+    🎸 夾 capo 第 {{ capo_info.fret }} 格時，手指按的是這些和弦
+</p>
+{% endif %}

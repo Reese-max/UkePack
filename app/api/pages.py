@@ -534,8 +534,9 @@ def library_page(request: Request) -> HTMLResponse:
     """Song library — pick a pre-loaded song and start practising instantly."""
     songs = _scan_library_songs()
     return _TEMPLATES.TemplateResponse(
-        "library.html",
-        {"request": request, "songs": songs},
+        request=request,
+        name="library.html",
+        context={"songs": songs},
     )
 
 

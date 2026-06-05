@@ -23,9 +23,9 @@ def _homepage_cards() -> list[dict[str, str]]:
             "href": "/new",
         },
         {
-            "title": "匯入 MusicXML",
-            "description": "在建立專案表單中上傳 .musicxml 或 .mxl 檔，系統自動分析 Key、BPM 與和弦進行。",
-            "href": "/new",
+            "title": "🎵 歌曲庫",
+            "description": "免上傳，從公版兒歌庫直接選一首，一鍵產生練習包。",
+            "href": "/library",
         },
         {
             "title": "看範例",

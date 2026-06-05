@@ -529,6 +529,106 @@
         gap: 0.75rem;
     }
 
+    /* ── Play-along mode ── */
+    .playalong-section {
+        display: none;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1.25rem;
+        background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+        border: 2px solid #a5d6a7;
+        border-radius: var(--radius);
+        margin-bottom: 1.5rem;
+    }
+
+    .playalong-section.visible { display: flex; }
+
+    .playalong-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .playalong-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #2e7d32;
+    }
+
+    .playalong-variant-btns {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+    }
+
+    .variant-btn {
+        padding: 0.4rem 0.9rem;
+        border: 2px solid #a5d6a7;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        background: #fff;
+        color: #2e7d32;
+        transition: all 0.15s;
+    }
+
+    .variant-btn:hover { border-color: #43a047; background: #e8f5e9; }
+    .variant-btn.active { border-color: #2e7d32; background: #2e7d32; color: #fff; }
+
+    .playalong-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .playalong-btn {
+        min-height: var(--btn-min-h);
+        padding: 0.75rem 1.5rem;
+        border-radius: 999px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.15s;
+    }
+
+    .playalong-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .playalong-btn-primary { background: #2e7d32; color: #fff; }
+    .playalong-btn-primary:hover { background: #1b5e20; }
+    .playalong-btn-primary.playing { background: #e06716; animation: pulse-glow 1s infinite; }
+
+    .playalong-time {
+        font-family: 'Courier New', monospace;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #2e7d32;
+        min-width: 5ch;
+    }
+
+    .playalong-bpm-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: #fff;
+        color: #2e7d32;
+        border: 1px solid #a5d6a7;
+    }
+
+    .playalong-hint {
+        font-size: 0.85rem;
+        color: #558b2f;
+        text-align: center;
+        margin: 0;
+    }
+
     /* ── Responsive ── */
     @media (max-width: 560px) {
         .chord-display { gap: 1rem; padding: 1rem; }
@@ -715,6 +815,42 @@
             <button type="button" class="ctrl-btn ctrl-btn-primary" id="drill-toggle-btn" onclick="toggleDrill()">▶ 開始練習</button>
             <button type="button" class="ctrl-btn ctrl-btn-ghost" onclick="stopDrill()">✕ 退出</button>
         </div>
+    </div>
+    {% endif %}
+
+    {# ── Play-along mode (reference audio) ── #}
+    {% if practice_audio %}
+    <div class="playalong-section visible" id="playalong-section">
+        <div class="playalong-header">
+            <h3>🎧 跟著彈 Play-Along</h3>
+            <div class="playalong-variant-btns" role="radiogroup" aria-label="選擇練習速度">
+                {% for v in practice_audio.variants %}
+                <button
+                    type="button"
+                    class="variant-btn {% if loop.index0 == 0 %}active{% endif %}"
+                    data-variant="{{ v.variant }}"
+                    data-bpm="{{ v.bpm }}"
+                    data-idx="{{ loop.index0 }}"
+                    onclick="selectVariant({{ loop.index0 }})"
+                    role="radio"
+                    aria-checked="{% if loop.index0 == 0 %}true{% else %}false{% endif %}"
+                >{{ v.label }} ({{ v.bpm }} BPM)</button>
+                {% endfor %}
+            </div>
+        </div>
+        <audio id="playalong-audio" preload="none"></audio>
+        <div class="playalong-controls">
+            <button type="button" class="playalong-btn playalong-btn-primary" id="playalong-btn"
+                    onclick="togglePlayAlong()" aria-label="播放或暫停參考音訊">▶ 跟著彈</button>
+            <span class="playalong-time" id="playalong-time">0:00</span>
+            <span class="playalong-bpm-badge" id="playalong-bpm-badge">
+                ♩ {{ practice_audio.variants[0].bpm }} BPM
+            </span>
+            <input type="range" id="playalong-seek" min="0" max="100" value="0"
+                   style="flex:1; min-width:120px; accent-color:#2e7d32"
+                   aria-label="音訊進度" oninput="seekPlayAlong(this.value)">
+        </div>
+        <p class="playalong-hint">🎵 和弦條會跟著音訊自動高亮 — 看著和弦跟彈！</p>
     </div>
     {% endif %}
 
@@ -993,6 +1129,8 @@ function togglePlay() {
 }
 
 function startPlay() {
+    // Stop play-along if running
+    if (paPlaying) pausePlayAlong();
     isPlaying = true;
     const btn = document.getElementById('play-btn');
     btn.textContent = '⏸ 暫停';
@@ -1217,6 +1355,120 @@ function stopDrill() {
 
 /* ── Init ── */
 updateDisplay();
+
+/* ── Play-Along mode (reference audio sync) ── */
+const PA_AUDIO = document.getElementById('playalong-audio');
+const PA_VARIANTS = [{% if practice_audio %}{% for v in practice_audio.variants %}
+  { variant: {{ v.variant | tojson }}, label: {{ v.label | tojson }}, bpm: {{ v.bpm }}, mp3: '/api/projects/{{ project.id }}/export.practice-audio/{{ v.variant }}.mp3' }{% if not loop.last %},{% endif %}
+{% endfor %}{% endif %}];
+let paSelectedIdx = 0;
+let paPlaying = false;
+let paAnimFrame = null;
+
+function selectVariant(idx) {
+    paSelectedIdx = idx;
+    const v = PA_VARIANTS[idx];
+    // Update button UI
+    document.querySelectorAll('.variant-btn').forEach(function(btn, i) {
+        btn.classList.toggle('active', i === idx);
+        btn.setAttribute('aria-checked', i === idx ? 'true' : 'false');
+    });
+    // Update BPM badge
+    document.getElementById('playalong-bpm-badge').textContent = '♩ ' + v.bpm + ' BPM';
+    // Swap audio source if not playing
+    if (!paPlaying) {
+        PA_AUDIO.src = v.mp3;
+        PA_AUDIO.load();
+    }
+}
+
+function togglePlayAlong() {
+    if (paPlaying) {
+        pausePlayAlong();
+    } else {
+        startPlayAlong();
+    }
+}
+
+function startPlayAlong() {
+    if (!PA_AUDIO.src || PA_AUDIO.src === window.location.href) {
+        var v = PA_VARIANTS[paSelectedIdx];
+        if (!v) return;
+        PA_AUDIO.src = v.mp3;
+    }
+    PA_AUDIO.play().then(function() {
+        paPlaying = true;
+        var btn = document.getElementById('playalong-btn');
+        btn.textContent = '⏸ 暫停';
+        btn.classList.add('playing');
+        syncChordToAudio();
+    }).catch(function() {});
+}
+
+function pausePlayAlong() {
+    PA_AUDIO.pause();
+    paPlaying = false;
+    if (paAnimFrame) { cancelAnimationFrame(paAnimFrame); paAnimFrame = null; }
+    var btn = document.getElementById('playalong-btn');
+    btn.textContent = '▶ 繼續';
+    btn.classList.remove('playing');
+}
+
+function seekPlayAlong(pct) {
+    if (PA_AUDIO.duration) {
+        PA_AUDIO.currentTime = (pct / 100) * PA_AUDIO.duration;
+    }
+}
+
+function syncChordToAudio() {
+    if (!paPlaying || !PA_AUDIO.duration) return;
+    var v = PA_VARIANTS[paSelectedIdx];
+    if (!v) return;
+    var t = PA_AUDIO.currentTime;
+    var beatSec = 60 / v.bpm;
+    // Assume 4 beats per chord (one bar per chord in reference MIDI)
+    var beatsPerChord = 4;
+    var chordIdx = Math.floor(t / (beatSec * beatsPerChord));
+    chordIdx = Math.max(0, Math.min(chordIdx, CHORDS.length - 1));
+
+    if (chordIdx !== currentIdx) {
+        currentIdx = chordIdx;
+        updateDisplay();
+    }
+
+    // Update seek bar
+    var pct = (t / PA_AUDIO.duration) * 100;
+    document.getElementById('playalong-seek').value = pct;
+
+    // Update time display
+    var m = Math.floor(t / 60);
+    var s = Math.floor(t % 60);
+    document.getElementById('playalong-time').textContent =
+        m + ':' + (s < 10 ? '0' : '') + s;
+
+    // Continue loop
+    if (!PA_AUDIO.paused) {
+        paAnimFrame = requestAnimationFrame(syncChordToAudio);
+    }
+}
+
+PA_AUDIO.addEventListener('ended', function() {
+    paPlaying = false;
+    if (paAnimFrame) { cancelAnimationFrame(paAnimFrame); paAnimFrame = null; }
+    var btn = document.getElementById('playalong-btn');
+    btn.textContent = '▶ 跟著彈';
+    btn.classList.remove('playing');
+});
+
+PA_AUDIO.addEventListener('pause', function() {
+    if (paPlaying) pausePlayAlong();
+});
+
+/* ── Init play-along source ── */
+if (PA_VARIANTS.length > 0) {
+    PA_AUDIO.src = PA_VARIANTS[0].mp3;
+    PA_AUDIO.load();
+}
 /* ── Practice Timer + Session History ── */
 const TIMER_KEY = 'ukepack_practice_sessions';
 const STREAK_KEY = 'ukepack_practice_streak';

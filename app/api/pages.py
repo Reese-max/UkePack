@@ -337,6 +337,7 @@ def project_practice_page(
             "fingerings_json": get_fingerings_json(unique_chords),
             "practice_speeds": analysis.get("practice_speeds"),
             "chord_transitions": transitions,
+            "practice_audio": _practice_audio_payload(project),
         },
     )
 

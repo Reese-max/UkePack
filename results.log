@@ -440,3 +440,7 @@
 2026-06-05 07:30:11 | verify:pytest | PASS | exit=0
 [2026-06-05T11:37:00+08:00] | M1 | FAIL | KPI-impact: K6 blocked on git push (24 unpushed commits) | baseline ruff+mypy+pytest green; Phase 2 U1-U7 all done; K6=0/5 owner-gated ≥50 rounds; K7=5/5; 24h chore_ratio ~63%; only unblock = git push origin master (user unconfirmed); no daemon-executable M-task
 [2026-06-05T11:42:00+08:00] | M0 | PASS | KPI-impact: baseline-green guard (flaky test timeout fix) | fix(tests): WARM_RENDER_HARD_SECONDS 7→15, generate-pack timeout 60→120, polaris _COLD_CAP 10→20; Windows/CI cold-start flaky FAIL 修復; baseline 三綠
+2026-06-05 11:55:35 | verify:pytest | FAIL | exit=4
+
+[2026-06-05T13:34:00+08:00] | -- | DAEMON IDLE | KPI-impact: none | 660+ passed/ruff/mypy green; 27 commits unpushed; K6=0/5 owner-gated ≥50 rounds; K7=5/5 saturated; no M0-M3 executable task; 24h 0 commits; owner must git push origin master + Render deploy + teacher outreach
+[2026-06-05T14:30:00+08:00] | -- | DAEMON IDLE | KPI-impact: none | 660+ passed/ruff/mypy green; 27 commits unpushed; K6=0/5 owner-gated ≥50 rounds; K7=5/5 saturated; no M0-M3 executable task; 24h 0 commits; chore_ratio 0%; owner must: (1) git push origin master, (2) Render deploy, (3) teacher outreach P1-18b

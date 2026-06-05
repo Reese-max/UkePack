@@ -18,7 +18,6 @@ from app.api.project_uploads import (
     import_musicxml_into_project,
     save_upload_with_limit,
 )
-from app.arrangement.capo_advisor import suggest_capo
 from app.arrangement.key_advisor import suggest_key
 from app.arrangement.level_classifier import classify
 from app.arrangement.strum_pattern import suggest_for_level

@@ -17091,3 +17091,48 @@ v197 (commit d2ce033) 引入的 engineering-log 內容含兩處虛假宣稱，�
 - v198 (d2ce033) 原樣提交了這些虛假內容，責任在 v198 未做 basic fact-check
 
 ### KPI-impact: housekeeping（log 誠信修正）
+
+---
+## 反思 v200 [2026-06-05 08:30+08:00] — KPI-driven /pua retro（senior 視角）
+
+### KPI 進展表
+| KPI | 上次值(v198/v199) | 當前值 | Δ | 狀態 |
+|-----|------------------|-------|---|------|
+| 北極星 (pipeline demo latency) | 0.25s (gate 30min) | 0.25s | 0 | 🟢 SATURATED ~7200x headroom = dead proxy |
+| K1 practice 深化 | 進行中 | +3 feat (drill/presets/7-day plan) | + | 🟡 真 feat 但只推**已飽和**北極星 = gold-plating |
+| K6 teacher 回饋數 | 0/5 | 0/5 | 0 | 🔴 卡 20+ 輪，human-gated，無 code lever |
+| K7 onboarding docs | 5/5 | 5/5 | 0 | 🟡 saturated / owner-gated |
+| push-lag (origin/master..HEAD) | 19 | 21（再 +3 salvage/feat） | -2 | 🔴 owner must push |
+| MVP DoD | 8/8 | 8/8 | 0 | 🟢 完成（Phase 0+1+2） |
+
+### 24h 任務分布
+- M0-3 (KPI 推進): ~8（practice feat ×3 + baseline-green fix ×3 + test ×1 + mypy fix）
+- H0 (Housekeeping): ~6（chore(log) v198/v197 ×2、chore(governance) gitignore、chore(evolve)、chore(auto-salvage) ×3）
+- chore_ratio: broad 35% / **pure 7%**（sensor severity=PASS，用 pure 判定）；micro_polish 0%
+- 真相：M0-3 的 8 件全部推**已飽和的北極星**（headroom 7200x），對任何落後 KPI 邊際價值 = 0 → 實質等同 gold-plating（見 L094）
+
+### 卡住的 KPI 與根因
+- **K6（唯一真卡）**：teacher 回饋 0/5，卡 20+ 輪。根因＝(a) 19–21 commits 未 push origin（含真 K1 feat），(b) Render deploy 未做，(c) 無 outbound 通道 + 無老師名單。**全在 human gate，daemon 無 code lever。**
+- **北極星 dead-proxy**：用 pipeline latency 代理「小朋友 30min 內彈出第一段」。代理飽和到 0.25s/7200x，已測不出真目標（真目標含真人練習時間，與 K6 同一 human gate）。eval pipeline 缺「真 kid time-to-first-segment」量測（需真人 = 同 gate）。
+
+### daemon survival（黑盒分析）
+- `.engineer-loop.failures.jsonl` **不存在**——本專案無此黑盒；改讀 results.log `verify:*` + FAIL 行。
+- 主要死法不是 crash/signal，是**結構性 idle**：唯一 open KPI 為 human-gated → daemon 空轉於 blocker-log / auto-salvage。
+- 結構性 bug ①：`verify:pytest exit=4` 出現 5 次（06-04 08:09/10:05/14:17/16:20 + 06-05 06:37）。根因＝`uv run pytest` 命中 uv tool cache env（無 project deps），非真 test fail。**已有 pending arch proposal `8c41d331`（lib/verify.sh，pin .venv python）**——不重複提（防 spam）。註：v197 把它寫成「commit 8c41d331」、v199 又 mis-correct 成「SHA 不存在」；兩者皆誤——`8c41d331` 是 **proposal hash**（檔在 proposals/arch/），非 commit SHA。
+- 結構性 bug ②：`chore(auto-salvage) index.lock 並發搶救` 近 60 commits 出現 9 次（最新 03259f0 今日 08:17），訊息全同、無 K-tag。根因＝rescue-daemon 並發爭 `C:/UkePack-git` index.lock。**已有 pending arch proposal `51ae9273`（auto-engineer.sh，voice-actress 開）涵蓋同一 churn**——不重複提。對齊 MISSION 反Pattern auto-salvage-chore-spam（confirmed 5x+）。
+
+### 本輪不做 & 為何
+- **不 fabricate program task**：BACKLOG 0/20 open，全部 done 或 owner-gated；加治理 task 給 daemon 違反 MISSION 反Pattern。program.md 不動。
+- **不重複提 arch proposal**：兩個結構 bug 已各有 pending proposal；再提 = ≥3 same-hash spam（禁）。
+- **不再寫第 21 次 K6 blocker-log-as-chore**：MISSION 反Pattern 明令 ≥10 輪同 blocker 即停。
+
+### 下一步 3 個 KPI 推進動作（誠實版：唯一 lever 在 owner）
+1. **K6**：`git push origin master`（21 commits，含 5 條真 K1 practice feat 困 local）→ 解 deploy 前置。
+2. **K6**：Render.com deploy（render.yaml 已修 libcairo2-dev，383ddca）→ 取得可外寄 host URL。
+3. **K6**：寄 teacher invites（`docs/teacher/templates/` + `app.demo --trial-packet --host-url <render-url>`）→ 把 0/5 推向 ≥1/5。
+
+> 三步全為 owner action。daemon 端本輪**無誠實 code task**；繼續疊 practice feat 是 gold-plating 飽和北極星（L094）。等 owner push→deploy→outreach。
+
+### 本輪 global learning
+- ✅ 新增 **L095 — Saturated-proxy-KPI gold-plating** 到 `/d/auto-dev/learnings/global.md`（原擬 L094，與 voice-actress R212 並發撞號 → append guard ABORT → 改取 L095 並驗 grep -c=1 落地。代理飽和 ≠ 目標達成；唯一 red KPI human-gated 時做 handoff，別在死代理上疊樓）。
+---

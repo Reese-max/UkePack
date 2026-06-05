@@ -503,7 +503,10 @@ _LIBRARY_DIR = Path(__file__).resolve().parents[2] / "samples" / "public_domain"
 
 def _scan_library_songs() -> list[dict[str, Any]]:
     """Scan public_domain samples and return lightweight metadata for the library grid."""
+    from app.arrangement.level_classifier import classify as classify_level
     from app.core.musicxml import parse as parse_musicxml
+
+    level_labels = {1: "初學", 2: "進階", 3: "挑戰"}
 
     songs: list[dict[str, Any]] = []
     if not _LIBRARY_DIR.is_dir():
@@ -511,12 +514,17 @@ def _scan_library_songs() -> list[dict[str, Any]]:
     for mxl in sorted(_LIBRARY_DIR.glob("*.musicxml")):
         try:
             score = parse_musicxml(mxl)
+            playability = classify_level(score)
+            level = playability.recommended_level
             songs.append({
                 "filename": mxl.name,
                 "title": score.title or mxl.stem.replace("_", " ").title(),
                 "key": score.key or "?",
                 "bpm": score.bpm or 0,
                 "measures": score.measures or 0,
+                "level": level,
+                "level_label": level_labels.get(level, "?"),
+                "playability_score": playability.playability_score,
             })
         except Exception:
             songs.append({
@@ -525,6 +533,9 @@ def _scan_library_songs() -> list[dict[str, Any]]:
                 "key": "?",
                 "bpm": 0,
                 "measures": 0,
+                "level": 0,
+                "level_label": "?",
+                "playability_score": 0,
             })
     return songs
 

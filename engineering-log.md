@@ -17381,3 +17381,56 @@ daemon idle。Phase 2 U1-U7 全 done-green。唯一活槓桿 = git push（需人
 **Ship feature：**
 - `feat(templates): add song library CTA to homepage` — 把重複的 MusicXML-import CTA 改成歌曲庫入口
 - KPI-impact: K6 teacher-trial friction -1 barrier（discoverability）
+
+---
+## 反思 2026-06-06T01:46:00+08:00 (v204 /pua KPI-driven retrospective)
+
+### KPI 進展表
+| KPI | 上次值 | 當前值 | Δ | 狀態 |
+|-----|-------|-------|---|------|
+| K1 北極星（<30min 首段可彈） | pipeline 0.06s, 10 首 starter pack | pipeline 0.25s, 10 首 + interactive practice + 7-day plan + speed presets + chord drill + song library CTA | +5 feature 深化（U7-a~d + library CTA） | ✅進步 |
+| K6 Teacher trial 回饋數 | 0/5 | 0/5 | 0（blocked on push+deploy+outreach） | ⚠️卡住 |
+| K7 Onboarding 文件覆蓋 | 5/5 | 5/5 | 0（saturated） | ✅飽和 |
+| MVP DoD 8 項 | 8/8 | 8/8 | 0 | ✅全綠 |
+
+### Baseline 驗證
+- pytest: 663+ passed ✅
+- ruff: All checks passed ✅
+- mypy: Success, no issues found in 56 source files ✅
+- 北極星 demo: 0.25s ✅
+
+### 24h 任務分布（截至 01:46）
+- M0-3 (KPI 推進): 2 件（032c6fa song library CTA, 63f540f template fix）
+- H0 (Housekeeping): 13 件（4×auto-salvage, 2×chore(log), 2×chore(log idle), 1×fix(test timeout), 1×fix(log integrity), 1×chore(auto-salvage), 1×fix(template), 1×chore(log competitor)）
+- **chore_ratio: 73.3%（11/15）** — ⚠️ 遠超 30% 門檻
+
+### chore_ratio 警訊根因
+主因 = `chore(auto-salvage)` 連發 4 筆（709e8c9/41651c5/7e14800/e798298），全部訊息相同：
+`落地本輪未 commit 的成果（index.lock 並發搶救）`
+此為 MISSION.md 反 Pattern 已記錄的 **auto-salvage-chore-spam-no-Ktag**（2026-06-04 確認 5 次，現累計 9+ 次）。
+根因：index.lock 並發搶救機制每次都生成相同 commit message 而不帶 KPI-impact 標記。
+
+### 卡住的 KPI 與根因
+**K6 Teacher trial 回饋數 = 0/5（卡住 ≥50 輪）**
+- 根因鏈：git push ✅已完成（6/5 27 commits pushed）→ Render deploy ❌未確認 → trial URL ❌ → invite email ❌ → teacher outreach ❌
+- 上次更新：results.log 2026-06-05T19:55 push 完成，但後續 deploy 狀態不明
+- **阻塞點已從 git push 轉移到 Render deploy 確認**，需 owner 確認 Render.com 是否已自動部署成功
+
+### daemon survival
+- `.engineer-loop.failures.jsonl` 不存在（無 crash tracking）
+- daemon 狀態：healthy，連續 idle 輪次 ≥20
+- 無結構性 crash pattern
+
+### 結構性問題：auto-salvage spam
+MISSION.md 反 Pattern `auto-salvage-chore-spam-no-Ktag` 已確認 9+ 次。
+每次 index.lock 並發搶救都生成裸 `chore(auto-salvage)` 無 KPI-impact。
+建議 L4 arch proposal：salvage 機制應 (a) squash 進原 commit 或 (b) 附帶被搶救工作的 KPI-impact 標記。
+
+### 下一步 3 個 KPI 推進動作
+1. **K6**: owner 確認 Render.com deploy 狀態 — 若 deploy 失敗需修 render.yaml / build logs；若成功則取得 trial URL 進入 invite 流程
+2. **K6**: 用 `app.demo --trial-packet --host-url <render-url>` 產出老師試用包 ZIP → 寄出邀請信
+3. **K1**: 無需動作（code saturation confirmed，Phase 2 U1-U7 全 done，pipeline 0.25s）
+
+### 跨專案學習
+本輪無新 global learning — auto-salvage spam anti-pattern 已於 2026-06-04 記錄於 MISSION.md 反 Pattern，global.md L006 已有 same-root-cause baseline-blocker SOP 覆蓋。
+

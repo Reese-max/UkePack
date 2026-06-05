@@ -8,11 +8,47 @@
 <h1 class="page-title">🎵 歌曲庫</h1>
 <p class="page-subtitle">選一首歌，一鍵產生練習包。全部是公版兒歌，免上傳。</p>
 
+{# ── Filter bar ── #}
+{% set keys = songs | map(attribute='key') | select('ne', '?') | unique | sort | list %}
+{% if keys | length > 1 %}
+<div class="library-filters" role="search" aria-label="篩選歌曲">
+    <label>
+        難度
+        <select id="filter-level" onchange="filterLibrary()">
+            <option value="">全部</option>
+            <option value="1">初學</option>
+            <option value="2">進階</option>
+            <option value="3">挑戰</option>
+        </select>
+    </label>
+    <label>
+        調性
+        <select id="filter-key" onchange="filterLibrary()">
+            <option value="">全部</option>
+            {% for k in keys %}
+            <option value="{{ k }}">{{ k }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <span id="filter-count" class="filter-count" aria-live="polite">{{ songs | length }} 首</span>
+</div>
+{% endif %}
+
 {% if songs %}
-<div style="display:grid; gap:1rem; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));">
+<div class="library-grid" id="library-grid">
     {% for song in songs %}
-    <div class="card" style="display:flex; flex-direction:column; gap:0.6rem;">
-        <strong style="font-size:1.15rem;">{{ song.title }}</strong>
+    <div class="card library-card"
+         data-level="{{ song.level }}"
+         data-key="{{ song.key }}"
+         style="display:flex; flex-direction:column; gap:0.6rem;">
+        <div style="display:flex; justify-content:space-between; align-items:start; gap:0.5rem;">
+            <strong style="font-size:1.15rem;">{{ song.title }}</strong>
+            {% if song.level_label and song.level_label != '?' %}
+            <span class="badge badge-level-{{ song.level }}" title="推薦難度 Level {{ song.level }}">
+                {{ song.level_label }}
+            </span>
+            {% endif %}
+        </div>
         <div class="data-grid" style="grid-template-columns:1fr 1fr;">
             <div class="data-cell">
                 <small>調性</small>
@@ -36,4 +72,76 @@
     目前沒有預載歌曲。請先將 <code>.musicxml</code> 檔案放到 <code>samples/public_domain/</code> 目錄。
 </div>
 {% endif %}
+
+<style>
+.library-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: end;
+    margin-bottom: 1.25rem;
+    padding: 0.8rem 1rem;
+    background: var(--surface-soft, #fff2cc);
+    border-radius: 16px;
+}
+.library-filters label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+    color: var(--muted, #6f625b);
+}
+.library-filters select {
+    padding: 0.35rem 0.6rem;
+    border: 1px solid var(--border, #f1d8c7);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: var(--surface, #fff);
+}
+.filter-count {
+    margin-left: auto;
+    font-size: 0.85rem;
+    color: var(--muted, #6f625b);
+    align-self: center;
+}
+.library-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+.badge {
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.badge-level-1 { background: #e6f9e6; color: #1a7a1a; }
+.badge-level-2 { background: #fff3cd; color: #856404; }
+.badge-level-3 { background: #fde2e2; color: #a71d2a; }
+.library-card[style*="display: none"] { display: none !important; }
+</style>
+
+<script>
+function filterLibrary() {
+    var level = document.getElementById('filter-level')?.value || '';
+    var key = document.getElementById('filter-key')?.value || '';
+    var cards = document.querySelectorAll('.library-card');
+    var shown = 0;
+    cards.forEach(function(card) {
+        var matchLevel = !level || card.getAttribute('data-level') === level;
+        var matchKey = !key || card.getAttribute('data-key') === key;
+        if (matchLevel && matchKey) {
+            card.style.display = '';
+            shown++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    var countEl = document.getElementById('filter-count');
+    if (countEl) countEl.textContent = shown + ' 首';
+}
+</script>
 {% endblock %}

@@ -453,3 +453,4 @@
 2026-06-05 22:28:09 | verify:pytest | FAIL | exit=4
 [2026-06-05T23:34:00+08:00] | -- | DAEMON IDLE | KPI-impact: none | 663 passed/ruff green; 0 unpushed; K7=5/5 saturated; K6=0/5 owner-gated; BACKLOG Phase 0/1/2 all [x]; P1-18b owner-blocked; code saturation confirmed; no executable M0-M3; owner must: (1) Render deploy, (2) teacher outreach P1-18b
 [2026-06-05T23:59:00+08:00] | idle | PASS | KPI-impact: none | 663 passed/ruff/mypy green; code saturation confirmed; 0 unchecked tasks; K6 owner-gated; v203 converge
+[2026-06-06T00:47:00+08:00] | M1 | PASS | KPI-impact: K6 teacher-trial friction -1 barrier (discoverability) | feat(templates): replace duplicate MusicXML-import CTA with song library link on homepage — competitor-research vs UkuTabs/Soundslice; 10 public-domain songs now one-click accessible from homepage; pytest/ruff/mypy green

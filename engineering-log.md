@@ -17362,3 +17362,22 @@ daemon idle。Phase 2 U1-U7 全 done-green。唯一活槓桿 = git push（需人
 
 ### 本輪 global learning
 - 本輪無新 global learning（L095 pattern 仍持續：auto-salvage churn + K6 human-gated；push-lag 改善 21→2 是前輪 owner push 動作的延遲效果，非本輪新 learning）
+
+### Competitor Research Round - 2026-06-06
+
+**對標掃描（3 家）：**
+
+| 對標 | URL | Top 5 Features |
+|---|---|---|
+| UkuTabs | ukutabs.com | 大型公版歌曲庫、和弦譜+TAB、分類搜尋、transpose、社群貢獻 |
+| Soundslice | soundslice.com | 互動樂譜同步音訊、PDF掃描匯入、loop減速練習、MusicXML匯入、browser-based |
+| Ukulele-Chords.com | ukulele-chords.com | 26種和弦類型×4種調弦、和弦圖、transpose、key finder、API |
+
+**Gap 評估：**
+- 他們有我們沒：即選即練歌曲庫（UkuTabs）、互動樂譜同步音訊（Soundslice）
+- 我們已有但未串：`/library` 頁面存在但首頁零曝光、practice.html 有完整 play-along 但需先建專案
+- Highest-leverage gap：歌曲庫 discoverability — 老師/家長從首頁找不到 `/library`
+
+**Ship feature：**
+- `feat(templates): add song library CTA to homepage` — 把重複的 MusicXML-import CTA 改成歌曲庫入口
+- KPI-impact: K6 teacher-trial friction -1 barrier（discoverability）

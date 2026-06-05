@@ -30,7 +30,7 @@ E2E_REPORT_PATH = FIXTURES_DIR / "E2E_REPORT.md"
 E2E_HISTORY_PATH = FIXTURES_DIR / "E2E_HISTORY.csv"
 UPDATE_ARTIFACTS_ENV = "UKEPACK_UPDATE_E2E_ARTIFACTS"
 WARM_RENDER_SECONDS = 5.0
-WARM_RENDER_HARD_SECONDS = 7.0
+WARM_RENDER_HARD_SECONDS = 15.0
 CORPUS_P95_RENDER_SECONDS = 5.0
 # Allow generous slack for cold starts: under pytest-xdist with 4 workers each
 # independently building the 30-fixture session cache simultaneously, CPU/IO

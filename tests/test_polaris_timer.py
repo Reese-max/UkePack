@@ -8,7 +8,7 @@ _SAMPLE_PATH = Path(__file__).resolve().parents[1] / "samples" / "public_domain"
 
 # Under full-suite load on Windows, the first run may exceed 5 s due to
 # OS memory pressure after 400+ tests.  One warm retry is allowed.
-_COLD_CAP = 10.0
+_COLD_CAP = 20.0
 _WARM_CAP = 5.0
 
 

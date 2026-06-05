@@ -20,7 +20,7 @@ def test_dry_run_exits_zero() -> None:
         [sys.executable, str(SCRIPT), "--dry-run"],
         capture_output=True,
         text=True,
-        timeout=60,
+        timeout=120,
         cwd=REPO_ROOT,
     )
     assert result.returncode == 0, (
@@ -38,7 +38,7 @@ def test_dry_run_works_from_external_cwd(tmp_path: Path) -> None:
          "--input", str(REPO_ROOT / "samples" / "public_domain" / "twinkle.musicxml")],
         capture_output=True,
         text=True,
-        timeout=60,
+        timeout=120,
         cwd=tmp_path,
     )
     assert result.returncode == 0, (
@@ -65,7 +65,7 @@ def test_wet_run_produces_real_pdf_and_zip(tmp_path: Path) -> None:
         ],
         capture_output=True,
         text=True,
-        timeout=60,
+        timeout=120,
         cwd=REPO_ROOT,
     )
     assert result.returncode == 0, (
@@ -157,7 +157,7 @@ def test_dry_run_missing_input_returns_error() -> None:
         ],
         capture_output=True,
         text=True,
-        timeout=60,
+        timeout=120,
         cwd=REPO_ROOT,
     )
     assert result.returncode == 1

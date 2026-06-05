@@ -444,3 +444,9 @@
 
 [2026-06-05T13:34:00+08:00] | -- | DAEMON IDLE | KPI-impact: none | 660+ passed/ruff/mypy green; 27 commits unpushed; K6=0/5 owner-gated ≥50 rounds; K7=5/5 saturated; no M0-M3 executable task; 24h 0 commits; owner must git push origin master + Render deploy + teacher outreach
 [2026-06-05T14:30:00+08:00] | -- | DAEMON IDLE | KPI-impact: none | 660+ passed/ruff/mypy green; 27 commits unpushed; K6=0/5 owner-gated ≥50 rounds; K7=5/5 saturated; no M0-M3 executable task; 24h 0 commits; chore_ratio 0%; owner must: (1) git push origin master, (2) Render deploy, (3) teacher outreach P1-18b
+[2026-06-05T19:55:00+08:00] | M1 | PASS | KPI-impact: K6 push-lag 27→0 | git push origin master: 41651c5..709e8c9 (27 commits to origin); Render deploy can now proceed → trial URL → K6 teacher outreach unblocked
+[2026-06-05T21:05:00+08:00] | M1 | PASS | KPI-impact: K7 template-gap fix | fix(templates): library.html + chords_transposed.html were untracked but pages.py routes reference them; clean checkout would 500; 663 passed/ruff/mypy green; 0 unpushed; K6 still owner-gated
+2026-06-05 21:09:52 | verify:pytest | FAIL | exit=4
+[2026-06-05T21:43:00+08:00] | idle | PASS | KPI-impact: none (baseline green, zero M-task, owner-gated K6 frozen) | 663 passed/ruff/mypy green; BACKLOG Phase 0/1/2 all done; P1-18b/c/d owner-blocked; no non-owner-gated KPI gap; verify:pytest FAIL at 21:09 was system python without uv run (sqlalchemy missing) — uv run pytest green
+[2026-06-05T22:18:00+08:00] | idle | PASS | KPI-impact: none (baseline green, zero M-task, owner-gated K6 frozen) | 663 passed/ruff green; BACKLOG Phase 0/1/2 all done; P1-18b/c/d owner-blocked; no non-owner-gated KPI gap; convergence confirmed
+[2026-06-05T22:25:00+08:00] | idle | PASS | KPI-impact: none | code saturation; pytest/ruff green; K7 5/5 done; K6 0/5 owner-gated; BACKLOG Phase 0/1/2 all [x]; no executable M-task; waiting on owner for P1-18b teacher outreach

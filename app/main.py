@@ -4,9 +4,8 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from app.config import get_settings
@@ -54,11 +53,19 @@ def create_app() -> FastAPI:
     application = FastAPI(
         title="UkePack AI", debug=settings.debug, lifespan=_lifespan
     )
-    application.mount(
-        "/samples/public_domain",
-        StaticFiles(directory=str(_PUBLIC_SAMPLES_DIR)),
-        name="public-samples",
-    )
+    sample_media_types = {
+        ".musicxml": "application/xml; charset=utf-8",
+        ".json": "application/json; charset=utf-8",
+    }
+
+    @application.get("/samples/public_domain/{filename}")
+    def sample_file(filename: str) -> FileResponse:
+        filepath = _PUBLIC_SAMPLES_DIR / filename
+        if not filepath.is_file():
+            raise HTTPException(status_code=404, detail="Sample not found")
+        suffix = filepath.suffix.lower()
+        media_type = sample_media_types.get(suffix, "application/octet-stream")
+        return FileResponse(filepath, media_type=media_type)
 
     @application.get("/", response_class=HTMLResponse)
     def home(request: Request) -> HTMLResponse:

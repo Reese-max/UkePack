@@ -17530,3 +17530,72 @@ results.log 中 2026-05-10~05-12 期間 100+ 筆字面相同的 FAIL entries 消
 ### 守則合規
 - 反 Pattern（auto-salvage cascade）：本輪記錄但未修（需排程器層面 single-instance lock，非 reflection 能解）
 - 本輪無新 global learning（L092 已涵蓋 auto-salvage 根因，L093 已涵蓋 ratio 假改善）
+
+---
+
+## 反思 2026-06-06T12:25:00+08:00 | KPI-driven 深度回顧 v204
+
+### KPI 進展表
+| KPI | 上次值 (v203) | 當前值 | Δ | 狀態 |
+|-----|--------------|-------|---|------|
+| K1 北極星 pipeline | 0.05s | 0.11s | +0.06s | ✅ 飽和（仍遠低 5s） |
+| K1 北極星 30min 體感 | 依附 K6 | 依附 K6 | 0 | ⚠️ frozen |
+| K2 MusicXML ≥ 90% | 100% | 100% | 0 | ✅ 飽和 |
+| K3 chord_simplify ≥ 20 | GREEN | GREEN | 0 | ✅ 飽和 |
+| K4 PDF 4頁+授權 | GREEN | GREEN | 0 | ✅ 飽和 |
+| K5 pytest gate | EXIT=0 | EXIT=0 | 0 | ✅ 綠 |
+| K6 老師回饋數 | 0/5 | 0/5 | 0 | ❌ frozen（owner-gated 第 100+ 輪） |
+| K7 onboarding packet | 5/5 | 5/5 | 0 | ✅ 飽和 |
+
+### 24h 任務分布（14 commits，截至 12:25）
+- **M0-3 (KPI 推進)**: 4 件
+  - `032c6fa` feat(templates): song library CTA to homepage
+  - `6c12568` feat(templates): song library difficulty filters + level badges
+  - `ed37a23` feat(templates): show composer metadata in song library cards
+  - `199f607` feat(templates): add one-click PDF download from song library
+- **H0 (Housekeeping)**: 10 件
+  - `chore(auto-salvage)` × 7（index.lock 並發搶救）
+  - `chore(log)` × 2（competitor research / idle round）
+  - `fix(templates)` × 1（missing library.html partial — 前輪遺漏）
+- **chore_ratio: 71.4%（10/14）** — ⚠️ 遠超 30% 門檻
+
+### chore_ratio 警訊根因
+主因 = `chore(auto-salvage)` 連發 7 筆，全部訊息相同。
+已記錄反 Pattern `auto-salvage-chore-spam-no-Ktag`（首次確認 2026-06-04，累計 15+ 次）。
+**根因未修**：排程器並發競爭 → 多 round 搶 index.lock → 輸方 auto-salvage。
+L092 SOP 僅記錄根因，未落地 single-instance lock 機制。
+
+### 新功能觀察：Song Library
+本輪 4 個 feat commits 新增 song library 功能：
+- CTA 入口 + 難度篩選 + 作曲者 metadata + PDF 一鍵下載
+- 屬 K1 北極星推進（豐富曲庫降低「找歌→開始練」門檻）
+- 但功能尚缺自動化測試守門（無對應 test commits）
+
+### 卡住的 KPI 與根因
+**K6 = 0/5 第 100+ 輪**
+- 阻塞鏈：~~`git push`~~ ✅ 已完成（HEAD = origin/master，0 unpushed）→ Render.com deploy → trial URL → invite email → K6 +1
+- **Owner 確認 Render.com deploy 狀態是當前 blocker**（若 deploy 失敗需查 build logs；若成功則取 trial URL）
+- v203 識別 push blocker，本輪確認 push 已完成，阻塞點前移至 deploy 確認
+
+### 結構性問題：results.log 膨脹
+results.log 已 223KB，其中 2026-05-10~05-12 期間 100+ 筆字面相同的 ACL FAIL entries 佔 ≥60% 體積。
+每條 ~500 bytes × 100+ = ~50KB 純噪音。
+建議：壓縮為 1 筆摘要 + `<!-- repeated N times, see range -->` 註記。
+
+### daemon survival
+- `.engineer-loop.failures.jsonl` 不存在
+- daemon 連續 idle ≥20 輪
+- 無結構性 crash
+
+### 下一步 3 個 KPI 推進動作
+1. **[K6 +1]** owner 確認 Render.com deploy 狀態（push ✅ 已完成，需確認 build/deploy 是否成功）
+2. **[K6 +1]** deploy 成功後用 `app.demo --trial-packet --host-url <render-url>` 產試用包 → 寄邀請信
+3. **[K6 +1]** 收 ≥1 位老師 feedback 進 `feedback.md`
+
+### 跨專案學習
+本輪無新 global learning — auto-salvage spam 已由 L092 覆蓋，results.log 膨脹屬本專案特有治理債（非可重用 pattern）。
+
+### program.md 重排序建議
+當前 program.md 階段十三 36z-push 已標記為 SINGLE 真人動作。
+Phase 2 U1-U7 全 done-green。
+**無需重排序** — 所有 KPI-推進 task 已在隊列最前，唯一 blocker 是 owner 確認 Render deploy + 寄邀請信。

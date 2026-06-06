@@ -105,11 +105,10 @@ def get_practice_progress(
             check -= timedelta(days=1)
 
     # Longest streak
-    sorted_dates = sorted(practice_dates)
     longest = 0
     current = 0
     prev_date: date | None = None
-    for d in sorted(sorted_dates):
+    for d in sorted(practice_dates):
         dt = datetime.strptime(d, "%Y-%m-%d").date()
         if prev_date and (dt - prev_date).days == 1:
             current += 1

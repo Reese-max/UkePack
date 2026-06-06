@@ -10,7 +10,12 @@
 
 {# ── Filter bar ── #}
 {% set keys = songs | map(attribute='key') | select('ne', '?') | unique | sort | list %}
-{% if keys | length > 1 %}
+{# Collect all unique simplified chords across the library #}
+{% set all_chords = [] %}
+{% for song in songs %}{% for c in song.chords %}{% if c not in all_chords %}{% if all_chords.append(c) %}{% endif %}{% endif %}{% endfor %}{% endfor %}
+{% set all_chords = all_chords | sort %}
+{% set show_filters = keys | length > 1 or all_chords | length > 0 %}
+{% if show_filters %}
 <div class="library-filters" role="search" aria-label="篩選歌曲">
     <label>
         難度
@@ -30,6 +35,19 @@
             {% endfor %}
         </select>
     </label>
+    {% if all_chords | length > 0 %}
+    <div class="chord-filter-group" role="group" aria-label="按已知和弦篩選">
+        <span class="chord-filter-label">我會彈這些和弦：</span>
+        <div class="chord-checkboxes">
+            {% for c in all_chords %}
+            <label class="chord-chip">
+                <input type="checkbox" value="{{ c }}" onchange="filterLibrary()">
+                <span>{{ c }}</span>
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
     <span id="filter-count" class="filter-count" aria-live="polite">{{ songs | length }} 首</span>
 </div>
 {% endif %}
@@ -40,6 +58,7 @@
     <div class="card library-card"
          data-level="{{ song.level }}"
          data-key="{{ song.key }}"
+         data-chords="{{ song.chords | join(',') }}"
          style="display:flex; flex-direction:column; gap:0.6rem;">
         <div style="display:flex; justify-content:space-between; align-items:start; gap:0.5rem;">
             <div>
@@ -132,18 +151,69 @@
 .badge-level-2 { background: #fff3cd; color: #856404; }
 .badge-level-3 { background: #fde2e2; color: #a71d2a; }
 .library-card[style*="display: none"] { display: none !important; }
+.chord-filter-group {
+    width: 100%;
+    margin-top: 0.3rem;
+}
+.chord-filter-label {
+    font-size: 0.85rem;
+    color: var(--muted, #6f625b);
+    display: block;
+    margin-bottom: 0.3rem;
+}
+.chord-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+.chord-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    cursor: pointer;
+}
+.chord-chip input[type="checkbox"] {
+    display: none;
+}
+.chord-chip span {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: var(--surface, #fff);
+    border: 1.5px solid var(--border, #f1d8c7);
+    color: var(--text, #3a3a3a);
+    transition: all 0.15s ease;
+}
+.chord-chip input[type="checkbox"]:checked + span {
+    background: #4a7c59;
+    border-color: #4a7c59;
+    color: #fff;
+}
 </style>
 
 <script>
 function filterLibrary() {
     var level = document.getElementById('filter-level')?.value || '';
     var key = document.getElementById('filter-key')?.value || '';
+    // Collect selected chords
+    var selectedChords = [];
+    document.querySelectorAll('.chord-chip input[type="checkbox"]:checked').forEach(function(cb) {
+        selectedChords.push(cb.value);
+    });
     var cards = document.querySelectorAll('.library-card');
     var shown = 0;
     cards.forEach(function(card) {
         var matchLevel = !level || card.getAttribute('data-level') === level;
         var matchKey = !key || card.getAttribute('data-key') === key;
-        if (matchLevel && matchKey) {
+        var matchChords = true;
+        if (selectedChords.length > 0) {
+            var songChords = (card.getAttribute('data-chords') || '').split(',').filter(Boolean);
+            // All selected chords must be in the song's chord set
+            matchChords = selectedChords.every(function(c) { return songChords.indexOf(c) >= 0; });
+        }
+        if (matchLevel && matchKey && matchChords) {
             card.style.display = '';
             shown++;
         } else {

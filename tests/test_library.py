@@ -103,3 +103,26 @@ def test_library_quick_pdf_rejects_missing_song(client: TestClient) -> None:
     response = client.post("/library/nonexistent.musicxml/quick-pdf")
 
     assert response.status_code == 404
+
+
+def test_library_page_shows_chord_chips(client: TestClient) -> None:
+    """Library page should render chord filter chips for search-by-chords."""
+    response = client.get("/library")
+
+    assert response.status_code == 200
+    assert "chord-chip" in response.text
+    assert "chord-checkboxes" in response.text
+    assert "data-chords=" in response.text
+
+
+def test_library_cards_have_chord_data_attribute(client: TestClient) -> None:
+    """Each library card should have a data-chords attribute with simplified chords."""
+    response = client.get("/library")
+
+    # twinkle.musicxml should have at least C and G chords
+    assert 'data-chords="' in response.text
+    # Check that chord data is non-empty for at least one card
+    import re
+    chord_attrs = re.findall(r'data-chords="([^"]*)"', response.text)
+    non_empty = [c for c in chord_attrs if c]
+    assert len(non_empty) > 0, "At least one song should have chord data"

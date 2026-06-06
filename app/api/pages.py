@@ -648,6 +648,7 @@ _LIBRARY_DIR = Path(__file__).resolve().parents[2] / "samples" / "public_domain"
 
 def _scan_library_songs() -> list[dict[str, Any]]:
     """Scan public_domain samples and return lightweight metadata for the library grid."""
+    from app.arrangement.chord_simplify import simplify as simplify_chord
     from app.arrangement.level_classifier import classify as classify_level
     from app.core.musicxml import parse as parse_musicxml
 
@@ -661,6 +662,13 @@ def _scan_library_songs() -> list[dict[str, Any]]:
             score = parse_musicxml(mxl)
             playability = classify_level(score)
             level = playability.recommended_level
+            # Extract unique simplified chords for search-by-chords filtering
+            unique_chords: set[str] = set()
+            for ce in score.chords:
+                try:
+                    unique_chords.add(simplify_chord(ce.symbol))
+                except (ValueError, KeyError):
+                    unique_chords.add(ce.symbol)
             songs.append({
                 "filename": mxl.name,
                 "title": score.title or mxl.stem.replace("_", " ").title(),
@@ -671,6 +679,7 @@ def _scan_library_songs() -> list[dict[str, Any]]:
                 "level": level,
                 "level_label": level_labels.get(level, "?"),
                 "playability_score": playability.playability_score,
+                "chords": sorted(unique_chords),
             })
         except Exception as exc:
             logger.warning("library scan failed for %s: %s", mxl.name, exc)
@@ -684,6 +693,7 @@ def _scan_library_songs() -> list[dict[str, Any]]:
                 "level": 0,
                 "level_label": "?",
                 "playability_score": 0,
+                "chords": [],
             })
     return songs
 

@@ -29,6 +29,7 @@ from app.core.practice_audio import generate_practice_audio, load_practice_audio
 from app.core.project_pack import pdf_filename, render_project_pdf
 from app.core.share_link import SHARE_TTL_OPTIONS, load_share_link, share_link_status
 from app.core.teacher_review import has_teacher_review
+from app.models.practice_log import PracticeLog
 from app.models.project import Project, ProjectCreate
 from app.models.score import Score
 from app.render.chord_diagram import get_fingerings_json
@@ -444,6 +445,88 @@ def project_practice_page(
             "practice_speeds": analysis.get("practice_speeds"),
             "chord_transitions": transitions,
             "practice_audio": _practice_audio_payload(project),
+        },
+    )
+
+
+@router.get("/projects/{project_id}/progress", response_class=HTMLResponse)
+def project_progress_page(
+    request: Request,
+    project_id: int,
+    session: SessionDep,
+) -> HTMLResponse:
+    """Practice progress dashboard — streak, stats, chord mastery."""
+    project = session.get(Project, project_id)
+    if project is None:
+        raise HTTPException(404, "Project not found")
+
+    from collections import Counter
+    from datetime import timedelta
+
+    from sqlmodel import col, select
+
+    logs = list(
+        session.exec(
+            select(PracticeLog)
+            .where(PracticeLog.project_id == project_id)
+            .order_by(col(PracticeLog.created_at))
+        ).all()
+    )
+
+    total_seconds = sum(lg.duration_seconds for lg in logs)
+    chord_counter: Counter[str] = Counter()
+    for lg in logs:
+        for ch in lg.chords_practiced.split(","):
+            ch = ch.strip()
+            if ch:
+                chord_counter[ch] += 1
+
+    # Streak (consecutive days)
+    practice_dates: set[str] = set()
+    for lg in logs:
+        practice_dates.add(lg.created_at.astimezone(UTC).strftime("%Y-%m-%d"))
+
+    today = datetime.now(UTC).date()
+    streak = 0
+    check = today
+    while check.strftime("%Y-%m-%d") in practice_dates:
+        streak += 1
+        check -= timedelta(days=1)
+    if streak == 0:
+        check = today - timedelta(days=1)
+        while check.strftime("%Y-%m-%d") in practice_dates:
+            streak += 1
+            check -= timedelta(days=1)
+
+    # Longest streak
+    sorted_dates = sorted(practice_dates)
+    longest_streak = 0
+    cur_streak = 0
+    prev_date = None
+    for d in sorted_dates:
+        dt = datetime.strptime(d, "%Y-%m-%d").date()
+        if prev_date and (dt - prev_date).days == 1:
+            cur_streak += 1
+        else:
+            cur_streak = 1
+        longest_streak = max(longest_streak, cur_streak)
+        prev_date = dt
+
+    recent = logs[-10:] if logs else []
+
+    return _TEMPLATES.TemplateResponse(
+        request=request,
+        name="progress.html",
+        context={
+            "project": project.model_dump(),
+            "total_sessions": len(logs),
+            "total_seconds": total_seconds,
+            "total_minutes": round(total_seconds / 60, 1),
+            "streak_days": streak,
+            "longest_streak": max(longest_streak, streak),
+            "chord_counts": dict(chord_counter.most_common()),
+            "recent_sessions": recent,
+            "last_practice": logs[-1].created_at if logs else None,
         },
     )
 

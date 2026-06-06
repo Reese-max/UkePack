@@ -644,6 +644,7 @@
 {% block content %}
 <div>
     <a class="back-link" href="/projects/{{ project.id }}">← 回分析頁</a>
+    <a class="back-link" href="/projects/{{ project.id }}/progress" style="float:right">📊 我的進度</a>
 
     <div class="practice-hero">
         <h1 class="page-title">🎵 {{ project.title }}</h1>
@@ -1474,6 +1475,7 @@ if (PA_VARIANTS.length > 0) {
 const TIMER_KEY = 'ukepack_practice_sessions';
 const STREAK_KEY = 'ukepack_practice_streak';
 const SONG_TITLE = {{ project.title | tojson }};
+const PROJECT_ID = {{ project.id }};
 let timerSeconds = 0;
 let timerInterval = null;
 let sessionSaved = false;
@@ -1525,6 +1527,18 @@ function saveSession() {
     });
     saveSessions(sessions);
     const streakCount = updateStreak();
+
+    // Persist to backend (best-effort, don't block UI)
+    const speedPct = SPEED_PRESETS.length ? Math.round(bpm / (SPEED_PRESETS[SPEED_PRESETS.length-1]?.bpm || bpm) * 100) : 100;
+    fetch(`/api/projects/${PROJECT_ID}/practice-log`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            chords_practiced: CHORDS.join(','),
+            duration_seconds: timerSeconds,
+            speed_pct: speedPct
+        })
+    }).catch(() => {}); // silent fail — localStorage is primary
 
     // Update UI
     const btn = document.getElementById('timer-save-btn');

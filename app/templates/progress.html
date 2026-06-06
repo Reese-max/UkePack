@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}📊 {{ project.title }} 練習進度 — UkePack AI{% endblock %}
+
+{% block head %}
+<style>
+    .progress-hero {
+        text-align: center;
+        padding: 2rem;
+        background: linear-gradient(135deg, #fff7ee 0%, #ffe8d6 100%);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        margin-bottom: 1.5rem;
+    }
+    .progress-hero h1 { font-size: 1.8rem; margin: 0 0 0.5rem; }
+    .progress-hero .subtitle { color: var(--muted); font-size: 1rem; }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .stat-card {
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 1.2rem 0.8rem;
+        text-align: center;
+    }
+    .stat-card .stat-icon { font-size: 2rem; margin-bottom: 0.3rem; }
+    .stat-card .stat-value {
+        font-size: 2rem;
+        font-weight: 900;
+        color: var(--accent-strong);
+        line-height: 1;
+    }
+    .stat-card .stat-label {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-top: 0.25rem;
+    }
+
+    .streak-fire { color: #ff6b35; }
+    .streak-card { border-color: #ff6b35; background: #fff5f0; }
+
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin: 1.5rem 0 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .chord-mastery {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-bottom: 1.5rem;
+    }
+    .chord-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.4rem 0.8rem;
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 1rem;
+    }
+    .chord-badge .count {
+        background: var(--accent);
+        color: #fff;
+        border-radius: 999px;
+        padding: 0.1rem 0.45rem;
+        font-size: 0.75rem;
+        font-weight: 800;
+    }
+
+    .session-list { list-style: none; padding: 0; margin: 0 0 1.5rem; }
+    .session-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+    .session-item .date { color: var(--muted); font-size: 0.85rem; }
+    .session-item .chords { font-weight: 600; }
+    .session-item .duration { color: var(--accent-strong); font-weight: 700; }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--muted);
+    }
+    .empty-state .emoji { font-size: 3rem; margin-bottom: 0.5rem; }
+    .empty-state p { font-size: 1.1rem; }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+    .back-link:hover { text-decoration: underline; }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="/projects/{{ project.id }}/practice" class="back-link">← 回到練習頁</a>
+
+<div class="progress-hero">
+    <h1>📊 {{ project.title }}</h1>
+    <div class="subtitle">我的練習進度</div>
+</div>
+
+{% if total_sessions == 0 %}
+<div class="empty-state">
+    <div class="emoji">🎸</div>
+    <p>還沒有練習紀錄喔！</p>
+    <p>去練習頁彈彈看吧～</p>
+    <a href="/projects/{{ project.id }}/practice" class="btn" style="margin-top:1rem;display:inline-block;padding:0.8rem 2rem;background:var(--accent);color:#fff;border-radius:var(--radius-sm);text-decoration:none;font-weight:700;font-size:1.1rem;">
+        🎵 開始練習
+    </a>
+</div>
+{% else %}
+
+<div class="stats-grid">
+    <div class="stat-card streak-card">
+        <div class="stat-icon streak-fire">🔥</div>
+        <div class="stat-value">{{ streak_days }}</div>
+        <div class="stat-label">連續練習天數</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">🏆</div>
+        <div class="stat-value">{{ longest_streak }}</div>
+        <div class="stat-label">最長連續天數</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">⏱️</div>
+        <div class="stat-value">{{ total_minutes }}</div>
+        <div class="stat-label">總練習分鐘</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">📝</div>
+        <div class="stat-value">{{ total_sessions }}</div>
+        <div class="stat-label">練習次數</div>
+    </div>
+</div>
+
+{% if chord_counts %}
+<div class="section-title">🎯 和弦掌握度</div>
+<div class="chord-mastery">
+    {% for chord, count in chord_counts.items() %}
+    <div class="chord-badge">
+        {{ chord }}
+        <span class="count">{{ count }}</span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if recent_sessions %}
+<div class="section-title">📋 最近練習紀錄</div>
+<ul class="session-list">
+    {% for lg in recent_sessions|reverse %}
+    <li class="session-item">
+        <div>
+            <span class="chords">{{ lg.chords_practiced or '（自由練習）' }}</span>
+            <div class="date">{{ lg.created_at.strftime('%m/%d %H:%M') }}</div>
+        </div>
+        <div class="duration">
+            {% if lg.duration_seconds >= 60 %}
+                {{ (lg.duration_seconds // 60) }}分{{ lg.duration_seconds % 60 }}秒
+            {% else %}
+                {{ lg.duration_seconds }}秒
+            {% endif %}
+            {% if lg.speed_pct != 100 %}
+                · {{ lg.speed_pct }}% 速度
+            {% endif %}
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% endif %}
+{% endblock %}

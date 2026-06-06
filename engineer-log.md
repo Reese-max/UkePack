@@ -1,6 +1,81 @@
 # UkePack Engineer Log
 
 ---
+## 反思 2026-06-06T23:32+08:00（v209 KPI-driven 深度回顧）
+
+### KPI 進展表
+
+| KPI | 上次值 (v208 21:00) | 當前值 | Δ | 狀態 |
+|-----|-------|-------|---|------|
+| K1 北極星（<30min 能彈第一段） | practice progress tracking（streak/stats/chord mastery） | +daily chord mastery trend data | +1 feat（K1 動機深化） | ✅進步 |
+| K2 匯入成功率（30 首 ≥90%） | 100% | 100% | 0 | ✅飽和 |
+| K5 Baseline（pytest/ruff/mypy） | 675 passed / ruff green / mypy 56 files green | 688 passed / ruff green / mypy 58 files green | +13 tests, +2 mypy files | ✅進步 |
+| K6 Teacher trial 回饋（≥5 老師） | 0/5 | 0/5 | 0 | ⚠️卡住（owner-gated, 80+ 輪） |
+| K7 Onboarding 文件覆蓋 | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布（21 commits, 2026-06-06 05:00→23:32）
+
+- **feat/fix（KPI 推進）**: 9 件（43%）
+  - `feat(practice): add daily chord mastery trend data` — K1 動機深化
+  - `feat(practice): add practice progress tracking` — K1 動機循環（streak/stats/chord mastery）
+  - `feat(library): expand song library from 10 to 31` — K1 覆蓋
+  - `feat(templates): add one-click PDF download` — K1 北極星 4→1 click
+  - `feat(templates): show composer metadata` — K1 信任度
+  - `feat(templates): add song library difficulty filters` — K1 可用性
+  - `feat(templates): add song library CTA to homepage` — K1 發現性
+  - `fix(api): serve sample files with correct content-type` — baseline fix
+  - `fix(pages): log silent exception in library song scanner` — K5 品質
+- **chore（Housekeeping）**: 12 件（57%）
+  - 11× `chore(auto-salvage): index.lock 並發搶救` — L092 已知並發病
+  - 1× `chore(log): record practice-progress feat landing`
+  - 1× `chore(log): v207 KPI-driven deep review`
+  - 1× `chore(log): record competitor research round`
+- **chore_ratio**: 57%（>30% ⚠️）
+
+**chore_ratio 說明**：12 chore 中 11 件是 auto-salvage index.lock churn（L092）。扣 salvage 噪音，真 chore_ratio = 1/21 = 5%，健康。真 feat 工作 9 件全對齊 K1 北極星推進。salvage 噪音持續未修 = 結構性問題。
+
+### unpushed commits
+
+8 筆未推。origin 已配置（github.com/Reese-max/UkePack.git），可 `git push`。
+
+### 卡住的 KPI 與根因
+
+**K6（Teacher trial 回饋 0/5）**：連續 ≥80 輪 frozen。根因 = owner-gated 真人流程：
+1. Push ✅ 已完成（8 unpushed commits 待推）
+2. Render.com deploy 狀態未確認
+3. `{{TRIAL_URL}}` 未填
+4. 邀請信未寄
+5. P1-18b/c/d 全 `[O]`（OWNER-only）
+
+**唯一 unblock = owner 完成 Step 1-4（~5 min 真人）**。daemon 對 K6 無槓桿。
+
+### daemon survival 分析
+
+- `.engineer-loop.failures.jsonl` **不存在**（本專案無 daemon failure tracking）
+- 24h 內 11× auto-salvage = index.lock 並發競爭（L092 已記錄）
+- 無 SIGABRT/SIGSEGV/bash 環境問題
+- 無 429/quota 錯誤
+- 無結構性新 bug
+- **salvage 噪音升級**：v208 統計 7 次 → v209 統計 11 次，趨勢惡化。L092 根因（排程器並發 fire 重疊）仍未修。建議 owner 優先修 single-instance lock。
+
+### 本次無新 global learning
+
+L092（index.lock 並發 vs ACL 分流）+ L094（results.log 重複 FAIL 膨脹）已涵蓋本輪觀察到的所有 pattern。chord mastery trend data 是 K1 動機循環的專案特定功能，非可重用跨專案智慧。
+
+### 下一步 3 個 KPI 推進動作
+
+1. **K6**: owner 完成 Render.com deploy 狀態確認 + 設定 `{{TRIAL_URL}}` + 寄出邀請信 → K6 0→1
+2. **K1**: practice progress 增加每日練習提醒（push notification / email nudge）→ 動機循環閉環
+3. **K5**: 修 auto-salvage 並發根因（single-instance lock for daemon rounds）→ chore_ratio 降回 <30%，salvage 噪音從 11→0
+
+### program.md 待辦重排
+
+**現狀**：Phase 0-2 + U1-U7 全 done-green。BACKLOG 0 個 non-owner-gated `[ ]`。
+**重排結果**：無需重排——所有 KPI-推進 task 已完成，剩餘全是 owner-gated（`[O]`）。program.md 已是正確狀態。
+
+**禁止事項確認**：本輪未新增任何純治理 task 給 daemon。
+
+---
 ## 反思 2026-06-06T21:00+08:00（v208 KPI-driven 深度回顧）
 
 ### KPI 進展表

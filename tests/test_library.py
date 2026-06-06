@@ -37,6 +37,14 @@ def test_library_page_shows_song_metadata(client: TestClient) -> None:
     assert "twinkle.musicxml" in response.text
 
 
+def test_library_page_shows_composer(client: TestClient) -> None:
+    """Songs with embedded composer metadata should display the name."""
+    response = client.get("/library")
+
+    # twinkle.musicxml has <creator type="composer">Traditional</creator>
+    assert "Traditional" in response.text
+
+
 def test_library_quick_start_creates_project(client: TestClient) -> None:
     """One-click from library should create a project and redirect to analysis."""
     response = client.post(

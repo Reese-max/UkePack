@@ -57,6 +57,7 @@ def _assemble_score(parsed_score: Any, path: Path) -> Score:
     score = Score(
         title=_extract_title(parsed_score, path),
         key=_extract_key(parsed_score),
+        composer=_extract_composer(parsed_score),
         bpm=_extract_bpm(parsed_score),
         time_signature=_extract_time_signature(melody_part),
         measures=_count_measures(melody_part),
@@ -109,6 +110,16 @@ def _extract_title(parsed_score: Any, path: Path) -> str:
         if title and str(title) not in _PLACEHOLDER_TITLES:
             return str(title)
     return path.stem.replace("_", " ").title()
+
+
+def _extract_composer(parsed_score: Any) -> str | None:
+    """Return the composer name from MusicXML metadata, or None."""
+    metadata = parsed_score.metadata
+    if metadata is not None:
+        composer = getattr(metadata, "composer", None)
+        if composer and str(composer).strip():
+            return str(composer).strip()
+    return None
 
 
 def _extract_key(parsed_score: Any) -> str:

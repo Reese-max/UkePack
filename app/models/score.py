@@ -34,6 +34,7 @@ class Score(BaseModel):
 
     title: str
     key: str
+    composer: str | None = None
     bpm: int | None = None
     time_signature: str | None = None
     measures: int

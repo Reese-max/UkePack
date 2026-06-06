@@ -519,6 +519,7 @@ def _scan_library_songs() -> list[dict[str, Any]]:
             songs.append({
                 "filename": mxl.name,
                 "title": score.title or mxl.stem.replace("_", " ").title(),
+                "composer": score.composer,
                 "key": score.key or "?",
                 "bpm": score.bpm or 0,
                 "measures": score.measures or 0,
@@ -530,6 +531,7 @@ def _scan_library_songs() -> list[dict[str, Any]]:
             songs.append({
                 "filename": mxl.name,
                 "title": mxl.stem.replace("_", " ").title(),
+                "composer": None,
                 "key": "?",
                 "bpm": 0,
                 "measures": 0,

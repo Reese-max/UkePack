@@ -42,7 +42,12 @@
          data-key="{{ song.key }}"
          style="display:flex; flex-direction:column; gap:0.6rem;">
         <div style="display:flex; justify-content:space-between; align-items:start; gap:0.5rem;">
-            <strong style="font-size:1.15rem;">{{ song.title }}</strong>
+            <div>
+                <strong style="font-size:1.15rem;">{{ song.title }}</strong>
+                {% if song.composer %}
+                <div style="font-size:0.8rem; color:var(--muted,#6f625b); margin-top:0.15rem;">{{ song.composer }}</div>
+                {% endif %}
+            </div>
             {% if song.level_label and song.level_label != '?' %}
             <span class="badge badge-level-{{ song.level }}" title="推薦難度 Level {{ song.level }}">
                 {{ song.level_label }}

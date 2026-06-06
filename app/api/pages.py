@@ -672,7 +672,8 @@ def _scan_library_songs() -> list[dict[str, Any]]:
                 "level_label": level_labels.get(level, "?"),
                 "playability_score": playability.playability_score,
             })
-        except Exception:
+        except Exception as exc:
+            logger.warning("library scan failed for %s: %s", mxl.name, exc)
             songs.append({
                 "filename": mxl.name,
                 "title": mxl.stem.replace("_", " ").title(),

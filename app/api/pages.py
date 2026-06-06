@@ -26,6 +26,7 @@ from app.config import get_settings
 from app.core.chord_sheet import parse_chord_sheet
 from app.core.db import get_session
 from app.core.practice_audio import generate_practice_audio, load_practice_audio_manifest
+from app.core.project_pack import pdf_filename, render_project_pdf
 from app.core.share_link import SHARE_TTL_OPTIONS, load_share_link, share_link_status
 from app.core.teacher_review import has_teacher_review
 from app.models.project import Project, ProjectCreate
@@ -114,6 +115,67 @@ async def create_project_htmx(
                 )
 
     return RedirectResponse(url=f"/projects/{project.id}", status_code=303)
+
+
+@router.post("/library/{filename}/quick-pdf")
+def library_quick_pdf(filename: str, session: SessionDep) -> Response:
+    """One-click: create project → import → auto-arrange Level 1 → return PDF.
+
+    Designed for public-domain library songs — skips license confirmation
+    and analysis page to minimise friction (north-star: < 30 min to first play).
+    """
+    if "/" in filename or "\\" in filename or ".." in filename:
+        raise HTTPException(400, "Invalid filename")
+    source = _LIBRARY_DIR / filename
+    if not source.is_file():
+        raise HTTPException(404, "Song not found in library")
+
+    title = source.stem.replace("_", " ").title()
+    project = Project(
+        **ProjectCreate(
+            title=title,
+            source_type="public_domain",
+            usage_type="private",
+        ).model_dump()
+    )
+    # Auto-confirm license for public-domain songs
+    project.license_confirmed = True
+    # Auto-arrange Level 1 (beginner)
+    project.arrangement_level = 1
+    session.add(project)
+    session.commit()
+    session.refresh(project)
+
+    # Copy file into project data dir and import
+    settings = get_settings()
+    save_dir = settings.data_dir / "projects" / str(project.id)
+    save_dir.mkdir(parents=True, exist_ok=True)
+    save_path = save_dir / f"original{source.suffix}"
+    save_path.write_bytes(source.read_bytes())
+    relative_path = str(save_path.relative_to(settings.data_dir))
+
+    try:
+        import_musicxml_into_project(project, save_path, relative_path=relative_path)
+        session.add(project)
+        session.commit()
+    except (ValueError, RuntimeError) as exc:
+        logger.warning("library quick-pdf import failed: %s", exc, exc_info=True)
+        raise HTTPException(500, "Import failed") from exc
+
+    # Render PDF directly
+    try:
+        pdf_bytes = render_project_pdf(project)
+    except Exception as exc:
+        logger.warning("library quick-pdf render failed: %s", exc, exc_info=True)
+        raise HTTPException(500, "PDF render failed") from exc
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{pdf_filename(project.title, 1, project.target_key or project.original_key)}"'
+        },
+    )
 
 
 @router.get("/projects/{project_id}", response_class=HTMLResponse)

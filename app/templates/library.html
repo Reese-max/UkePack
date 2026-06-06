@@ -69,6 +69,11 @@
                 一鍵產生練習包 →
             </button>
         </form>
+        <form method="post" action="/library/{{ song.filename }}/quick-pdf">
+            <button class="btn btn-outline btn-sm" style="width:100%; margin-top:0.35rem;" type="submit">
+                ⬇ 快速下載 PDF
+            </button>
+        </form>
     </div>
     {% endfor %}
 </div>

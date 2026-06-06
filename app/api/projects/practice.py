@@ -129,12 +129,29 @@ def get_practice_progress(
         for lg in logs[-5:]
     ]
 
+    # Daily chord trend (date → {chord: count})
+    daily_trend: dict[str, Counter[str]] = {}
+    for lg in logs:
+        day = lg.created_at.astimezone(UTC).strftime("%Y-%m-%d")
+        if day not in daily_trend:
+            daily_trend[day] = Counter()
+        for ch in lg.chords_practiced.split(","):
+            ch = ch.strip()
+            if ch:
+                daily_trend[day][ch] += 1
+
+    # Convert to serializable format
+    daily_chord_trend = {
+        day: dict(counts.most_common()) for day, counts in sorted(daily_trend.items())
+    }
+
     return {
         "total_sessions": len(logs),
         "total_seconds": total_seconds,
         "streak_days": streak,
         "longest_streak": max(longest, streak),
         "chord_counts": dict(chord_counter.most_common()),
+        "daily_chord_trend": daily_chord_trend,
         "recent_sessions": recent,
         "last_practice": logs[-1].created_at.isoformat(),
     }

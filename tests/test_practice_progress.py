@@ -137,6 +137,34 @@ def test_progress_with_sessions(session: Session, project: Project):
     assert data["last_practice"] is not None
 
 
+def test_progress_daily_chord_trend(session: Session, project: Project):
+    """Verify daily_chord_trend groups chords by date."""
+    client = _make_client(session)
+    # Record 2 sessions with different chords
+    client.post(
+        f"/api/projects/{project.id}/practice-log",
+        json={"chords_practiced": "C,G,Am", "duration_seconds": 60},
+    )
+    client.post(
+        f"/api/projects/{project.id}/practice-log",
+        json={"chords_practiced": "C,F", "duration_seconds": 45},
+    )
+
+    resp = client.get(f"/api/projects/{project.id}/practice-progress")
+    assert resp.status_code == 200
+    data = resp.json()
+    trend = data["daily_chord_trend"]
+    assert isinstance(trend, dict)
+    # All sessions are same day → 1 entry
+    assert len(trend) == 1
+    day_data = next(iter(trend.values()))
+    # C appeared twice, G once, Am once, F once
+    assert day_data["C"] == 2
+    assert day_data["G"] == 1
+    assert day_data["Am"] == 1
+    assert day_data["F"] == 1
+
+
 def test_progress_project_not_found(session: Session):
     client = _make_client(session)
     resp = client.get("/api/projects/9999/practice-progress")

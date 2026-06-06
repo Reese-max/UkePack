@@ -2,6 +2,38 @@
 
 > AI 自主開發 agent 每輪在此追加：做了什麼 / 失敗原因 / 換的策略 / 量測數據。
 
+## 反思 2026-06-06 ~21:39 | pua | KPI-driven round v208
+
+### KPI 進展表
+| KPI | v203 | v208 | Δ | 狀態 |
+|-----|------|------|---|------|
+| 北極星 pipeline latency | 0.25s | 0.25s | 0 | 🟢 SATURATED (7200x headroom) |
+| K6 老師回饋 | 0/5 | 0/5 | 0 | 🔴 owner-gated ≥80 輪 |
+| K7 onboarding | 5/5 | 5/5 | 0 | 🟡 owner push-gated |
+| push-lag | 25 | 6 | +19 | 🟡 改善但仍需 owner push |
+| MVP DoD | 8/8 | 8/8 | 0 | 🟢 完成 |
+| baseline | 綠 | 綠 | 0 | ✅ 687 passed / ruff / mypy |
+
+### 本輪動作
+- baseline 三綠確認：`pytest 687 passed in 106s`（-n0）/ ruff PASS / mypy PASS
+- 盤點 BACKLOG / program.md / 24h commits：0 個 `[ ]`，Phase 0-2 全 done-green
+- 24h 有 2 feat（song library 擴展 + practice progress tracking）但 chore_ratio 56%（auto-salvage 噪音）
+
+### 卡住的 KPI（與前輪同）
+- **K6**：唯一真卡，0/5 teacher feedback，owner-gated。push-lag 從 25 降到 6（前輪有 push），但仍需 owner 完成 push → Render deploy → 寄邀請信。
+- **所有 M1-M3 task 已清空**：BACKLOG 0 個 `[ ]`，daemon 無誠實 code task。
+
+### 唯一 unblock（owner action）
+1. `git push origin master`（6 commits unpushed）
+2. Render.com deploy → 取 trial URL
+3. 寄 teacher invites → K6 0→≥1
+
+### 本輪不做 & 為何
+- 不 fabricate task：0 個 K-aligned 缺口，加 task = 反 Pattern
+- 不 gold-plating：北極星已飽和 7200x，再疊 feat = 違規
+- chore_ratio 56% → 禁止 H0（housekeeping cap rule）
+- 不重複 blocker log：MISSION 反 Pattern 明令 ≥10 輪同 blocker 即停
+
 ## 反思 2026-06-06 ~08:40 | pua | KPI-driven round v203
 
 ### KPI 進展表

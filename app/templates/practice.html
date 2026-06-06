@@ -91,6 +91,43 @@
         height: auto;
     }
 
+    /* ── Fingering hint text ── */
+    .fingering-hint {
+        font-size: 0.95rem;
+        color: var(--text);
+        text-align: center;
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+        background: #fff9f0;
+        border: 1px solid #f0e0cc;
+        border-radius: var(--radius-sm);
+        padding: 0.6rem 1rem;
+    }
+
+    .fingering-hint .hint-chord {
+        font-weight: 800;
+        color: var(--accent-strong);
+    }
+
+    .fingering-hint .hint-string {
+        display: inline-block;
+        margin: 0 0.15rem;
+        padding: 0.1rem 0.35rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .fingering-hint .hint-open {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .fingering-hint .hint-fret {
+        background: #fff3e0;
+        color: #e65100;
+    }
+
     .tap-hint {
         font-size: 0.95rem;
         color: var(--muted);
@@ -660,6 +697,7 @@
         <div class="chord-name" id="chord-name">{{ unique_chords[0] if unique_chords else '?' }}</div>
         <div id="chord-svg" aria-hidden="true"></div>
     </div>
+    <div class="fingering-hint" id="fingering-hint" aria-live="polite" aria-label="手指位置說明"></div>
 
     {# ── Section tabs ── #}
     {% if analysis.sections %}
@@ -1035,6 +1073,15 @@ function updateDisplay() {
         svgContainer.innerHTML = '<span style="color:var(--muted);font-size:0.9rem">無指法圖</span>';
     }
 
+    // Update fingering hint
+    var hintEl = document.getElementById('fingering-hint');
+    if (fingering) {
+        hintEl.innerHTML = describeFingering(sym, fingering);
+        hintEl.style.display = '';
+    } else {
+        hintEl.style.display = 'none';
+    }
+
     // Update strip highlight
     document.querySelectorAll('.chord-btn').forEach((btn, i) => {
         btn.classList.toggle('active', i === currentIdx);
@@ -1172,6 +1219,35 @@ function tick() {
 
 function playCurrentStrum() {
     playStrumAudio(CHORDS[currentIdx]);
+}
+
+/* ── Describe fingering in kid-friendly Chinese ── */
+function describeFingering(chordName, frets) {
+    if (!frets) return '';
+    const STRING_NAMES = ['G', 'C', 'E', 'A'];
+    const FINGER_MAP = { 1: '食指', 2: '中指', 3: '無名指', 4: '小指' };
+    // Assign fingers: sort fretted strings low→high, assign 1→4
+    const fretted = [];
+    for (let i = 0; i < 4; i++) {
+        if (frets[i] > 0) fretted.push({ str: i, fret: frets[i] });
+    }
+    fretted.sort(function(a, b) { return a.fret - b.fret || a.str - b.str; });
+    const fingerAssign = {};
+    fretted.forEach(function(item, idx) {
+        fingerAssign[item.str] = idx + 1;
+    });
+
+    const parts = [];
+    for (let i = 0; i < 4; i++) {
+        const f = frets[i];
+        if (f === 0) {
+            parts.push('<span class="hint-string hint-open">' + STRING_NAMES[i] + ' 空弦</span>');
+        } else {
+            const finger = fingerAssign[i] ? FINGER_MAP[fingerAssign[i]] || '' : '';
+            parts.push('<span class="hint-string hint-fret">' + STRING_NAMES[i] + ' 第' + f + '格' + (finger ? '（' + finger + '）' : '') + '</span>');
+        }
+    }
+    return '<span class="hint-chord">' + escHtml(chordName) + '</span>：' + parts.join(' ');
 }
 
 /* ── Build SVG chord diagram (client-side, mirrors server chord_diagram.py) ── */

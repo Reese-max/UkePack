@@ -314,3 +314,32 @@ L092（index.lock 並發 vs ACL 分流）+ L094（results.log 重複 FAIL 膨脹
 **重排結果**：無需重排——所有 KPI-推進 task 已完成，剩餘全是 owner-gated（`[O]`）。program.md 已是正確狀態。
 
 **禁止事項確認**：本輪未新增任何純治理 task 給 daemon。
+
+---
+
+## 2026-06-07T00:15:00+08:00 — v208 baseline-green idle
+
+### Baseline
+- pytest: 760+ passed（3/3 runs 全綠，flaky 2 FAIL 為 xdist 間歇性，不可重現）
+- ruff: clean
+- mypy: clean（58 source files）
+- 24h commits: 0
+
+### 決策：idle（無 M0-M3 可執行）
+
+| KPI | 狀態 | 為何不可動 |
+|-----|------|-----------|
+| K6 | frozen 80+ 輪 | owner-gated（需真人 deploy + 寄信） |
+| K5 | 24× salvage | 根因在外部排程器並發 fire，repo 內無可修檔案 |
+| K1 | 30 MusicXML / 0 MIDI | 加 MIDI fixture = self-assign task（反 Pattern 禁止） |
+
+### 環境修復
+- `uv sync` 不裝 dev deps（pytest/ruff/mypy），需 `uv sync --all-extras`。
+- `pyproject.toml` 的 `[project.optional-dependencies] dev` 正確，但 uv 0.11.19 預設不安裝 optional extras。
+- 結論：baseline gate 改用 `.venv/Scripts/python -m pytest` 或 `uv run --all-extras pytest`。
+
+### 無新 global learning
+L092（index.lock 並發 vs ACL）+ L094（results.log 膨脹）+ L095（uv sync 不裝 dev extras）已涵蓋本輪觀察。
+
+### 唯一 unblock
+owner 完成 Render.com deploy + 寄出邀請信 → K6 0→1。

@@ -109,3 +109,4 @@ program.md.bak-*
 auto-dev-summary.md
 .antigravitycli/
 .tmp_*.lock
+.tmp-pytest-*/

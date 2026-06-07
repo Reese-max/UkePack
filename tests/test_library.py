@@ -126,3 +126,26 @@ def test_library_cards_have_chord_data_attribute(client: TestClient) -> None:
     chord_attrs = re.findall(r'data-chords="([^"]*)"', response.text)
     non_empty = [c for c in chord_attrs if c]
     assert len(non_empty) > 0, "At least one song should have chord data"
+
+
+def test_library_cards_show_chord_count_badge(client: TestClient) -> None:
+    """Each library card should display a chord count badge for beginners."""
+    response = client.get("/library")
+
+    assert response.status_code == 200
+    assert "badge-chords" in response.text
+    assert "和弦" in response.text
+
+
+def test_library_sorted_by_chord_count_easiest_first(client: TestClient) -> None:
+    """Library should sort songs by chord count so easiest songs appear first."""
+    import re
+
+    response = client.get("/library")
+    assert response.status_code == 200
+
+    chord_attrs = re.findall(r'data-chords="([^"]*)"', response.text)
+    counts = [len(c.split(",")) if c else 0 for c in chord_attrs]
+    # Songs with chords should be sorted ascending by chord count
+    nonzero = [c for c in counts if c > 0]
+    assert nonzero == sorted(nonzero), f"Chord counts not sorted: {nonzero}"

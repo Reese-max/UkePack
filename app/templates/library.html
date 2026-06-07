@@ -67,6 +67,11 @@
                 <div style="font-size:0.8rem; color:var(--muted,#6f625b); margin-top:0.15rem;">{{ song.composer }}</div>
                 {% endif %}
             </div>
+            {% if song.chords | length > 0 %}
+            <span class="badge badge-chords" title="需要 {{ song.chords | length }} 個和弦">
+                {{ song.chords | length }} 和弦
+            </span>
+            {% endif %}
             {% if song.level_label and song.level_label != '?' %}
             <span class="badge badge-level-{{ song.level }}" title="推薦難度 Level {{ song.level }}">
                 {{ song.level_label }}
@@ -150,6 +155,7 @@
 .badge-level-1 { background: #e6f9e6; color: #1a7a1a; }
 .badge-level-2 { background: #fff3cd; color: #856404; }
 .badge-level-3 { background: #fde2e2; color: #a71d2a; }
+.badge-chords { background: #e8f4fd; color: #1a5276; font-size: 0.7rem; }
 .library-card[style*="display: none"] { display: none !important; }
 .chord-filter-group {
     width: 100%;

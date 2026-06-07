@@ -695,6 +695,7 @@ def _scan_library_songs() -> list[dict[str, Any]]:
                 "playability_score": 0,
                 "chords": [],
             })
+    songs.sort(key=lambda s: (len(s.get("chords", [])), s.get("level", 0), s.get("title", "")))
     return songs
 
 

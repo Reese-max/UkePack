@@ -126,6 +126,30 @@ class TestChordDiagram:
         assert 'fill="#000000">3</text>' in svg_colorable
 
 
+def test_page1_level1_quick_start_callout_competitor_gap() -> None:
+    """Level 1 overview must surface explicit 15min first-segment starter (vs Ukulele-Tabs beginner+strumming focus)."""
+    from app.arrangement.strum_pattern import StrumPattern
+
+    score = Score(
+        title="Twinkle",
+        key="C",
+        measures=8,
+        chords=[ChordEvent(time=0.0, measure=1, symbol="C", beat=1)],
+    )
+    sp = StrumPattern(
+        name="入門單刷",
+        time_signature="4/4",
+        strokes=("D", "D", "D", "D"),
+        min_level=1,
+        description="每拍一下",
+        bpm_range=(50, 90),
+    )
+    req = PackRequest(title="Twinkle", level=1, score=score, strum_patterns=[sp])
+    drawn = _capture_drawn_strings(page1_module.render_page1, req)
+    assert any("15 分鐘起步" in t for t in drawn)
+    assert any("入門單刷" in t or "D D D D" in t for t in drawn)
+
+
 class TestRenderPdf:
     def _minimal_request(self, source_type: str = "public_domain") -> PackRequest:
         score = Score(title="Test Song", key="C major", measures=8)

@@ -67,6 +67,23 @@ def render_page1(c: rl_canvas.Canvas, req: PackRequest) -> None:
         )
         y -= 30
 
+    # competitor-research gap vs Ukulele-Tabs.com (beginner + dedicated strumming focus):
+    # kids need explicit "do this now" micro-entry on overview to hit <15min first segment.
+    # Level 1 quick-start callout reuses existing strum[0] + first chord (no new data).
+    if req.level <= 1 and req.strum_patterns:
+        section(c, "15 分鐘起步", y)
+        y -= 18
+        first_ch = unique[0] if unique else "和弦"
+        sp0 = req.strum_patterns[0]
+        bpm_hint = f"{sp0.bpm_range[0]}-{sp0.bpm_range[1]}"
+        c.setFont(_ZH, 11)
+        c.setFillColor(colors.HexColor("#1a5f2a"))
+        c.drawString(
+            _MARGIN, y,
+            f"先彈 {first_ch} + {sp0.notation()}（{bpm_hint} BPM），重複 4 拍即可開始！"
+        )
+        y -= 20
+
     if req.teacher_review and req.teacher_review.strum_notation:
         section(c, "建議刷法", y)
         y -= 22

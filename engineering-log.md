@@ -17631,3 +17631,11 @@ results.log 已 223KB，其中 2026-05-10~05-12 期間 100+ 筆字面相同的 A
 當前 program.md 階段十三 36z-push 已標記為 SINGLE 真人動作。
 Phase 2 U1-U7 全 done-green。
 **無需重排序** — 所有 KPI-推進 task 已在隊列最前，唯一 blocker 是 owner 確認 Render deploy + 寄邀請信。
+
+### Competitor Research Round - 2026-06-08
+- 對標1: Ukutabs.com (large free chords/tabs archive, chord diagrams + namer, strum guides, scales/tuner/learn)
+- 對標2: Ukulele-Tabs.com (community tabs for kids/Disney/pop, explicit beginner difficulty, dedicated strumming patterns page, multi-lang community)
+- 對標3: Chordify.net (auto chord player from audio, speed/loop control, scrolling visual + diagrams)
+- Gap (high-leverage, K1-aligned, 1-2d doable): competitors surface "beginner + strum now" entry fast; UkePack 4-page pack has overview but no explicit "先彈這個 4 拍即可開始" micro-callout for 6-10yo on page1 (first thing parents/kids see).
+- Ship: feat quick-start callout ("15 分鐘起步：先彈 X + ↓↓↓↓ (BPM)，重複 4 拍") in page1.py for level<=1 using existing strum[0]+first chord. 1 test added in test_pdf_render.py.
+- KPI-impact: K1 北極星 first-segment-time (kids 15min ready) 0→1

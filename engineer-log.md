@@ -343,3 +343,21 @@ L092（index.lock 並發 vs ACL）+ L094（results.log 膨脹）+ L095（uv sync
 
 ### 唯一 unblock
 owner 完成 Render.com deploy + 寄出邀請信 → K6 0→1。
+
+
+---
+
+### Competitor Research Round - 2026-06-07
+
+### 1. 對標掃描
+- **Ukutabs (ukutabs.com)**: 烏克麗麗專業譜庫，核心 features：GCEA 和弦指法圖（帶 1-4 指法數字）、Transpose 移調、Auto-scroll 自動滾動。
+- **Chordify (chordify.net)**: 互動式和弦提取與播放器，核心 features：音訊提取和弦、時間軸滾動和弦圖、Transposing。
+- **Ultimate Guitar (ultimate-guitar.com)**: 全球最大吉他/烏克麗麗譜庫，核心 features：和弦簡化 (Simplify)、移調按鈕 (Transpose +1/-1)、互動式 TAB Pro 播放器。
+
+### 2. Gap 評估與 feature 選擇
+- **Gap**: 我們產生的 SVG 和弦圖只有 fretted dots，而沒有 GCEA 指法數字（1-4 代表食指/中指/無名指/小指），這對初學的小朋友來說極為不便，影響「15分鐘彈出第一段」的北極星指標。
+- **Feature**: 決定補齊 **和弦指法標示 (Fingering hints)**。實作在 `app/render/chord_diagram.py` 的 SVG dots 中繪製對應的指法數字，顯著提升兒童學習體驗。
+
+### 3. 動工與 KPI 推進
+- **實作**: 定義 `_CHORD_FINGERS` 對應表，在 `_append_dots` 內為 C/G/Am/F 等 19 個常見和弦的 dots 中心繪製指法數字（colorable 時為黑色，一般時為白色）。
+- **KPI-impact**: `KPI-K1` 互動練習與 PDF 實用度提升，直接優化北極星指標（降低 time-to-first-play 難度）。

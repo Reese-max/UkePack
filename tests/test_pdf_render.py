@@ -115,6 +115,16 @@ class TestChordDiagram:
         assert 'fill="black"' in normal  # default: solid fretted dot
         assert 'fill="black"' not in colorable  # colorable: outline only
 
+    def test_svg_contains_fingering_hints(self) -> None:
+        # C = (0,0,0,3) -> finger hint for A string is 3
+        # Should render white text '3' inside dot for normal svg
+        svg = generate_svg("C")
+        assert 'fill="white">3</text>' in svg
+
+        # Colorable C chord should render black (#000000) text '3' inside dot
+        svg_colorable = generate_svg("C", colorable=True)
+        assert 'fill="#000000">3</text>' in svg_colorable
+
 
 class TestRenderPdf:
     def _minimal_request(self, source_type: str = "public_domain") -> PackRequest:

@@ -29,6 +29,28 @@ _CHORD_FINGERINGS: dict[str, tuple[int, int, int, int]] = {
     "Bbm": (3, 1, 2, 1),
 }
 
+_CHORD_FINGERS: dict[str, tuple[int, int, int, int]] = {
+    "C":   (0, 0, 0, 3),
+    "G":   (0, 1, 3, 2),
+    "Am":  (2, 0, 0, 0),
+    "F":   (2, 0, 1, 0),
+    "G7":  (0, 2, 1, 3),
+    "Dm":  (2, 3, 1, 0),
+    "D":   (1, 2, 3, 0),
+    "A":   (2, 1, 0, 0),
+    "A7":  (0, 1, 0, 0),
+    "D7":  (1, 1, 1, 2),
+    "E7":  (1, 2, 0, 3),
+    "Em":  (0, 3, 2, 1),
+    "Bb":  (3, 2, 1, 1),
+    "B":   (3, 2, 1, 1),
+    "Bm":  (3, 1, 1, 1),
+    "E":   (3, 3, 3, 1),
+    "Eb":  (0, 1, 2, 3),
+    "Ab":  (3, 1, 2, 1),
+    "Bbm": (3, 1, 2, 1),
+}
+
 _W = 80
 _H = 115
 _STRING_XS: tuple[int, int, int, int] = (12, 28, 44, 60)
@@ -52,7 +74,8 @@ def generate_svg(chord_name: str, *, colorable: bool = False) -> str:
     if fingering is None:
         return _unknown_svg(chord_name)
     start_fret, display = _compute_display(fingering)
-    return _render_svg(chord_name, display, start_fret, colorable)
+    fingers = _CHORD_FINGERS.get(chord_name)
+    return _render_svg(chord_name, display, start_fret, colorable, fingers)
 
 
 def get_fingering(chord_name: str) -> tuple[int, int, int, int] | None:
@@ -97,7 +120,11 @@ def _fret_dot_y(display_fret: int) -> float:
 
 
 def _render_svg(
-    name: str, display_frets: list[int], start_fret: int, colorable: bool = False
+    name: str,
+    display_frets: list[int],
+    start_fret: int,
+    colorable: bool = False,
+    fingers: tuple[int, int, int, int] | None = None,
 ) -> str:
     p: list[str] = []
     p.append(
@@ -112,7 +139,7 @@ def _render_svg(
         f'font-weight="bold">{safe}</text>'
     )
     _append_grid(p, start_fret)
-    _append_dots(p, display_frets, colorable)
+    _append_dots(p, display_frets, colorable, fingers)
     p.append("</svg>")
     return "".join(p)
 
@@ -161,8 +188,13 @@ def _append_grid(p: list[str], start_fret: int) -> None:
         )
 
 
-def _append_dots(p: list[str], display_frets: list[int], colorable: bool = False) -> None:
-    for sx, fret in zip(_STRING_XS, display_frets, strict=False):
+def _append_dots(
+    p: list[str],
+    display_frets: list[int],
+    colorable: bool = False,
+    fingers: tuple[int, int, int, int] | None = None,
+) -> None:
+    for idx, (sx, fret) in enumerate(zip(_STRING_XS, display_frets, strict=False)):
         if fret == 0:
             open_cy: float = float(_NUT_Y - 9)
             p.append(
@@ -175,11 +207,27 @@ def _append_dots(p: list[str], display_frets: list[int], colorable: bool = False
                 f'<circle cx="{sx}" cy="{dot_cy:.1f}" r="{_DOT_R}" '
                 f'fill="white" stroke="black" stroke-width="1.2"/>'
             )
+            if fingers is not None and idx < len(fingers):
+                f_num = fingers[idx]
+                if f_num > 0:
+                    p.append(
+                        f'<text x="{sx}" y="{dot_cy + 2.2:.1f}" text-anchor="middle" '
+                        f'font-family="Helvetica,Arial,sans-serif" font-size="7" '
+                        f'font-weight="bold" fill="#000000">{f_num}</text>'
+                    )
         else:
             dot_cy = _fret_dot_y(fret)
             p.append(
                 f'<circle cx="{sx}" cy="{dot_cy:.1f}" r="{_DOT_R}" fill="black"/>'
             )
+            if fingers is not None and idx < len(fingers):
+                f_num = fingers[idx]
+                if f_num > 0:
+                    p.append(
+                        f'<text x="{sx}" y="{dot_cy + 2.2:.1f}" text-anchor="middle" '
+                        f'font-family="Helvetica,Arial,sans-serif" font-size="7" '
+                        f'font-weight="bold" fill="white">{f_num}</text>'
+                    )
 
 
 def _nc_svg() -> str:

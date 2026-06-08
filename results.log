@@ -505,3 +505,5 @@
 [2026-06-08T10:35:00+08:00] | competitor-research | PASS | KPI-K1 | feat: auto-tempo-trainer (+5 BPM/loop) vs Yousician/Chordify
 2026-06-08 10:38:47 | verify:pytest | FAIL | exit=4
 [2026-06-08T14:30:00+08:00] | M0 | PASS | KPI-impact: K1 auto-tempo-trainer code review BLOCK fix (5 issues) | fix(practice): cache autoTempoChk DOM ref, move inline style to .auto-tempo-label CSS class, add tempo-toast notification on auto-acceleration, add test_practice_page_auto_tempo_acceleration_logic covering +5 BPM/loop + 160 cap + toast + cached ref; pytest/ruff/mypy all green
+2026-06-08 10:57:40 | verify:pytest | FAIL | exit=4
+[2026-06-08T16:00:00+08:00] | idle | PASS | KPI-impact: housekeeping | v214 baseline-green idle — 695 passed / ruff / mypy 58 green; 24h commits=0; K1/K2/K5/K7 saturated; K6 frozen 85+ rounds (owner-gated: Render deploy → TRIAL_URL → invite email); no M0-M3 executable

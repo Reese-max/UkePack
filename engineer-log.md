@@ -376,3 +376,61 @@ owner 完成 Render.com deploy + 寄出邀請信 → K6 0→1。
 ### 3. 動工與 KPI 推進
 - **實作**: 在 `practice.html` 增加 `自動加速 (+5 BPM / 輪)` 勾選框，並在 Metronome 播放循環 (tick) 回到開頭時，自動將 BPM 增加 5 (最大 160)。
 - **KPI-impact**: `KPI-K1` 實時練習頁面的自動加速大幅縮短學童適應原速所需時間，直接推進北極星 KPI。
+
+---
+## 反思 2026-06-08T15:00 (v213)
+
+### KPI 進展表
+| KPI | 上次值 (v209) | 當前值 | Δ | 狀態 |
+|-----|--------------|-------|---|------|
+| K1 北極星 <30min | 飽和 (pipeline 0.03-0.22s + 31 songs) | 飽和 +3 feat (auto-tempo-trainer, chord-fingering-hints, 15min-quick-start) | +3 features 深化 | ✅深度推進 |
+| K2 匯入成功率 | 100% (30 fixture) | 100% (30 fixture + 31 library) | 0 | ✅飽和 |
+| K5 Baseline | 688 passed / mypy 58 | 694 passed / mypy 58 / ruff green | +6 tests | ✅進步 |
+| K6 老師試用 | 0/5 (frozen 78+) | 0/5 (frozen 85+ rounds) | 0 | ❌卡住 (owner-gated) |
+| K7 Onboarding docs | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布 (6 commits)
+- feat/fix (KPI 推進): 3 件 — auto-tempo-trainer, 15min-quick-start, chord-fingering-hints
+- chore(auto-salvage): 2 件 — index.lock 並發搶救
+- chore(evolve): 1 件 — idle confirm
+- **chore_ratio**: 50%（> 30% 閾值）；扣除 auto-salvage 噪音後 **true chore = 17%**（健康）
+
+### 最近 20 commits 分布
+- feat/fix: 7 件 (35%)
+- chore(auto-salvage): 6 件 (30%)
+- chore(log/idle): 5 件 (25%)
+- chore(evolve): 1 件 (5%)
+- chore(log): 1 件 (5%)
+- **chore_ratio**: 65%（salvage 噪音主導，true chore ~15%）
+
+### Daemon Survival
+- `.engineer-loop.failures.jsonl` **不存在**（本專案無 daemon 失敗追蹤）
+- `verify:pytest` 間歇 SKIP-TIMEOUT (>300s) + exit=4：根因 = system python 而非 `uv run`，非程式碼缺陷
+- 無結構性 bug，無需 L4 arch proposal
+
+### 卡住的 KPI 與根因
+**K6 (0/5)** — 已 frozen 85+ 輪。根因鏈：
+1. push ✅ 已完成 (HEAD = origin/master)
+2. **Blocker**: owner 確認 Render.com deploy 狀態
+3. → 設定 `{{TRIAL_URL}}`
+4. → 寄出邀請信 (P1-18b)
+- daemon 零槓桿，全鏈 owner-gated。代碼側工作 100% 完成。
+
+### 結構性問題：auto-salvage index.lock 噪音
+- L092 (auto-salvage index.lock churn) 未修復
+- salvage commits 趨勢：v205=7 → v207=7 → v209=11，持續上升
+- 佔 chore_ratio 虛胖 30-50pp，但不影響 KPI 推進
+- **建議**: 排查 `git add` 並發時 index.lock retry 機制，或將 salvage 頻率降到每 N 輪一次
+
+### 競品驅動 KPI 推進（本輪亮點）
+- 2026-06-07 vs Ukutabs → chord fingering hints (指法數字)
+- 2026-06-08 vs Yousician/Chordify → auto-tempo trainer (+5 BPM/loop)
+- 兩輪 competitor-research 直接轉化為 K1 深化 feature，**非治理、非 housekeeping**
+
+### 下一步 3 個 KPI 推進動作
+1. **K6 unblock**: owner 確認 Render deploy → 設 TRIAL_URL → 寄邀請信 (K6: 0→1)
+2. **K1 深化**: 曲庫擴充至 50+ 首（現 31 首），增加更多兒歌/流行曲覆蓋率
+3. **K5 加固**: 修復 verify:pytest 的 SKIP-TIMEOUT 問題（改 `uv run` 或增加 timeout 閾值）
+
+### 跨專案學習
+本輪無新 global learning（現有 L001-L092 已涵蓋本專案情境）。

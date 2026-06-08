@@ -503,3 +503,5 @@
 [2026-06-07T23:37:35Z] | idle | PASS | KPI-impact: none (code saturation, K6 owner-gated) | baseline green 694 pass, no M0-M3 available, working tree clean
 [2026-06-08T10:35:00+08:00] | M1 | PASS | KPI-impact: K1 北極星 tempo-trainer feature 0→1 | feat: add auto-tempo trainer (+5 BPM / loop) to practice page — competitor-research(UkePack): vs Yousician + Chordify; test added and green; mypy/ruff green
 [2026-06-08T10:35:00+08:00] | competitor-research | PASS | KPI-K1 | feat: auto-tempo-trainer (+5 BPM/loop) vs Yousician/Chordify
+2026-06-08 10:38:47 | verify:pytest | FAIL | exit=4
+[2026-06-08T14:30:00+08:00] | M0 | PASS | KPI-impact: K1 auto-tempo-trainer code review BLOCK fix (5 issues) | fix(practice): cache autoTempoChk DOM ref, move inline style to .auto-tempo-label CSS class, add tempo-toast notification on auto-acceleration, add test_practice_page_auto_tempo_acceleration_logic covering +5 BPM/loop + 160 cap + toast + cached ref; pytest/ruff/mypy all green

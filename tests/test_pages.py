@@ -972,6 +972,36 @@ def test_practice_page_has_metronome_controls(db_client: TestClient) -> None:
     assert "auto-tempo-chk" in resp.text
 
 
+def test_practice_page_auto_tempo_acceleration_logic(db_client: TestClient) -> None:
+    """Auto-tempo should use +5 BPM per loop with 160 cap and show toast feedback."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "AutoTempo Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    with TWINKLE.open("rb") as fh:
+        db_client.post(
+            f"/api/projects/{pid}/import",
+            files={"file": ("twinkle.musicxml", fh, "application/xml")},
+        )
+
+    resp = db_client.get(f"/projects/{pid}/practice")
+    assert resp.status_code == 200
+    html = resp.text
+    # Auto-acceleration: +5 BPM, cap at 160
+    assert "bpm + 5" in html or "newBpm = Math.min(bpm + 5" in html
+    assert "maxBpm = 160" in html or "maxBpm" in html
+    # Toast notification element for user feedback
+    assert "tempo-toast" in html
+    # showTempoToast function exists
+    assert "showTempoToast" in html
+    # Cached DOM ref (not getElementById inside tick)
+    assert "const autoTempoChk" in html
+    # CSS class instead of inline style for checkbox label
+    assert "auto-tempo-label" in html
+    assert "style=" not in html.split("auto-tempo-chk")[0].split("\n")[-1]
+
+
 def test_analysis_page_links_to_practice(db_client: TestClient) -> None:
     """Analysis page should have a link to the practice page when score exists."""
     create = db_client.post(

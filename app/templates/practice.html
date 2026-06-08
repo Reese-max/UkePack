@@ -423,6 +423,51 @@
         border: 1px solid #ffc107;
     }
 
+    /* ── Auto-tempo checkbox ── */
+    .auto-tempo-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        background: var(--surface-soft);
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        user-select: none;
+    }
+
+    .auto-tempo-label input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--accent);
+    }
+
+    /* ── Auto-tempo toast notification ── */
+    .tempo-toast {
+        position: fixed;
+        bottom: 1.5rem;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: var(--accent);
+        color: #fff;
+        padding: 0.6rem 1.25rem;
+        border-radius: 999px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        box-shadow: var(--shadow);
+        opacity: 0;
+        transition: opacity 0.3s, transform 0.3s;
+        pointer-events: none;
+        z-index: 100;
+    }
+
+    .tempo-toast.visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
     /* ── Speed presets ── */
     .speed-presets {
         display: flex;
@@ -798,11 +843,13 @@
     </div>
 
     <div class="controls-bar" style="margin-top:-0.5rem">
-        <label style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.95rem; font-weight:700; cursor:pointer; background:var(--surface-soft); padding:0.5rem 1rem; border-radius:var(--radius-sm); border:1px solid var(--border); user-select:none;">
-            <input type="checkbox" id="auto-tempo-chk" style="width:16px; height:16px; accent-color:var(--accent);">
+        <label class="auto-tempo-label">
+            <input type="checkbox" id="auto-tempo-chk">
             <span>🚀 練習自動加速 (+5 BPM / 輪)</span>
         </label>
     </div>
+
+    <div class="tempo-toast" id="tempo-toast" aria-live="polite"></div>
 
     {# ── Speed presets (50% / 70% / 100%) ── #}
     {% if practice_speeds %}
@@ -945,6 +992,10 @@ let playTimer = null;
 let bpm = {{ (practice_speeds[0].bpm if practice_speeds else (analysis.bpm or 100)) }};
 let selectedStrumIdx = 0;
 let activeSection = 'all';
+
+/* ── Cached DOM refs ── */
+const autoTempoChk = document.getElementById('auto-tempo-chk');
+const tempoToast = document.getElementById('tempo-toast');
 
 /* ── Web Audio context (lazy init on user gesture) ── */
 let audioCtx = null;
@@ -1219,13 +1270,13 @@ function tick() {
         } else {
             // Loop back to start
             currentIdx = 0;
-            const chk = document.getElementById('auto-tempo-chk');
-            if (chk && chk.checked) {
+            if (autoTempoChk && autoTempoChk.checked) {
                 const maxBpm = 160;
                 const newBpm = Math.min(bpm + 5, maxBpm);
                 if (newBpm !== bpm) {
                     updateBpm(newBpm);
                     document.getElementById('bpm-slider').value = newBpm;
+                    showTempoToast('🚀 加速到 ' + newBpm + ' BPM' + (newBpm >= maxBpm ? '（已達上限）' : ''));
                 }
             }
             tick();
@@ -1325,6 +1376,18 @@ function buildChordSvg(name, frets) {
 
 function escHtml(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/* ── Toast notification for auto-tempo ── */
+let toastTimer = null;
+function showTempoToast(msg) {
+    if (!tempoToast) return;
+    tempoToast.textContent = msg;
+    tempoToast.classList.add('visible');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() {
+        tempoToast.classList.remove('visible');
+    }, 2000);
 }
 
 /* ── Keyboard shortcuts ── */

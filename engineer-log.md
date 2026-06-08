@@ -361,3 +361,18 @@ owner 完成 Render.com deploy + 寄出邀請信 → K6 0→1。
 ### 3. 動工與 KPI 推進
 - **實作**: 定義 `_CHORD_FINGERS` 對應表，在 `_append_dots` 內為 C/G/Am/F 等 19 個常見和弦的 dots 中心繪製指法數字（colorable 時為黑色，一般時為白色）。
 - **KPI-impact**: `KPI-K1` 互動練習與 PDF 實用度提升，直接優化北極星指標（降低 time-to-first-play 難度）。
+
+### Competitor Research Round - 2026-06-08
+
+### 1. 對標掃描
+- **Ukutabs (ukutabs.com)**: 專業烏克麗麗譜庫，提供和弦簡化、移調、BPM 速度切換與 PDF 打印。
+- **Chordify (chordify.net)**: 互動播放伴奏，核心 features：動態和弦提示、播放速度調整 (BPM Slider)、簡化和弦。
+- **Yousician (yousician.com)**: 互動樂器練習，核心 features：Auto-speed up (BPM 自動增速練習器)，讓學生從慢速逐步跟彈到原速。
+
+### 2. Gap 評估與 feature 選擇
+- **Gap**: 我們的練習頁 `/projects/{id}/practice` 雖然有 BPM slider 和 preset，但缺少 Yousician 般的 Auto-Tempo Trainer。學生手動調整 BPM 會打斷練習，自動漸進增速能極大提升練習效率，降低小朋友「彈出第一段」的耗時。
+- **Feature**: 決定補齊 **自動加速練習器 (Auto-Tempo Trainer)**。
+
+### 3. 動工與 KPI 推進
+- **實作**: 在 `practice.html` 增加 `自動加速 (+5 BPM / 輪)` 勾選框，並在 Metronome 播放循環 (tick) 回到開頭時，自動將 BPM 增加 5 (最大 160)。
+- **KPI-impact**: `KPI-K1` 實時練習頁面的自動加速大幅縮短學童適應原速所需時間，直接推進北極星 KPI。

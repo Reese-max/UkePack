@@ -500,3 +500,6 @@
 2026-06-08 01:25:02 | verify:pytest | SKIP-TIMEOUT | >300s
 2026-06-08 01:26:48 | verify:pytest | SKIP-TIMEOUT | >300s
 [2026-06-08T02:00:00+08:00] | -- | IDLE | KPI-impact: none (code saturation, 0 M-task) | /pua round: ruff green; demo functional (9.66s cold-start, previous 0.22s); 24h 0 commits; chore_ratio 0%; BACKLOG 0 non-owner-gated [ ]; K6=0/5 owner-gated frozen 85+ rounds; K7=5/5 saturated; K1/K2/K5 saturated; recent competitor-research shipped chord-fingering-hints + 15min-quick-start (vs Ukutabs/Ukulele-Tabs.com); no M0-M3 daemon-executable task exists; verdict=IDLE — owner must: (1) confirm Render deploy (2) set {{TRIAL_URL}} (3) send teacher invitations P1-18b
+[2026-06-07T23:37:35Z] | idle | PASS | KPI-impact: none (code saturation, K6 owner-gated) | baseline green 694 pass, no M0-M3 available, working tree clean
+[2026-06-08T10:35:00+08:00] | M1 | PASS | KPI-impact: K1 北極星 tempo-trainer feature 0→1 | feat: add auto-tempo trainer (+5 BPM / loop) to practice page — competitor-research(UkePack): vs Yousician + Chordify; test added and green; mypy/ruff green
+[2026-06-08T10:35:00+08:00] | competitor-research | PASS | KPI-K1 | feat: auto-tempo-trainer (+5 BPM/loop) vs Yousician/Chordify

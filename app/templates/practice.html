@@ -797,6 +797,13 @@
         <button type="button" class="ctrl-btn ctrl-btn-ghost" id="strum-btn" onclick="playCurrentStrum()" aria-label="播放刷法">🎸 刷一下</button>
     </div>
 
+    <div class="controls-bar" style="margin-top:-0.5rem">
+        <label style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.95rem; font-weight:700; cursor:pointer; background:var(--surface-soft); padding:0.5rem 1rem; border-radius:var(--radius-sm); border:1px solid var(--border); user-select:none;">
+            <input type="checkbox" id="auto-tempo-chk" style="width:16px; height:16px; accent-color:var(--accent);">
+            <span>🚀 練習自動加速 (+5 BPM / 輪)</span>
+        </label>
+    </div>
+
     {# ── Speed presets (50% / 70% / 100%) ── #}
     {% if practice_speeds %}
     <div class="speed-presets" role="radiogroup" aria-label="練習速度">
@@ -1212,6 +1219,15 @@ function tick() {
         } else {
             // Loop back to start
             currentIdx = 0;
+            const chk = document.getElementById('auto-tempo-chk');
+            if (chk && chk.checked) {
+                const maxBpm = 160;
+                const newBpm = Math.min(bpm + 5, maxBpm);
+                if (newBpm !== bpm) {
+                    updateBpm(newBpm);
+                    document.getElementById('bpm-slider').value = newBpm;
+                }
+            }
             tick();
         }
     }, barMs);

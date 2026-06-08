@@ -99,6 +99,25 @@ def test_record_practice_session_project_not_found(session: Session):
     assert resp.status_code == 404
 
 
+def test_starter_mastery_marker_accepted(session: Session, project: Project):
+    """K1 north-star: starter 15min mastery loop records special marker (competitor vs Yousician first-segment reward)."""
+    client = _make_client(session)
+    resp = client.post(
+        f"/api/projects/{project.id}/practice-log",
+        json={"chords_practiced": "STARTER_MASTERED:C,G,Am,F", "duration_seconds": 45, "speed_pct": 100},
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert "STARTER_MASTERED" in data["chords_practiced"]
+    # success path
+    resp2 = client.post(
+        f"/api/projects/{project.id}/practice-log",
+        json={"chords_practiced": "STARTER_15MIN_SUCCESS", "duration_seconds": 0, "speed_pct": 100},
+    )
+    assert resp2.status_code == 201
+    assert "STARTER_15MIN_SUCCESS" in resp2.json()["chords_practiced"]
+
+
 # ── API: GET /api/projects/{id}/practice-progress ──
 
 

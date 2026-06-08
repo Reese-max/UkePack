@@ -434,3 +434,22 @@ owner 完成 Render.com deploy + 寄出邀請信 → K6 0→1。
 
 ### 跨專案學習
 本輪無新 global learning（現有 L001-L092 已涵蓋本專案情境）。
+
+### Competitor Research Round - 2026-06-08
+### 1. 對標掃描
+- **Yousician (yousician.com)**: 互動樂器練習 (ukulele 支援)，核心：即時聽音準確度/時機回饋、獎勵/進度追蹤/high scores、老師課程 + 2000+ 歌庫、play-along 即時反饋、family plan。
+- **Ukutabs (ukutabs.com)**: 免費烏克麗麗和弦/TAB 專業譜庫，核心：GCEA 指法圖 + 移調、自動滾動暗示、scales/guides、大量公版/流行歌。
+- **Chordify (chordify.net)**: 音訊轉和弦互動播放器，核心：時間軸滾動和弦圖、BPM 速度調整、簡化和弦、跟彈模式。
+
+### 2. Gap 評估與 feature 選擇
+- 對照 MISSION 北極星（<30min 從匯入到小朋友彈出第一段）+ BACKLOG U7 practice 深化 + 既出 competitor 輪（fingering + auto-tempo + 15min callout 已上）：Yousician 最大差異是「instant positive reinforcement + success loop on first segment」。
+- 我們 practice.html 已具備 reference audio + chord highlight sync + auto-tempo + timer/streak，但缺「起步成功即時可見回饋 + 專用小循環讓 5-8 歲孩子 15min 內有『我會了』的具體勝利」。
+- 選 **highest-leverage**：starter mastery loop（前 4 和弦 tight loop + 「彈乾淨了」自報 clean-pass 計數器 3 次過關 + 慶祝 + 特殊 log marker）。1 檔改動、可立即驗 K1、可自訂義不違「不做即時演奏辨識」硬規。非 cosmetic、非 owner-blocker。
+
+### 3. 動工與 KPI 推進
+- 實作：app/templates/practice.html 新增 .starter-mastery 區塊 + JS enterStarterLoop/recordCleanStarterPass + 3 次慶祝 + 透過既有 /practice-log POST 寫 "STARTER_MASTERED" / "STARTER_15MIN_SUCCESS" marker；補 tests/test_practice_progress.py 1 測例。
+- 驗證：uv run --all-extras pytest -q + ruff + mypy 全綠（含新 test 14/14 + 全 repo 100%）。
+- Commit: `feat(practice): starter mastery loop + clean-pass counter — competitor-research(UkePack): vs Yousician`
+- KPI-impact: K1 北極星 first-segment success loop + reward 0→1（直接縮短小朋友「彈出第一段」的挫折循環，建立正向 15min 成就感）。
+
+**本輪對齊**：僅此 1 事（M1/K1），無 H0、無自加 task、無 governance。24h 真 feat 為主，chore 噪音來自 salvage（非本輪）。

@@ -711,6 +711,29 @@
         margin: 0;
     }
 
+    /* ── Starter mastery (competitor-research K1: Yousician-style instant success loop for <15min first segment) ── */
+    .starter-mastery {
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        border: 3px solid #2e7d32;
+        border-radius: var(--radius);
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    .starter-mastery h3 { margin: 0 0 0.5rem; font-size: 1.15rem; color: #1b5e20; }
+    .starter-count { font-size: 2rem; font-weight: 900; color: #2e7d32; }
+    .starter-btn {
+        min-height: 48px; padding: 0.6rem 1.4rem; border-radius: 999px; font-weight: 800; font-size: 1rem;
+        border: 2px solid #2e7d32; background: #fff; color: #1b5e20; cursor: pointer; margin: 0.25rem;
+    }
+    .starter-btn.primary { background: #2e7d32; color: #fff; border-color: #1b5e20; }
+    .starter-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .starter-celebrate {
+        display: none; margin-top: 0.5rem; font-size: 1.1rem; font-weight: 800; color: #1b5e20;
+    }
+    .starter-celebrate.show { display: block; animation: pop 0.4s ease; }
+    @keyframes pop { 0% { transform: scale(0.6); } 100% { transform: scale(1); } }
+
     /* ── Responsive ── */
     @media (max-width: 560px) {
         .chord-display { gap: 1rem; padding: 1rem; }
@@ -946,6 +969,20 @@
         <p class="playalong-hint">🎵 和弦條會跟著音訊自動高亮 — 看著和弦跟彈！</p>
     </div>
     {% endif %}
+
+    {# ── Starter mastery loop (K1 15min first-segment direct hit; vs Yousician instant-reward beginner loop) ── #}
+    <div class="starter-mastery" id="starter-mastery">
+        <h3>🚀 15 分鐘起步專用</h3>
+        <p style="margin:0 0 0.5rem; font-size:0.9rem; color:#2e7d32;">只練前 4 個和弦，連續 3 輪乾淨就過關！</p>
+        <div>
+            <button type="button" class="starter-btn" onclick="enterStarterLoop()">▶ 進入起步循環</button>
+            <button type="button" class="starter-btn primary" id="clean-pass-btn" onclick="recordCleanStarterPass()" disabled>👍 彈乾淨了 +1</button>
+        </div>
+        <div style="margin-top:0.5rem;">
+            成功次數：<span class="starter-count" id="starter-count">0</span> / 3
+        </div>
+        <div class="starter-celebrate" id="starter-celebrate">🎉 15 分鐘目標達成！你可以彈第一段了！</div>
+    </div>
 
     {# ── Practice timer ── #}
     <div class="timer-bar" id="timer-bar" role="region" aria-label="練習計時器">
@@ -1395,6 +1432,98 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') { e.preventDefault(); nextChord(); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); prevChord(); }
     else if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+});
+
+/* ── Starter mastery loop (competitor-research vs Yousician: instant success feedback for kids first-segment <15min) ── */
+let starterActive = false;
+let starterSuccess = 0;
+let starterOriginalChords = null;
+let cleanPassBtn = null;
+let starterCountEl = null;
+let starterCelebrate = null;
+const STARTER_TARGET = 3;
+
+function initStarterMastery() {
+    cleanPassBtn = document.getElementById('clean-pass-btn');
+    starterCountEl = document.getElementById('starter-count');
+    starterCelebrate = document.getElementById('starter-celebrate');
+    if (starterCountEl) starterCountEl.textContent = String(starterSuccess);
+}
+
+function enterStarterLoop() {
+    if (starterActive) return;
+    // backup
+    starterOriginalChords = CHORDS.slice();
+    // limit to first 4 (or all if shorter)
+    const n = Math.min(4, CHORDS.length);
+    // mutate visible for play/tick (safe for this session; reload resets)
+    CHORDS.length = 0;
+    for (let i = 0; i < n; i++) CHORDS.push(starterOriginalChords[i]);
+    currentIdx = 0;
+    starterActive = true;
+    if (cleanPassBtn) cleanPassBtn.disabled = false;
+    // restart play in starter subset
+    if (isPlaying) stopPlay();
+    if (paPlaying) pausePlayAlong();
+    // force small loop visual
+    updateDisplay();
+    // auto start a gentle play at current (or low) bpm
+    const wasBpm = bpm;
+    if (bpm > 90) { bpm = 80; document.getElementById('bpm-slider').value = 80; document.getElementById('bpm-val').textContent = '80'; }
+    startPlay();
+    // restore bpm var but keep slow for starter
+    setTimeout(() => { bpm = wasBpm; }, 10);
+}
+
+function recordCleanStarterPass() {
+    if (!starterActive || !cleanPassBtn) return;
+    starterSuccess++;
+    if (starterCountEl) starterCountEl.textContent = String(starterSuccess);
+    cleanPassBtn.textContent = '👍 +1 (已記)';
+    setTimeout(() => { if (cleanPassBtn) cleanPassBtn.textContent = '👍 彈乾淨了 +1'; }, 600);
+
+    // persist via existing endpoint (encode mastery marker for K1 measurement)
+    const marker = 'STARTER_MASTERED:' + CHORDS.slice(0,4).join(',');
+    fetch(`/api/projects/${PROJECT_ID}/practice-log`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            chords_practiced: marker,
+            duration_seconds: 30,
+            speed_pct: 100
+        })
+    }).catch(() => {});
+
+    if (starterSuccess >= STARTER_TARGET && starterCelebrate) {
+        starterCelebrate.classList.add('show');
+        starterCelebrate.textContent = '🎉 15 分鐘目標達成！你可以彈第一段了！';
+        // one celebration log
+        fetch(`/api/projects/${PROJECT_ID}/practice-log`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ chords_practiced: 'STARTER_15MIN_SUCCESS', duration_seconds: 0, speed_pct: 100 })
+        }).catch(() => {});
+        // stop the tight loop
+        if (isPlaying) stopPlay();
+    }
+}
+
+function exitStarterLoop() {
+    if (!starterActive || !starterOriginalChords) return;
+    if (isPlaying) stopPlay();
+    // restore full chord list
+    CHORDS.length = 0;
+    starterOriginalChords.forEach(c => CHORDS.push(c));
+    starterOriginalChords = null;
+    starterActive = false;
+    currentIdx = 0;
+    if (cleanPassBtn) cleanPassBtn.disabled = true;
+    updateDisplay();
+}
+
+// wire init
+document.addEventListener('DOMContentLoaded', () => {
+    initStarterMastery();
 });
 
 /* ── Transition drill ── */

@@ -46,6 +46,10 @@
             </label>
             {% endfor %}
         </div>
+        <label class="known-only-toggle" for="filter-known-only">
+            <input id="filter-known-only" type="checkbox" onchange="filterLibrary()">
+            <span>只看我會彈的歌</span>
+        </label>
     </div>
     {% endif %}
     <span id="filter-count" class="filter-count" aria-live="polite">{{ songs | length }} 首</span>
@@ -172,6 +176,19 @@
     flex-wrap: wrap;
     gap: 0.35rem;
 }
+.known-only-toggle {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 0.45rem !important;
+    margin-top: 0.55rem;
+    font-size: 0.85rem !important;
+    color: var(--text, #3a3a3a) !important;
+    font-weight: 600;
+}
+.known-only-toggle input[type="checkbox"] {
+    accent-color: #4a7c59;
+}
 .chord-chip {
     display: inline-flex;
     align-items: center;
@@ -205,6 +222,7 @@ function filterLibrary() {
     var key = document.getElementById('filter-key')?.value || '';
     // Collect selected chords
     var selectedChords = [];
+    var knownOnly = document.getElementById('filter-known-only')?.checked || false;
     document.querySelectorAll('.chord-chip input[type="checkbox"]:checked').forEach(function(cb) {
         selectedChords.push(cb.value);
     });
@@ -216,8 +234,13 @@ function filterLibrary() {
         var matchChords = true;
         if (selectedChords.length > 0) {
             var songChords = (card.getAttribute('data-chords') || '').split(',').filter(Boolean);
-            // All selected chords must be in the song's chord set
-            matchChords = selectedChords.every(function(c) { return songChords.indexOf(c) >= 0; });
+            if (knownOnly) {
+                // Show songs playable with only the child's known chord set.
+                matchChords = songChords.length > 0 && songChords.every(function(c) { return selectedChords.indexOf(c) >= 0; });
+            } else {
+                // Default mode: selected chords should all appear in the song.
+                matchChords = selectedChords.every(function(c) { return songChords.indexOf(c) >= 0; });
+            }
         }
         if (matchLevel && matchKey && matchChords) {
             card.style.display = '';

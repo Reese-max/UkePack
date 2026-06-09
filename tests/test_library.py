@@ -115,6 +115,24 @@ def test_library_page_shows_chord_chips(client: TestClient) -> None:
     assert "data-chords=" in response.text
 
 
+def test_library_page_shows_known_chord_only_toggle(client: TestClient) -> None:
+    """Library page should offer a mode to show songs playable with only known chords."""
+    response = client.get("/library")
+
+    assert response.status_code == 200
+    assert 'id="filter-known-only"' in response.text
+    assert "只看我會彈的歌" in response.text
+
+
+def test_library_page_uses_subset_logic_for_known_chord_mode(client: TestClient) -> None:
+    """Known-chord mode should require every song chord to be inside the selected set."""
+    response = client.get("/library")
+
+    assert response.status_code == 200
+    assert "songChords.every(function(c)" in response.text
+    assert "selectedChords.indexOf(c) >= 0" in response.text
+
+
 def test_library_cards_have_chord_data_attribute(client: TestClient) -> None:
     """Each library card should have a data-chords attribute with simplified chords."""
     response = client.get("/library")

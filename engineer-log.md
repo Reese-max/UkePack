@@ -534,3 +534,20 @@ owner 完成 Render.com deploy + 寄出邀請信 → K6 0→1。
 - KPI-impact: K1 北極星 first-segment success loop + reward 0→1（直接縮短小朋友「彈出第一段」的挫折循環，建立正向 15min 成就感）。
 
 **本輪對齊**：僅此 1 事（M1/K1），無 H0、無自加 task、無 governance。24h 真 feat 為主，chore 噪音來自 salvage（非本輪）。
+
+### Competitor Research Round - 2026-06-10
+### 1. 對標掃描
+- **UkuTabs**：大量烏克麗麗歌庫、和弦圖、移調、capo／難度導向瀏覽，核心是先用手上會的和弦找到能立刻彈的歌。
+- **Chordify**：歌曲轉成可跟彈和弦時間軸，核心是用已知和弦快速進歌、調速、重複練熟。
+- **Yousician**：以初學者導向的即時練習體驗，核心是降低選歌與起步挫折，讓學生快點進入可成功的小循環。
+
+### 2. Gap 評估與 feature 選擇
+- UkePack 的 `library.html` 已有難度／調性／和弦 chip，但目前和弦篩選語意是「歌曲要包含我選的和弦」，不是「歌曲只用我現在會的和弦」。
+- 這會讓初學者勾選 `C/G/Am/F` 後，仍看到含未知和弦的歌；挑歌摩擦留在最前面，直接拖慢 K1「30 分鐘內彈出第一段」。
+- 選的 feature：**known-chords-only filter**。一個模板檔 + 測試可落地，直接把「我會哪些和弦」轉成「現在就能彈哪些歌」。
+
+### 3. 動工與 KPI 推進
+- 實作：`app/templates/library.html` 新增 `只看我會彈的歌` toggle；勾選後改用 `songChords.every(...)` 子集合判斷，只顯示所有和弦都落在已選集合內的歌曲。
+- 驗證：先寫 `tests/test_library.py` 兩條紅測試（toggle 存在、subset 邏輯存在）→ `uv run pytest -q tests/test_library.py -k "known_chord"` 先紅後綠，再跑 `uv run pytest -q`、`uv run ruff check .`、`uv run mypy app` 全綠。
+- Commit：`feat(templates): add known-chords-only filter — competitor-research(UkePack): vs UkuTabs`
+- KPI-impact：**K1 北極星**。把選歌步驟從「先點進去才知道太難」變成「直接看到我現在就能彈的歌」，縮短 first playable song 的決策時間。

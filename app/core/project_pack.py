@@ -49,7 +49,13 @@ def render_project_pdf(project: Project) -> bytes:
 
 def _load_score(project: Project) -> Score:
     if project.score_json is not None:
-        return Score.model_validate_json(project.score_json)
-    if project.chords_text is not None:
-        return parse_chord_sheet(project.title, project.chords_text)
-    raise ValueError("No score data; import a MusicXML file or add chords first")
+        score = Score.model_validate_json(project.score_json)
+    elif project.chords_text is not None:
+        score = parse_chord_sheet(project.title, project.chords_text)
+    else:
+        raise ValueError("No score data; import a MusicXML file or add chords first")
+
+    if project.semitone_shift != 0:
+        from app.core.music_theory import transpose_score
+        score = transpose_score(score, project.semitone_shift)
+    return score

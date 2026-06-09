@@ -33,6 +33,7 @@ class Project(ProjectBase, table=True):
     target_key: str | None = Field(default=None, max_length=10)
     bpm: int | None = Field(default=None)
     arrangement_level: int = Field(default=1)
+    semitone_shift: int = Field(default=0)
 
     # File paths relative to settings.data_dir
     musicxml_path: str | None = Field(default=None)
@@ -65,6 +66,7 @@ class ProjectRead(SQLModel):
     target_key: str | None
     bpm: int | None
     arrangement_level: int
+    semitone_shift: int
     musicxml_path: str | None
     midi_path: str | None
     created_at: datetime

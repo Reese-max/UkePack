@@ -1,6 +1,13 @@
 """Shared music-theory helpers for chord and key transformations."""
 
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.score import Score
+
 
 _PITCH_CLASS: dict[str, int] = {
     "C": 0,
@@ -76,3 +83,54 @@ def _transpose_chord_part(chord_part: str, semitone_shift: int, prefer_flats: bo
     names = _FLAT_NAMES if prefer_flats else _SHARP_NAMES
     transposed_root = names[(pitch_class(root) + semitone_shift) % 12]
     return f"{transposed_root}{suffix}"
+
+
+def transpose_pitch_string(pitch_str: str, semitone_shift: int, prefer_flats: bool) -> str:
+    """Transpose a pitch string (e.g. C4, F#3) by semitones, correctly tracking octave changes."""
+    match = re.match(r"^([A-Ga-g])([#b]?)(-?\d+)$", pitch_str.strip())
+    if not match:
+        return pitch_str
+    root, accidental, octave_str = match.groups()
+    pitch_name = f"{root.upper()}{accidental}"
+    octave = int(octave_str)
+
+    old_pc = pitch_class(pitch_name)
+    new_pc = (old_pc + semitone_shift) % 12
+    octave_diff = (old_pc + semitone_shift) // 12
+    new_octave = octave + octave_diff
+
+    names = _FLAT_NAMES if prefer_flats else _SHARP_NAMES
+    new_root = names[new_pc]
+    return f"{new_root}{new_octave}"
+
+
+def transpose_score(score: Score, semitone_shift: int) -> Score:
+    """Transpose all chords and melody notes inside a Score object (M1 transpose)."""
+    if semitone_shift == 0:
+        return score
+
+    flat_keys = {"F", "Bb", "Eb", "Ab", "Db", "Gb", "Cb", "Dm", "Gm", "Cm", "Fm", "Bbm"}
+    tonic = score.key.split()[0] if score.key else "C"
+    prefer_flats = tonic in flat_keys
+
+    new_chords = []
+    for ch in score.chords:
+        new_ch = ch.model_copy(update={
+            "symbol": transpose_chord_symbol(ch.symbol, semitone_shift, prefer_flats)
+        })
+        new_chords.append(new_ch)
+
+    new_melody = []
+    for note in score.melody:
+        new_note = note.model_copy(update={
+            "pitch": transpose_pitch_string(note.pitch, semitone_shift, prefer_flats)
+        })
+        new_melody.append(new_note)
+
+    new_key = transpose_chord_symbol(score.key, semitone_shift, prefer_flats)
+
+    return score.model_copy(update={
+        "chords": new_chords,
+        "melody": new_melody,
+        "key": new_key
+    })

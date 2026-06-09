@@ -1150,3 +1150,30 @@ def test_chords_transposed_not_found(db_client: TestClient) -> None:
     assert resp.status_code == 404
 
 
+def test_save_transpose_success(db_client: TestClient) -> None:
+    """POST /projects/{id}/save-transpose updates semitone_shift and target_key."""
+    create = db_client.post(
+        "/api/projects", json={"title": "Save Transpose Test", "source_type": "public_domain"}
+    )
+    pid = create.json()["id"]
+    db_client.post(f"/api/projects/{pid}/chords", json={"text": "C | G | Am | F"})
+
+    resp = db_client.post(f"/projects/{pid}/save-transpose?semitones=2")
+    assert resp.status_code == 200
+    assert "HX-Redirect" in resp.headers
+    assert resp.headers["HX-Redirect"] == f"/projects/{pid}"
+
+    # Verify updated database state
+    proj_resp = db_client.get(f"/api/projects/{pid}")
+    assert proj_resp.status_code == 200
+    proj_data = proj_resp.json()
+    assert proj_data["semitone_shift"] == 2
+    assert proj_data["target_key"] == "D major"
+
+    # Verify that rendering the analysis page uses the transposed chords
+    analysis_resp = db_client.get(f"/projects/{pid}")
+    assert analysis_resp.status_code == 200
+    assert "D" in analysis_resp.text
+
+
+

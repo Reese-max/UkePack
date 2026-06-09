@@ -279,8 +279,41 @@ def chords_transposed_partial(
     return _TEMPLATES.TemplateResponse(
         request=request,
         name="partials/chords_transposed.html",
-        context={"chords": transposed, "capo_info": capo_info},
+        context={
+            "chords": transposed,
+            "capo_info": capo_info,
+            "project_id": project_id,
+            "shift": shift,
+        },
     )
+
+
+@router.post("/projects/{project_id}/save-transpose")
+def save_transpose(
+    project_id: int,
+    session: SessionDep,
+    semitones: int = 0,
+    capo_fret: int = 0,
+) -> Response:
+    """Save the selected transposition permanently to the project."""
+    project = session.get(Project, project_id)
+    if project is None:
+        raise HTTPException(404, "Project not found")
+
+    shift = -capo_fret if capo_fret > 0 else semitones
+    project.semitone_shift = shift
+
+    if project.original_key:
+        prefer_flats = _prefer_flats(project.original_key)
+        project.target_key = transpose_chord_symbol(project.original_key, shift, prefer_flats)
+    else:
+        project.target_key = None
+
+    project.updated_at = datetime.now(UTC)
+    session.add(project)
+    session.commit()
+
+    return Response(headers={"HX-Redirect": f"/projects/{project_id}"})
 
 
 def _prefer_flats(key: str) -> bool:
@@ -537,8 +570,14 @@ def project_progress_page(
 def _score_from_project(project: Project) -> Score:
     """Return a Score object from stored JSON or chords text."""
     if project.score_json:
-        return Score.model_validate_json(project.score_json)
-    return parse_chord_sheet(project.title, project.chords_text or "")
+        score = Score.model_validate_json(project.score_json)
+    else:
+        score = parse_chord_sheet(project.title, project.chords_text or "")
+
+    if project.semitone_shift != 0:
+        from app.core.music_theory import transpose_score
+        score = transpose_score(score, project.semitone_shift)
+    return score
 
 
 def _build_analysis(project: Project) -> dict[str, Any] | None:

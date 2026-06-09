@@ -3,6 +3,17 @@
     {% for ch in chords %}
     <span class="badge badge-green" style="font-size:0.9rem">{{ ch }}</span>
     {% endfor %}
+
+    {% if shift != 0 %}
+    <div style="margin-top:0.5rem; width:100%">
+        <button class="btn btn-primary btn-sm"
+                hx-post="/projects/{{ project_id }}/save-transpose?semitones={{ shift }}"
+                hx-swap="none"
+                style="font-size:0.8rem; padding:0.2rem 0.5rem">
+            💾 套用此移調至專案 (Apply to PDF / Audio)
+        </button>
+    </div>
+    {% endif %}
 </div>
 {% if capo_info %}
 <p style="margin:0.4rem 0 0; color:var(--muted); font-size:0.85rem">

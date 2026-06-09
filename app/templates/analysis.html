@@ -377,7 +377,7 @@ F | G | C | C |"
         <div style="display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center; margin-bottom:0.75rem">
             <span style="font-size:0.85rem; color:var(--muted)">半音：</span>
             {% for s in [-2, -1, 0, 1, 2] %}
-            <button class="btn btn-ghost btn-sm{% if s == 0 %} active{% endif %}"
+            <button class="btn btn-ghost btn-sm{% if s == project.semitone_shift %} active{% endif %}"
                     hx-get="/projects/{{ project.id }}/chords-transposed?semitones={{ s }}"
                     hx-target="#chord-list-transposed"
                     hx-swap="outerHTML"
@@ -386,7 +386,7 @@ F | G | C | C |"
             {% endfor %}
             <span style="margin-left:1rem; font-size:0.85rem; color:var(--muted)">Capo：</span>
             {% for c in [0, 1, 2, 3, 4, 5] %}
-            <button class="btn btn-ghost btn-sm{% if c == 0 %} active{% endif %}"
+            <button class="btn btn-ghost btn-sm{% if (project.semitone_shift < 0 and c == -project.semitone_shift) or (project.semitone_shift >= 0 and c == 0 and c == 0) or (project.semitone_shift == 0 and c == 0) %} active{% endif %}"
                     hx-get="/projects/{{ project.id }}/chords-transposed?capo_fret={{ c }}"
                     hx-target="#chord-list-transposed"
                     hx-swap="outerHTML"
@@ -398,6 +398,11 @@ F | G | C | C |"
             {% for ch in analysis.chords %}
             <span class="badge badge-green" style="font-size:0.9rem">{{ ch.symbol }}</span>
             {% endfor %}
+            {% if project.semitone_shift < 0 %}
+            <p style="margin:0.4rem 0 0; color:var(--muted); font-size:0.85rem; width:100%">
+                🎸 夾 capo 第 {{ -project.semitone_shift }} 格時，手指按的是這些和弦
+            </p>
+            {% endif %}
         </div>
     </div>
 

@@ -36,6 +36,19 @@ def create_tables() -> None:
     """Create all SQLModel tables (idempotent)."""
     SQLModel.metadata.create_all(get_engine())
 
+    # Defensive check and update schema for new semitone_shift column (M1 transpose)
+    from sqlalchemy import text
+    engine = get_engine()
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("SELECT semitone_shift FROM project LIMIT 1"))
+        except Exception:
+            try:
+                conn.execute(text("ALTER TABLE project ADD COLUMN semitone_shift INTEGER DEFAULT 0"))
+                conn.commit()
+            except Exception:
+                pass
+
 
 def get_session() -> Generator[Session, None, None]:
     """FastAPI dependency: yield a database session per request."""

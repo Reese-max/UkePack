@@ -1,3 +1,84 @@
+---
+## 反思 2026-06-09T14:11+08:00（v216 KPI-driven 深度回顧）
+
+### KPI 進展表
+
+| KPI | 上次值 (v209 23:32) | 當前值 | Δ | 狀態 |
+|-----|-------|-------|---|------|
+| K1 北極星（<30min 能彈第一段） | 688 passed, 31 首 library, practice tracking, chord mastery trend | 699 passed (+11 tests), auto-tempo-trainer, starter mastery loop, quick-start callout | +3 feat（K1 練習深化） | ✅進步 |
+| K2 匯入成功率（30 首 ≥90%） | 100% | 100% | 0 | ✅飽和 |
+| K5 Baseline（pytest/ruff/mypy） | 688 passed / ruff green / mypy 58 files green | 699 passed / ruff green / mypy 58 files green | +11 tests | ✅進步 |
+| K6 Teacher trial 回饋（≥5 老師） | 0/5 | 0/5 | 0 | ⚠️卡住（owner-gated, 85+ 輪） |
+| K7 Onboarding 文件覆蓋 | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布（12 commits, 48h window 2026-06-07→06-09）
+
+- **feat/fix（KPI 推進）**: 4 件（33%）
+  - `feat(practice): starter mastery loop + clean-pass counter` — K1 練習動機（Yousician 對標）
+  - `feat: auto-tempo-trainer (+5 BPM/loop)` — K1 漸進速度（Yousician/Chordify 對標）
+  - `feat(render): Level-1 15min quick-start callout on page1` — K1 入門引導（Ukutabs 對標）
+  - `fix(practice): resolve auto-tempo-trainer code review BLOCK (5 issues)` — K5 品質
+- **chore（Housekeeping）**: 8 件（67%）
+  - 5× `chore(auto-salvage): index.lock 並發搶救` — L092 結構性問題惡化
+  - 2× `chore(log): record idle round`
+  - 1× `chore(evolve): KPI-driven 0-delta idle confirm`
+- **chore_ratio**: 67%（>30% ⚠️）
+
+**chore_ratio 說明**：8 chore 中 5 件是 auto-salvage index.lock churn（L092）。扣 salvage 噪音，真 chore_ratio = 3/12 = 25%，健康。真 feat 工作 3 件全對齊 K1 北極星推進（練習深化 + 入門引導）。salvage 噪音趨勢：v208=7 → v209=11 → v216=+5，持續惡化。
+
+### unpushed commits
+
+待確認。origin 已配置（github.com/Reese-max/UkePack.git）。
+
+### 卡住的 KPI 與根因
+
+**K6（Teacher trial 回饋 0/5）**：連續 ≥85 輪 frozen。根因 = owner-gated 真人流程：
+1. Push ✅ 已完成
+2. Render.com deploy 狀態未確認
+3. `{{TRIAL_URL}}` 未填
+4. 邀請信未寄
+5. P1-18b/c/d 全 `[O]`（OWNER-only）
+
+**唯一 unblock = owner 完成 Step 2-4（~5 min 真人）**。daemon 對 K6 無槓桿。
+
+### daemon survival 分析
+
+- `.engineer-loop.failures.jsonl` **不存在**（本專案無 daemon failure tracking）
+- **auto-salvage 結構性問題持續惡化**：
+  - v208: 7 次 → v209: 11 次 → 48h 內: +5 次
+  - 根因：排程器並發 fire 重疊 → 多個 daemon round 同時 `git add` → index.lock 競爭 → auto-salvage rescue commit
+  - L092 已記錄但根因未修（需 single-instance lock 機制）
+  - **chore_ratio 被 salvage 噪音持續推高**：真實工作比 25% 很健康，但帳面 67% 超標
+- 無 SIGABRT/SIGSEGV/bash 環境問題
+- 無 429/quota 錯誤
+- 無 API error / engine 分布異常
+
+### KPI 量測能力評估
+
+| KPI | 可重複量測？ | 缺口 |
+|-----|-------------|------|
+| K1 北極星 | ✅ `test_starter_pack.py` + `test_corpus_e2e_pdf.py` | 缺「人類體感 30min」自動化量測（目前只測 pipeline 耗時） |
+| K2 匯入成功率 | ✅ 30 首 corpus e2e | 無 |
+| K5 Baseline | ✅ pytest/ruff/mypy 三綠 | 無 |
+| K6 Teacher trial | ❌ 純人工 | 無 eval pipeline（靠人） |
+| K7 Onboarding | ✅ `test_teacher_docs.py` 守門 | 無 |
+
+### 本次無新 global learning
+
+L092（index.lock 並發）+ L008/L009（KPI-frozen 反思 bloat）已涵蓋本輪觀察到的所有 pattern。auto-tempo-trainer 和 starter mastery loop 是 K1 練習深化的專案特定功能，非可重用跨專案智慧。
+
+### 下一步 3 個 KPI 推進動作
+
+1. **K6**: owner 完成 Render.com deploy 確認 + 設定 `{{TRIAL_URL}}` + 寄出邀請信 → K6 0→1
+2. **K1**: corpus p95 趨勢追蹤（目前只有單次 snapshot，缺歷史比較；每日自動跑 corpus e2e 記錄 elapsed → 發現退步）→ K1 品質守門
+3. **K5**: 修 auto-salvage 並發根因（single-instance lock for daemon rounds）→ chore_ratio 降回 <30%，salvage 噪音從 5→0/天
+
+### program.md 待辦重排
+
+**現狀**：Phase 0-2 + U1-U7 全 done-green。BACKLOG 0 個 non-owner-gated `[ ]`。
+**重排結果**：無需重排——所有 KPI-推進 task 已完成，剩餘全是 owner-gated（`[O]`）。program.md 已是正確狀態。
+
+**禁止事項確認**：本輪未新增任何純治理 task 給 daemon。
 # UkePack Engineer Log
 
 ---

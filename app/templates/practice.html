@@ -734,6 +734,55 @@
     .starter-celebrate.show { display: block; animation: pop 0.4s ease; }
     @keyframes pop { 0% { transform: scale(0.6); } 100% { transform: scale(1); } }
 
+    /* ── Guided practice session ── */
+    .guided-practice {
+        background: linear-gradient(135deg, #ede7f6 0%, #e8eaf6 100%);
+        border: 3px solid #7c4dff;
+        border-radius: var(--radius);
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .guided-practice h3 { margin: 0 0 0.5rem; font-size: 1.15rem; color: #4a148c; }
+    .guided-steps {
+        display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+    .guided-step-pill {
+        padding: 0.4rem 1rem; border-radius: 999px; font-size: 0.85rem; font-weight: 700;
+        border: 2px solid #b39ddb; background: #fff; color: #5e35b1; transition: all 0.15s;
+    }
+    .guided-step-pill.active { background: #7c4dff; color: #fff; border-color: #7c4dff; }
+    .guided-step-pill.done { background: #c8e6c9; color: #2e7d32; border-color: #66bb6a; }
+    .guided-body {
+        text-align: center; padding: 1rem; background: #fff; border-radius: var(--radius-sm);
+        border: 1px solid #d1c4e9; min-height: 120px;
+    }
+    .guided-body h4 { margin: 0 0 0.5rem; font-size: 1.05rem; color: #4a148c; }
+    .guided-body p { margin: 0 0 0.75rem; font-size: 0.9rem; color: var(--muted); }
+    .guided-progress-bar {
+        width: 100%; height: 10px; background: #ede7f6; border-radius: 999px;
+        overflow: hidden; margin-bottom: 0.5rem;
+    }
+    .guided-progress-fill {
+        height: 100%; border-radius: 999px; background: #7c4dff;
+        transition: width 0.3s ease; width: 0%;
+    }
+    .guided-big-chord {
+        font-size: 2.5rem; font-weight: 900; color: #7c4dff; margin: 0.5rem 0;
+    }
+    .guided-btn {
+        min-height: 48px; padding: 0.6rem 1.5rem; border-radius: 999px; font-weight: 800;
+        font-size: 1rem; border: 2px solid #7c4dff; background: #7c4dff; color: #fff;
+        cursor: pointer; margin: 0.25rem; transition: all 0.15s;
+    }
+    .guided-btn:hover { background: #651fff; transform: translateY(-1px); }
+    .guided-btn.ghost { background: #fff; color: #5e35b1; }
+    .guided-btn.ghost:hover { background: #ede7f6; }
+    .guided-celebrate {
+        display: none; font-size: 1.2rem; font-weight: 900; color: #2e7d32; margin-top: 0.75rem;
+    }
+    .guided-celebrate.show { display: block; animation: pop 0.4s ease; }
+
     /* ── Responsive ── */
     @media (max-width: 560px) {
         .chord-display { gap: 1rem; padding: 1rem; }
@@ -969,6 +1018,30 @@
         <p class="playalong-hint">🎵 和弦條會跟著音訊自動高亮 — 看著和弦跟彈！</p>
     </div>
     {% endif %}
+
+    {# ── Guided practice session (competitor-research vs Yousician: structured step-by-step practice flow) ── #}
+    <div class="guided-practice" id="guided-practice">
+        <h3>🗺️ 練習嚮導</h3>
+        <p style="margin:0 0 0.75rem; font-size:0.85rem; color:#5e35b1;">跟著 3 個步驟練，一次搞定暖身、轉換、演奏！</p>
+        <div class="guided-steps" id="guided-steps">
+            <span class="guided-step-pill active" data-step="0">① 暖身和弦</span>
+            <span class="guided-step-pill" data-step="1">② 轉換練習</span>
+            <span class="guided-step-pill" data-step="2">③ 完整演奏</span>
+        </div>
+        <div class="guided-body" id="guided-body">
+            <h4 id="guided-title">準備開始</h4>
+            <p id="guided-desc">按「開始」進入暖身階段，每個和弦彈 4 拍再換下一個。</p>
+            <div class="guided-big-chord" id="guided-chord" aria-live="polite"></div>
+            <div class="guided-progress-bar"><span class="guided-progress-fill" id="guided-pfill"></span></div>
+            <p id="guided-status" style="font-size:0.85rem; color:var(--muted)"></p>
+            <div>
+                <button type="button" class="guided-btn" id="guided-start-btn" onclick="guidedStart()">▶ 開始嚮導</button>
+                <button type="button" class="guided-btn ghost" id="guided-skip-btn" onclick="guidedSkip()" style="display:none">跳過本步 ⏭</button>
+                <button type="button" class="guided-btn ghost" id="guided-stop-btn" onclick="guidedStop()" style="display:none">✕ 退出</button>
+            </div>
+            <div class="guided-celebrate" id="guided-celebrate">🎉 練習嚮導完成！你已經暖好身、練好轉換、跑完整首曲子了！</div>
+        </div>
+    </div>
 
     {# ── Starter mastery loop (K1 15min first-segment direct hit; vs Yousician instant-reward beginner loop) ── #}
     <div class="starter-mastery" id="starter-mastery">

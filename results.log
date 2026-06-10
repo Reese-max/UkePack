@@ -527,3 +527,6 @@
 2026-06-10 10:59:29 | verify:pytest | FAIL | exit=4
 [2026-06-10T15:00:00+08:00] | competitor-research | PASS | KPI-K1 | feat: chord diagrams & playback vs Chordify
 2026-06-10 15:01:21 | verify:pytest | FAIL | exit=4
+[2026-06-10T16:00] | M0 | PASS | baseline-green test coverage | Fix code review BLOCK on 0b4759a: add 7 substantive tests for SVG safety, XSS data-attribute pattern, FINGERINGS JSON validity, OPEN_FREQS comment. Template fixes (XSS + comment) already in 8a21ceb auto-salvage. Issue 1 (get_fingerings_json missing) was reviewer oversight.
+[2026-06-10T17:30:00+08:00] | idle | PASS | KPI-impact: housekeeping | Baseline green (pytest/ruff/mypy all pass), 0 commits 24h, all KPIs saturated or owner-gated (K6 frozen). No M0-M3 available. Program.md queue empty. Only unlock = owner action on P1-18b/c/d.
+[2026-06-11T01:30:00+08:00] | M0 | PASS | KPI-impact: baseline-green push 6 commits to origin | v223 /pua round: pytest 710 passed (32s) / ruff green / mypy 58 green; pushed 6 unpushed commits (11d9769..f3d169a) to origin/master; 24h 0 commits; chore_ratio 0%; BACKLOG 0 non-owner-gated [ ]; K6=0/5 owner-gated frozen 89+ rounds; K7=5/5 saturated; K1-K5 saturated; working tree: results.log staged; verdict=IDLE — no M0-M3 executable task; owner must: (1) confirm Render deploy (2) set TRIAL_URL (3) send teacher invitations for K6 0→1

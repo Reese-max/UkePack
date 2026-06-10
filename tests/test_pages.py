@@ -1042,6 +1042,28 @@ def test_practice_page_auto_scroll_logic(db_client: TestClient) -> None:
     assert "scrollIntoView" in html
 
 
+def test_practice_page_tick_uses_strum_audio(db_client: TestClient) -> None:
+    """Auto-play tick should call playStrumAudio (not just playChordAudio) so the learner hears the strum rhythm."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "StrumTick Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    with TWINKLE.open("rb") as fh:
+        db_client.post(
+            f"/api/projects/{pid}/import",
+            files={"file": ("twinkle.musicxml", fh, "application/xml")},
+        )
+
+    resp = db_client.get(f"/projects/{pid}/practice")
+    assert resp.status_code == 200
+    html = resp.text
+    # tick() must call playStrumAudio for rhythm-aware auto-play
+    assert "playStrumAudio(CHORDS[currentIdx])" in html
+    # The standalone strum button should still exist for manual triggering
+    assert "playCurrentStrum()" in html
+
+
 def test_analysis_page_links_to_practice(db_client: TestClient) -> None:
     """Analysis page should have a link to the practice page when score exists."""
     create = db_client.post(

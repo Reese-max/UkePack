@@ -1379,7 +1379,8 @@ function stopPlay() {
 
 function tick() {
     if (!isPlaying) return;
-    playChordAudio(CHORDS[currentIdx]);
+    // Play full strum pattern (not single chord hit) so the learner hears the rhythm
+    playStrumAudio(CHORDS[currentIdx]);
     updateDisplay();
 
     const beatMs = (60 / bpm) * 1000;

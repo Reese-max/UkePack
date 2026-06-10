@@ -1063,7 +1063,12 @@
             <input type="checkbox" id="auto-scroll-chk" checked>
             <span>📜 自動捲動網頁</span>
         </label>
+        <label class="left-handed-label" style="margin-left:1.5rem; display:inline-flex; align-items:center; gap:0.25rem; cursor:pointer">
+            <input type="checkbox" id="left-handed-chk" onchange="toggleLeftHanded(this.checked)">
+            <span>🫲 左撇子模式</span>
+        </label>
     </div>
+
 
     <div class="tempo-toast" id="tempo-toast" aria-live="polite"></div>
 
@@ -1586,18 +1591,26 @@ function describeFingering(chordName, frets) {
 function buildChordSvg(name, frets) {
     const W = 80, H = 115;
     const stringXs = [12, 28, 44, 60];
-    const stringLabels = ['G', 'C', 'E', 'A'];
+    let stringLabels = ['G', 'C', 'E', 'A'];
+    let displayFrets = [...frets];
+
+    if (window.isLeftHanded) {
+        displayFrets.reverse();
+        stringLabels.reverse();
+    }
+
     const nutY = 30, fretSpacing = 16, fretLines = 5;
     const dotR = 5, openR = 4;
 
     // Compute display frets (shift if highest > 4)
-    const nonZero = frets.filter(f => f > 0);
+    const nonZero = displayFrets.filter(f => f > 0);
     let startFret = 1;
-    let display = [...frets];
+    let display = [...displayFrets];
     if (nonZero.length && Math.max(...nonZero) > 4) {
         startFret = Math.min(...nonZero);
-        display = frets.map(f => f > 0 ? f - startFret + 1 : 0);
+        display = displayFrets.map(f => f > 0 ? f - startFret + 1 : 0);
     }
+
 
     let svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '">';
     // Chord name

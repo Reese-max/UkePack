@@ -62,7 +62,12 @@ _DOT_R = 5
 _OPEN_R = 4
 
 
-def generate_svg(chord_name: str, *, colorable: bool = False) -> str:
+def generate_svg(
+    chord_name: str,
+    *,
+    colorable: bool = False,
+    left_handed: bool = False,
+) -> str:
     """Return an SVG string for the named ukulele chord diagram.
 
     When ``colorable`` is True, fretted dots are drawn as white-filled outlines so
@@ -73,9 +78,16 @@ def generate_svg(chord_name: str, *, colorable: bool = False) -> str:
     fingering = _CHORD_FINGERINGS.get(chord_name)
     if fingering is None:
         return _unknown_svg(chord_name)
+    if left_handed:
+        fingering = fingering[::-1]
     start_fret, display = _compute_display(fingering)
     fingers = _CHORD_FINGERS.get(chord_name)
-    return _render_svg(chord_name, display, start_fret, colorable, fingers)
+    if left_handed and fingers is not None:
+        fingers = fingers[::-1]
+    return _render_svg(
+        chord_name, display, start_fret, colorable, fingers, left_handed=left_handed
+    )
+
 
 
 def get_fingering(chord_name: str) -> tuple[int, int, int, int] | None:
@@ -125,6 +137,8 @@ def _render_svg(
     start_fret: int,
     colorable: bool = False,
     fingers: tuple[int, int, int, int] | None = None,
+    *,
+    left_handed: bool = False,
 ) -> str:
     p: list[str] = []
     p.append(
@@ -138,13 +152,13 @@ def _render_svg(
         f'font-family="Helvetica,Arial,sans-serif" font-size="11" '
         f'font-weight="bold">{safe}</text>'
     )
-    _append_grid(p, start_fret)
+    _append_grid(p, start_fret, left_handed=left_handed)
     _append_dots(p, display_frets, colorable, fingers)
     p.append("</svg>")
     return "".join(p)
 
 
-def _append_grid(p: list[str], start_fret: int) -> None:
+def _append_grid(p: list[str], start_fret: int, *, left_handed: bool = False) -> None:
     x1, x2 = _STRING_XS[0], _STRING_XS[-1]
     bottom_y = _NUT_Y + (_FRET_LINES - 1) * _FRET_SPACING
 
@@ -180,7 +194,8 @@ def _append_grid(p: list[str], start_fret: int) -> None:
         )
 
     # string labels below diagram
-    for sx, lbl in zip(_STRING_XS, _STRING_LABELS, strict=True):
+    labels = _STRING_LABELS[::-1] if left_handed else _STRING_LABELS
+    for sx, lbl in zip(_STRING_XS, labels, strict=True):
         p.append(
             f'<text x="{sx}" y="{bottom_y + 12}" text-anchor="middle" '
             f'font-family="Helvetica,Arial,sans-serif" font-size="7">'

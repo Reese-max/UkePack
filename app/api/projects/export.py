@@ -25,16 +25,23 @@ def _require_license_confirmation(license_confirmed: bool) -> None:
 
 
 @router.get("/{project_id}/export.pdf")
-def export_pdf(project_id: int, session: SessionDep) -> Response:
+def export_pdf(
+    project_id: int,
+    session: SessionDep,
+    left_handed: bool = False,
+) -> Response:
     """Download a practice-pack PDF after license confirmation."""
     project = get_project_or_404(session, project_id)
     _require_license_confirmation(project.license_confirmed)
     load_score(project)
     return Response(
-        content=render_project_pdf(project),
+        content=render_project_pdf(project, left_handed=left_handed),
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{pdf_filename(project.title, project.arrangement_level, project.target_key or project.original_key)}"'},
+        headers={
+            "Content-Disposition": f'attachment; filename="{pdf_filename(project.title, project.arrangement_level, project.target_key or project.original_key)}"'
+        },
     )
+
 
 
 @router.get("/{project_id}/export.musicxml")

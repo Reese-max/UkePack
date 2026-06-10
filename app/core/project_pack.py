@@ -31,7 +31,7 @@ def pdf_filename(title: str, level: int | None = None, key: str | None = None) -
     return "_".join(parts) + ".pdf"
 
 
-def render_project_pdf(project: Project) -> bytes:
+def render_project_pdf(project: Project, *, left_handed: bool = False) -> bytes:
     """Render a project's current practice-pack PDF bytes."""
     score = _load_score(project)
     review = load_teacher_review(project, score) if has_teacher_review(project) else None
@@ -44,7 +44,9 @@ def render_project_pdf(project: Project) -> bytes:
         level=export_level,
         teacher_review=review.current if review is not None else None,
     )
+    pack.left_handed = left_handed
     return render_pdf(pack)
+
 
 
 def _load_score(project: Project) -> Score:

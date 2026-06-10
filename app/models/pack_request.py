@@ -24,3 +24,5 @@ class PackRequest:
     teacher_review: TeacherReviewDraft | None = None
     # U4-b kid-friendly mode: larger overview fonts + colorable (outline) chord diagrams.
     large_print: bool = False
+    left_handed: bool = False
+

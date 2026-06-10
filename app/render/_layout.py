@@ -130,6 +130,7 @@ def chord_box(
     w: float,
     h: float,
     colorable: bool = False,
+    left_handed: bool = False,
 ) -> None:
     """Embed one SVG chord diagram into the canvas at bottom-left (x, y)."""
     if not _HAS_SVGLIB:
@@ -140,7 +141,7 @@ def chord_box(
         c.rect(x, y, w, h)
         return
 
-    svg_str = generate_svg(chord_sym, colorable=colorable)
+    svg_str = generate_svg(chord_sym, colorable=colorable, left_handed=left_handed)
     drawing = None
     with contextlib.suppress(Exception):
         with tempfile.NamedTemporaryFile(
@@ -169,6 +170,7 @@ def chord_grid(
     x0: float,
     y0: float,
     colorable: bool = False,
+    left_handed: bool = False,
 ) -> float:
     """Draw up to 8 chord diagrams in a 4-column grid.
 
@@ -183,7 +185,8 @@ def chord_grid(
         row = i // cols
         dx = x0 + col * col_step
         dy = y0 - (row + 1) * dh
-        chord_box(c, ch, dx, dy, dw, dh, colorable=colorable)
+        chord_box(c, ch, dx, dy, dw, dh, colorable=colorable, left_handed=left_handed)
+
 
     used_rows = max(1, (min(len(chords), 8) + cols - 1) // cols)
     return y0 - used_rows * dh

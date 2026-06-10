@@ -526,3 +526,4 @@
 [2026-06-10T10:57:00+08:00] | competitor-research | PASS | KPI-K1 | feat: auto-scroll during chord practice vs Ultimate Guitar
 2026-06-10 10:59:29 | verify:pytest | FAIL | exit=4
 [2026-06-10T15:00:00+08:00] | competitor-research | PASS | KPI-K1 | feat: chord diagrams & playback vs Chordify
+2026-06-10 15:01:21 | verify:pytest | FAIL | exit=4

@@ -5,11 +5,11 @@
     </p>
     <div class="chord-grid" aria-label="和弦列表">
         {% for chord in analysis.playability.chord_hints %}
-        <div class="data-cell playable-chord" 
+        <div class="data-cell playable-chord"
              style="min-width:220px; flex:1 1 220px; cursor:pointer; display:flex; gap:1rem; align-items:center; transition: transform 0.15s, border-color 0.15s;"
-             onclick="playChordAudio('{{ chord.suggested_symbol or chord.symbol }}')"
+             onclick="playChordAudio(this.dataset.chordSymbol)"
              title="點選聽琴音"
-             data-chord-symbol="{{ chord.suggested_symbol or chord.symbol }}"
+             data-chord-symbol="{{ chord.suggested_symbol or chord.symbol | e }}"
              onmouseover="this.style.borderColor='var(--accent)'; this.style.transform='translateY(-2px)';"
              onmouseout="this.style.borderColor='var(--border)'; this.style.transform='none';">
             <div style="flex:1">

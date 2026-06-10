@@ -530,7 +530,8 @@ document.addEventListener('click', function(e) {
 });
 
 /* ── Web Audio play chord features (competitor-research vs Chordify) ── */
-const OPEN_FREQS = [392.00, 261.63, 329.63, 440.00]; // G4, C4, E4, A4
+// GCEA open-string frequencies — index maps to string position: [0]=G4, [1]=C4, [2]=E4, [3]=A4
+const OPEN_FREQS = [392.00, 261.63, 329.63, 440.00];
 const FINGERINGS = {% if analysis and analysis.fingerings_json %}{{ analysis.fingerings_json | safe }}{% else %}{}{% endif %};
 
 let audioCtx = null;

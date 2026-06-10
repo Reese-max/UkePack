@@ -1876,6 +1876,7 @@ const TUNER_TARGETS = [
 ];
 let tunerStream = null;
 let tunerAnalyser = null;
+let tunerSource = null;
 let tunerBufLen = 0;
 let tunerRunning = false;
 let tunerSelected = -1; // -1 = auto-detect nearest
@@ -1897,6 +1898,7 @@ function toggleTuner() {
 }
 
 async function startTuner() {
+    if (tunerRunning || tunerStream) return;
     try {
         tunerStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
     } catch (e) {
@@ -1905,11 +1907,11 @@ async function startTuner() {
         return;
     }
     var ctx = getAudioCtx();
-    var source = ctx.createMediaStreamSource(tunerStream);
+    tunerSource = ctx.createMediaStreamSource(tunerStream);
     tunerAnalyser = ctx.createAnalyser();
     tunerAnalyser.fftSize = 4096;
     tunerBufLen = tunerAnalyser.fftSize;
-    source.connect(tunerAnalyser);
+    tunerSource.connect(tunerAnalyser);
 
     tunerRunning = true;
     var btn = document.getElementById('tuner-btn');
@@ -1921,11 +1923,12 @@ async function startTuner() {
 function stopTuner() {
     tunerRunning = false;
     if (tunerRafId) { cancelAnimationFrame(tunerRafId); tunerRafId = null; }
+    if (tunerSource) { tunerSource.disconnect(); tunerSource = null; }
+    if (tunerAnalyser) { tunerAnalyser.disconnect(); tunerAnalyser = null; }
     if (tunerStream) {
         tunerStream.getTracks().forEach(function(t) { t.stop(); });
         tunerStream = null;
     }
-    tunerAnalyser = null;
     var btn = document.getElementById('tuner-btn');
     btn.textContent = '🎤 開始調音';
     btn.classList.remove('running');

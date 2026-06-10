@@ -424,7 +424,7 @@
     }
 
     /* ── Auto-tempo checkbox ── */
-    .auto-tempo-label {
+    .auto-tempo-label, .auto-scroll-label {
         display: inline-flex;
         align-items: center;
         gap: 0.4rem;
@@ -438,7 +438,7 @@
         user-select: none;
     }
 
-    .auto-tempo-label input[type="checkbox"] {
+    .auto-tempo-label input[type="checkbox"], .auto-scroll-label input[type="checkbox"] {
         width: 16px;
         height: 16px;
         accent-color: var(--accent);
@@ -919,6 +919,10 @@
             <input type="checkbox" id="auto-tempo-chk">
             <span>🚀 練習自動加速 (+5 BPM / 輪)</span>
         </label>
+        <label class="auto-scroll-label" style="margin-left:1.5rem">
+            <input type="checkbox" id="auto-scroll-chk" checked>
+            <span>📜 自動捲動網頁</span>
+        </label>
     </div>
 
     <div class="tempo-toast" id="tempo-toast" aria-live="polite"></div>
@@ -1105,6 +1109,7 @@ let activeSection = 'all';
 
 /* ── Cached DOM refs ── */
 const autoTempoChk = document.getElementById('auto-tempo-chk');
+const autoScrollChk = document.getElementById('auto-scroll-chk');
 const tempoToast = document.getElementById('tempo-toast');
 
 /* ── Web Audio context (lazy init on user gesture) ── */
@@ -1251,9 +1256,18 @@ function updateDisplay() {
     }
 
     // Update strip highlight
+    let activeBtn = null;
     document.querySelectorAll('.chord-btn').forEach((btn, i) => {
         btn.classList.toggle('active', i === currentIdx);
+        if (i === currentIdx) {
+            activeBtn = btn;
+        }
     });
+
+    // Auto-scroll active chord into center view
+    if (autoScrollChk && autoScrollChk.checked && activeBtn) {
+        activeBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 
     // Update progress (based on visible chords)
     const vis = getVisibleIndices();

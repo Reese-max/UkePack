@@ -336,3 +336,54 @@ L092（index.lock 並發）+ L008/L009（KPI-frozen 反思 bloat）已涵蓋本�
 - 驗證：先寫 `tests/test_library.py` 兩條紅測試（toggle 存在、subset 邏輯存在）→ `uv run pytest -q tests/test_library.py -k "known_chord"` 先紅後綠，再跑 `uv run pytest -q`、`uv run ruff check .`、`uv run mypy app` 全綠。
 - Commit：`feat(templates): add known-chords-only filter — competitor-research(UkePack): vs UkuTabs`
 - KPI-impact：**K1 北極星**。把選歌步驟從「先點進去才知道太難」變成「直接看到我現在就能彈的歌」，縮短 first playable song 的決策時間。
+
+---
+## 反思 2026-06-10T09:45:00+08:00（v222 /pua KPI-driven 深度回顧）
+
+### KPI 進展表
+| KPI | 上次值 (v219) | 當前值 | Δ | 狀態 |
+|-----|-------|-------|---|------|
+| K1 北極星（<30min 能彈第一段） | 699 passed, 31 songs, auto-tempo, mastery loop, quick-start | 720 passed, 31 songs, auto-tempo, mastery loop, quick-start, known-chords-only filter | +21 tests, +1 filter feature | ✅進步 |
+| K2 匯入成功率（30 首 ≥90%） | 100% | 100% | 0 | ✅飽和 |
+| K5 Baseline health（pytest/ruff/mypy） | 699 passed / ruff green / mypy 58 green | 720 passed / ruff green / mypy 58 green | +21 tests | ✅進步 |
+| K6 Teacher trial 回饋（≥5 老師） | 0/5 (frozen 87+ 輪) | 0/5 (frozen 89+ 輪) | 0 | ⚠️卡住（owner-gated） |
+| K7 Onboarding 文件覆蓋 | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布
+- M0-3 (KPI 推進): 1 件
+  - `feat(templates): add known-chords-only filter — competitor-research(UkePack): vs UkuTabs` (K1 推進)
+- H0 (Housekeeping): 6 件
+  - 4× `chore(auto-salvage): 落地本輪未 commit 的成果（index.lock 並發搶救）` (排程並發噪音)
+  - 1× `chore(evolve): v219 KPI-driven 0-delta idle confirm` (v219 反思 commit)
+  - 1× `chore(log): v218 idle` (v218 log)
+- chore_ratio: 85.7% (扣除 auto-salvage 噪音後，true chore_ratio = 66.7%)
+
+**chore_ratio > 30% 原因**：本輪處於 idle 狀態（無 daemon-executable 任務），24h commit 總數低（僅 1 feat）。4 件 auto-salvage 為 L092 結構性排程並發競爭引發的搶救，屬於外部排程器重疊 fire。扣除此雜訊，true chore 為 2 件 (log/evolve)，因分母極小造成 ratio 偏高。
+
+### 卡住的 KPI 與根因
+- **K6 (Teacher trial 回饋 0/5)**：持續卡住（已 frozen 89+ 輪）。
+  - 根因：此為 owner-gated 真人流程。目前代碼已全部 push 至 origin (`origin/master = local HEAD`)，但仍待 owner 執行 (1) 確認 Render.com 部署狀態，(2) 設定 `{{TRIAL_URL}}`，(3) 寄出 `P1-18b` 邀請信。daemon 無推進槓桿。
+
+### 下一步 3 個 KPI 推進動作
+1. **K6 (回饋解鎖)**: owner 驗證 Render 部署，設定 `{{TRIAL_URL}}` 並寄出 `P1-18b` 邀請信給首批老師 → 推進 K6 0→1。
+2. **K1 (體驗優化)**: 依據老師在 trial 中的回饋，調整/精煉互動練習與 A4 PDF 輸出包，優化 15min 兒童彈奏體驗。
+3. **K5 (穩定性防護)**: 針對 verify:pytest 間歇 timeout/flaky 進行排查，確保 CI 與 Render 自動部署 100% 綠。
+
+### 本輪無新 global learning
+
+---
+### Competitor Research Round 2 - 2026-06-10
+### 1. 對標掃描
+- **Ultimate Guitar**: 提供自動捲動頁面 (auto-scroll) 功能，讓吉他/烏克麗麗手在彈奏時不需要用手觸控螢幕滾動。
+- **Yousician**: 伴奏時間軸隨演奏進度自動捲動，避免初學者視線離開樂器。
+- **Chordify**: 歌曲進行時自動跟隨小節並捲動畫面，保證樂譜顯示與進度對齊。
+
+### 2. Gap 評估與 feature 選擇
+- 我們的練習頁 `/projects/{id}/practice` 在練習較長樂曲時需要手動滾動，會打斷學童彈奏節奏，造成挫折感。
+- 選的 feature：**auto-scroll on active chord update**。新增 `自動捲動網頁` checkbox，勾選後當前啟動的和弦會自動 `scrollIntoView` 置中。
+
+### 3. 動工與 KPI 推進
+- 實作：`app/templates/practice.html` 新增 `auto-scroll-chk` checkbox，在 `updateDisplay` 時若 checkbox 為 checked 則調用 `activeBtn.scrollIntoView({ behavior: 'smooth', block: 'center' })`。
+- 驗證：寫 `tests/test_pages.py` 的 `test_practice_page_auto_scroll_logic` 驗證 checkbox 與 JS 滾動邏輯存在。測試通過。
+- Commit: `feat(practice): add auto-scroll during chord practice — competitor-research(UkePack): vs Ultimate Guitar`
+- KPI-impact: **KPI-K1**。減少彈奏時的手動翻頁與螢幕觸控，顯著降低 15 分鐘起步體驗挫折感。

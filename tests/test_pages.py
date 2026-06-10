@@ -1002,6 +1002,30 @@ def test_practice_page_auto_tempo_acceleration_logic(db_client: TestClient) -> N
     assert "style=" not in html.split("auto-tempo-chk")[0].split("\n")[-1]
 
 
+def test_practice_page_auto_scroll_logic(db_client: TestClient) -> None:
+    """Practice page should include auto-scroll checkbox and auto-scroll logic on updateDisplay."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "AutoScroll Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    with TWINKLE.open("rb") as fh:
+        db_client.post(
+            f"/api/projects/{pid}/import",
+            files={"file": ("twinkle.musicxml", fh, "application/xml")},
+        )
+
+    resp = db_client.get(f"/projects/{pid}/practice")
+    assert resp.status_code == 200
+    html = resp.text
+    # Check checkbox existence
+    assert "auto-scroll-chk" in html
+    assert "auto-scroll-label" in html
+    # Check JS logic existence
+    assert "autoScrollChk" in html
+    assert "scrollIntoView" in html
+
+
 def test_analysis_page_links_to_practice(db_client: TestClient) -> None:
     """Analysis page should have a link to the practice page when score exists."""
     create = db_client.post(

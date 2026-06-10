@@ -1082,6 +1082,99 @@ def test_get_fingerings_json_returns_known_chords() -> None:
     assert data["G"] == [0, 2, 3, 2]
 
 
+def test_generate_svg_escapes_chord_name() -> None:
+    """generate_svg must HTML-escape the chord name in the SVG text element."""
+    from app.render.chord_diagram import generate_svg
+
+    svg = generate_svg("C")
+    assert "<svg" in svg
+    assert "</svg>" in svg
+    assert ">C<" in svg  # chord name rendered as text content
+
+
+def test_generate_svg_unknown_chord_no_injection() -> None:
+    """generate_svg with a name containing HTML/XML chars must escape them."""
+    from app.render.chord_diagram import generate_svg
+
+    malicious = '<script>alert(1)</script>'
+    svg = generate_svg(malicious)
+    assert "<script>" not in svg
+    assert "&lt;script&gt;" in svg
+
+
+def test_generate_svg_nc_returns_placeholder() -> None:
+    """generate_svg('N.C.') returns a no-chord placeholder SVG."""
+    from app.render.chord_diagram import generate_svg
+
+    svg = generate_svg("N.C.")
+    assert "N.C." in svg
+    assert "<svg" in svg
+
+
+def test_analysis_chord_hints_xss_safe(db_client: TestClient) -> None:
+    """chord_hints.html must not interpolate chord symbols into onclick handler."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "XSS Test", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    db_client.post(
+        f"/api/projects/{pid}/chords",
+        json={"text": "Cmaj7 | G | Am"},
+    )
+
+    resp = db_client.get(f"/projects/{pid}")
+    assert resp.status_code == 200
+    # onclick must use data attribute lookup, not inline interpolation
+    assert "onclick=\"playChordAudio(this.dataset.chordSymbol)\"" in resp.text
+    # data-chord-symbol should be present for the JS to read
+    assert "data-chord-symbol=" in resp.text
+
+
+def test_analysis_page_fingerings_json_is_valid_json(db_client: TestClient) -> None:
+    """The FINGERINGS JS object embedded in analysis page must be valid JSON."""
+    import json
+
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "FJ Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    db_client.post(
+        f"/api/projects/{pid}/chords",
+        json={"text": "C | G | Am | F"},
+    )
+
+    resp = db_client.get(f"/projects/{pid}")
+    assert resp.status_code == 200
+    # Extract the FINGERINGS assignment from the script block
+    html = resp.text
+    marker = "const FINGERINGS = "
+    start = html.index(marker) + len(marker)
+    end = html.index(";", start)
+    raw = html[start:end].strip()
+    data = json.loads(raw)
+    assert "C" in data
+    assert data["C"] == [0, 0, 0, 3]
+
+
+def test_analysis_page_open_freqs_comment_present(db_client: TestClient) -> None:
+    """OPEN_FREQS must have a comment explaining GCEA string-index mapping."""
+    create = db_client.post(
+        "/api/projects",
+        json={"title": "Freq Comment Song", "source_type": "public_domain"},
+    )
+    pid = create.json()["id"]
+    db_client.post(
+        f"/api/projects/{pid}/chords",
+        json={"text": "C | G"},
+    )
+
+    resp = db_client.get(f"/projects/{pid}")
+    assert resp.status_code == 200
+    assert "GCEA" in resp.text  # comment explaining string order
+
+
 # ── Chord transition drill ─────────────────────────────────────────────
 
 

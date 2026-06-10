@@ -301,3 +301,92 @@ L092（index.lock 並發）+ L100-L102（salvage 洪流診斷法）已涵蓋本�
 - 驗證：`uv run pytest -q` + `uv run ruff check .` + `uv run mypy app` 三綠（純模板改動，現有 practice page 測試覆蓋）
 - Commit: `feat(practice): add built-in GCEA tuner to practice page — competitor-research(UkePack): vs Yousician/UkeBuddy/UkuTabs`
 - KPI-impact: **K1 北極星**。tune→practice 一站式，減少離開 app 找調音器的摩擦，直接縮短「小朋友能彈出第一段」的前置準備時間。
+
+---
+## 反思 2026-06-11T22:00+08:00（v225 /pua KPI-driven 深度回顧）
+
+### KPI 進展表
+
+| KPI | 上次值 (v224 06-10T23:30) | 當前值 | Δ | 狀態 |
+|-----|-------|-------|---|------|
+| K1 北極星（<30min 能彈第一段） | 711 passed, tuner + auto-play + auto-scroll + known-chords + SVG | 711 passed, demo 0.09s, tuner fix (disconnect nodes) | +1 fix（tuner 穩定性） | ✅進步 |
+| K2 匯入成功率（30 首 ≥90%） | 100% | 100%（30 fixtures） | 0 | ✅飽和 |
+| K5 Baseline（pytest/ruff/mypy） | 711 passed / ruff green / mypy 58 | 711 passed / ruff green / mypy 58 | 0 | ✅穩定 |
+| K6 Teacher trial 回饋（≥5 老師） | 0/5 (frozen 89+) | 0/5 (frozen 90+ 輪) | 0 | ⚠️卡住（4 unpushed + deploy 未確認） |
+| K7 Onboarding 文件覆蓋 | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布（9 commits, window 06-10→06-11）
+
+- **feat（KPI 推進）**: 4 件（44%）
+  - `feat(practice): add built-in GCEA tuner` — K1 vs Yousician/UkeBuddy/UkuTabs
+  - `feat(practice): auto-play uses strum pattern audio` — K1 vs Yousician
+  - `feat(api): add chord SVG rendering and audio playback` — K1 vs Chordify
+  - `feat(practice): add auto-scroll during chord practice` — K1 vs Ultimate Guitar
+- **fix（K1 穩定性）**: 1 件（11%）
+  - `fix(tuner): disconnect Web Audio nodes on stop + guard duplicate start`
+- **test（K5 護城河）**: 1 件（11%）
+  - `test(api): add SVG safety, XSS, and audio-data verification tests`
+- **chore（Housekeeping）**: 3 件（33%）
+  - 3× `chore(auto-salvage): index.lock 並發搶救` — L092 結構性噪音
+- **chore_ratio**: 33%（>30% ⚠️）；扣 salvage 噪音後 **true chore = 0%**（健康）
+
+**chore_ratio 說明**：3 salvage 是 L092 結構性問題（排程器並發 fire → index.lock 競爭），非避真任務。真 KPI 推進 6 件（4 feat + 1 fix + 1 test）全部來自 competitor-research 驅動，品質佳。
+
+### venv 損壞修復
+
+`.venv/` 僅含 `lib64` + `pyvenv.cfg`，缺 `Scripts/`（Windows）。本輪 `rm -rf .venv && uv sync --all-extras` 重建成功，baseline 711 passed 恢復。
+
+### K6 blocker 鏈狀態
+
+1. Push ✅ 已完成（v221 確認 0 unpushed → 本輪發現 4 新 unpushed）
+2. origin ✅ 已配置（`https://github.com/Reese-max/UkePack.git`）
+3. Render.com deploy 狀態 **未確認**
+4. `{{TRIAL_URL}}` **未填**
+5. 邀請信 **未寄**
+
+**4 unpushed commits**（tuner feat/fix + salvage×2）需先 push，再確認 Render deploy。
+
+### daemon survival 分析
+
+- `.engineer-loop.failures.jsonl` **不存在**
+- auto-salvage 24h 內 3 筆（L092 持續，趨勢穩定 ~3-4/24h）
+- 無 SIGABRT/SIGSEGV/429/quota/API error
+- 無結構性 bug 需 L4 arch proposal
+- venv 損壞已修復（本輪重建）
+
+### KPI 量測能力評估
+
+| KPI | 可重複量測？ | 缺口 |
+|-----|-------------|------|
+| K1 北極星 | ✅ `test_starter_pack.py` + `test_corpus_e2e_pdf.py` + `test_polaris_timer.py` + demo 0.09s | 缺「人類體感 30min」自動化量測 |
+| K2 匯入成功率 | ✅ 30 首 corpus e2e（100%） | 無 |
+| K5 Baseline | ✅ 711 passed / ruff / mypy | 無 |
+| K6 Teacher trial | ❌ 純人工 | 無 eval pipeline |
+| K7 Onboarding | ✅ `test_teacher_docs.py` 守門（5/5） | 無 |
+
+### 競品驅動 KPI 推進（本輪亮點）
+
+4 件 feat + 1 fix 全部來自 competitor-research，直接對齊 K1 北極星：
+- vs Yousician → auto-play strum pattern audio + GCEA tuner
+- vs Chordify → chord SVG rendering + audio playback
+- vs Ultimate Guitar → auto-scroll during practice
+- vs UkuTabs → known-chords-only filter（前輪）
+
+**competitor-research → feature pipeline 持續高效運作**。
+
+### 本次無新 global learning
+
+L092（index.lock 並發）已涵蓋本輪 salvage 觀察。competitor-research → feature pipeline 運作順暢但屬本專案 workflow，非跨專案可重用智慧。
+
+### 下一步 3 個 KPI 推進動作
+
+1. **K6**: push 4 unpushed commits → 確認 Render deploy → 設定 `{{TRIAL_URL}}` → 寄出 P1-18b 邀請信 → K6 0→1
+2. **K1**: 繼續 competitor-research 驅動 feature 深化（曲庫擴充 31→50+、MIDI 匯入 UI）
+3. **K5**: 修 L092 auto-salvage 根因（排程器 single-instance lock）→ chore_ratio 降回 <30%
+
+### program.md 待辦重排
+
+**現狀**：Phase 0-2 + U1-U7 全 done-green。BACKLOG 0 個 non-owner-gated `[ ]`。
+**重排結果**：無需重排——所有 KPI-推進 task 已完成，剩餘全是 owner-gated（`[O]`）。
+
+**禁止事項確認**：本輪未新增任何純治理 task 給 daemon。

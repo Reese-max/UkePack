@@ -101,3 +101,20 @@ def test_build_playability_payload_capo_not_recommended_for_easy_song() -> None:
 
     assert capo["recommended"] is False
     assert capo["fret"] == 0
+
+
+def test_build_playability_payload_includes_svg_in_chord_hints() -> None:
+    score = Score(
+        title="SVG Chord Song",
+        key="C major",
+        bpm=88,
+        time_signature="4/4",
+        measures=2,
+        chords=[
+            ChordEvent(symbol="C", measure=1, beat=1.0),
+        ],
+    )
+    payload = build_playability_payload(score, classify(score))
+    assert "svg" in payload["chord_hints"][0]
+    assert "<svg" in payload["chord_hints"][0]["svg"]
+    assert "C" in payload["chord_hints"][0]["svg"]

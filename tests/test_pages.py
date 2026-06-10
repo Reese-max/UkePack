@@ -872,6 +872,22 @@ def test_build_analysis_practice_speeds_none_without_bpm() -> None:
     assert result["practice_speeds"] is None
 
 
+def test_build_analysis_includes_fingerings_json() -> None:
+    """_build_analysis must compute fingerings_json containing chord details."""
+    from app.api.pages import _build_analysis
+
+    score_json = (
+        '{"title":"T","key":"C major","bpm":120,"time_signature":"4/4",'
+        '"measures":4,"chords":[{"symbol":"C","measure":1,"beat":1.0}],"melody":[],"sections":[]}'
+    )
+    project = Project(title="T", source_type="public_domain", score_json=score_json)
+    result = _build_analysis(project)
+
+    assert result is not None
+    assert "fingerings_json" in result
+    assert "C" in result["fingerings_json"]
+
+
 def test_analysis_page_shows_practice_speeds_when_bpm_present(
     db_client: TestClient,
 ) -> None:

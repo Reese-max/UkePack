@@ -1,21 +1,34 @@
 <div class="card">
     <p class="section-title">🎸 和弦清單</p>
     <p style="margin:0 0 0.75rem; color:var(--muted); font-size:0.95rem">
-        綠色可直接教，橘色建議先簡化，灰色代表先慢速換和弦。
+        綠色可直接教，橘色建議先簡化，灰色代表先慢速換和弦。點選和弦卡片可聽琴音。
     </p>
     <div class="chord-grid" aria-label="和弦列表">
         {% for chord in analysis.playability.chord_hints %}
-        <div class="data-cell" style="min-width:220px; flex:1 1 220px">
-            <div style="display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap; align-items:flex-start">
-                <strong>{{ chord.symbol }}</strong>
-                <span class="badge {% if chord.category == 'friendly' %}badge-green{% elif chord.category == 'simplify' %}badge-orange{% else %}badge-muted{% endif %}">
-                    {{ chord.label }}
-                </span>
+        <div class="data-cell playable-chord" 
+             style="min-width:220px; flex:1 1 220px; cursor:pointer; display:flex; gap:1rem; align-items:center; transition: transform 0.15s, border-color 0.15s;"
+             onclick="playChordAudio('{{ chord.suggested_symbol or chord.symbol }}')"
+             title="點選聽琴音"
+             data-chord-symbol="{{ chord.suggested_symbol or chord.symbol }}"
+             onmouseover="this.style.borderColor='var(--accent)'; this.style.transform='translateY(-2px)';"
+             onmouseout="this.style.borderColor='var(--border)'; this.style.transform='none';">
+            <div style="flex:1">
+                <div style="display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap; align-items:flex-start">
+                    <strong style="font-size:1.15rem">{{ chord.symbol }}</strong>
+                    <span class="badge {% if chord.category == 'friendly' %}badge-green{% elif chord.category == 'simplify' %}badge-orange{% else %}badge-muted{% endif %}">
+                        {{ chord.label }}
+                    </span>
+                </div>
+                {% if chord.suggested_symbol %}
+                <p style="margin:0.4rem 0 0; font-weight:700; font-size:0.9rem; color:var(--accent-strong)">建議先用 {{ chord.suggested_symbol }}</p>
+                {% endif %}
+                <p style="margin:0.4rem 0 0; color:var(--muted); font-size:0.85rem; line-height:1.4">{{ chord.detail }}</p>
             </div>
-            {% if chord.suggested_symbol %}
-            <p style="margin:0.5rem 0 0; font-weight:700">建議先用 {{ chord.suggested_symbol }}</p>
+            {% if chord.svg %}
+            <div class="chord-diagram-mini" style="width:55px; height:80px; flex-shrink:0;">
+                {{ chord.svg | safe }}
+            </div>
             {% endif %}
-            <p style="margin:0.4rem 0 0; color:var(--muted); font-size:0.9rem">{{ chord.detail }}</p>
         </div>
         {% endfor %}
     </div>

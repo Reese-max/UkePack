@@ -601,6 +601,16 @@ def _build_analysis(project: Project) -> dict[str, Any] | None:
             {"label": "全速（100%）", "bpm": score.bpm},
         ]
 
+    # Collect all original and simplified chord symbols for client-side audio
+    all_symbols = set()
+    for c in score.chords:
+        all_symbols.add(c.symbol)
+        try:
+            from app.arrangement.chord_simplify import simplify
+            all_symbols.add(simplify(c.symbol))
+        except Exception:
+            pass
+
     return {
         "key": score.key,
         "bpm": score.bpm,
@@ -611,6 +621,7 @@ def _build_analysis(project: Project) -> dict[str, Any] | None:
         "sections": [section.model_dump() for section in score.sections],
         "key_recommendation": key_rec.model_dump(),
         "playability": build_playability_payload(score, playability),
+        "fingerings_json": get_fingerings_json(list(all_symbols)),
         "strum_patterns": [
             {
                 "name": p.name,

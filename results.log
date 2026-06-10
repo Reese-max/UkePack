@@ -524,3 +524,5 @@
 [2026-06-10T01:42:46+08:00] | competitor-research | PASS | KPI-K1 | feat: known-chords-only song library filter vs UkuTabs/Chordify/Yousician
 [2026-06-10T09:45:00+08:00] | -- | IDLE | KPI-impact: none (code saturation, 0 M-task) | v222 /pua round: pytest 720 passed / ruff green / mypy 58 green; 24h 1 commit; chore_ratio 85.7% (salvage noise); BACKLOG 0 non-owner-gated [ ]; K6=0/5 owner-gated frozen 89+ rounds; K7=5/5 saturated; K1-K5 saturated; working tree: engineer-log.md modified; verdict=IDLE — owner must: (1) confirm Render deploy (2) set TRIAL_URL (3) send teacher invitations
 [2026-06-10T10:57:00+08:00] | competitor-research | PASS | KPI-K1 | feat: auto-scroll during chord practice vs Ultimate Guitar
+2026-06-10 10:59:29 | verify:pytest | FAIL | exit=4
+[2026-06-10T15:00:00+08:00] | competitor-research | PASS | KPI-K1 | feat: chord diagrams & playback vs Chordify

@@ -528,5 +528,51 @@ document.addEventListener('click', function(e) {
     group.querySelectorAll('[data-transpose-btn]').forEach(function(b) { b.classList.remove('active'); });
     btn.classList.add('active');
 });
+
+/* ── Web Audio play chord features (competitor-research vs Chordify) ── */
+const OPEN_FREQS = [392.00, 261.63, 329.63, 440.00]; // G4, C4, E4, A4
+const FINGERINGS = {% if analysis and analysis.fingerings_json %}{{ analysis.fingerings_json | safe }}{% else %}{}{% endif %};
+
+let audioCtx = null;
+function getAudioCtx() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+}
+
+function playChordAudio(chordName) {
+    const fingering = FINGERINGS[chordName];
+    if (!fingering) return;
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
+
+    fingering.forEach((fret, i) => {
+        if (fret < 0) return; // muted
+        const freq = OPEN_FREQS[i] * Math.pow(2, fret / 12);
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(2500, now);
+        filter.Q.setValueAtTime(1, now);
+
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.22, now + 0.005);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now + i * 0.015); // stagger strings
+        osc.stop(now + 1.3);
+    });
+}
 </script>
 {% endblock %}

@@ -9,7 +9,7 @@ from app.arrangement.chord_simplify import simplify as simplify_chord
 from app.arrangement.key_advisor import BEGINNER_FRIENDLY_CHORDS
 from app.arrangement.level_classifier import PlayabilityResult
 from app.models.score import Score
-from app.render.chord_diagram import get_fingering
+from app.render.chord_diagram import get_fingering, generate_svg
 
 _PLAYABILITY_FACTORS: tuple[tuple[str, str, int], ...] = (
     ("chord_difficulty", "和弦難度", 30),
@@ -95,12 +95,14 @@ def _safe_simplify(symbol: str) -> str:
 def _serialize_chord_hint(symbol: str, simplified: str) -> dict[str, Any]:
     """Convert a chord into a template-friendly teaching hint payload."""
     category, label, detail, suggestion = _classify_chord_hint(symbol, simplified)
+    target = simplified if suggestion else symbol
     return {
         "symbol": symbol,
         "category": category,
         "label": label,
         "detail": detail,
         "suggested_symbol": suggestion,
+        "svg": generate_svg(target),
     }
 
 

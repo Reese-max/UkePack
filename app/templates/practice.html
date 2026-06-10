@@ -783,6 +783,117 @@
     }
     .guided-celebrate.show { display: block; animation: pop 0.4s ease; }
 
+    /* ── Tuner ── */
+    .tuner-section {
+        background: linear-gradient(135deg, #e3f2fd 0%, #e8eaf6 100%);
+        border: 2px solid #90caf9;
+        border-radius: var(--radius);
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    .tuner-section h3 { margin: 0 0 0.5rem; font-size: 1.1rem; color: #1565c0; }
+    .tuner-note {
+        font-size: 3.5rem;
+        font-weight: 900;
+        color: #1565c0;
+        line-height: 1;
+        min-height: 4rem;
+    }
+    .tuner-freq {
+        font-size: 0.9rem;
+        color: #5c6bc0;
+        font-weight: 600;
+        min-height: 1.4rem;
+    }
+    .tuner-meter {
+        width: 100%;
+        max-width: 300px;
+        height: 32px;
+        margin: 0.75rem auto;
+        position: relative;
+        background: #e8eaf6;
+        border-radius: 999px;
+        overflow: hidden;
+        border: 2px solid #bbdefb;
+    }
+    .tuner-meter-center {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: #1565c0;
+        transform: translateX(-50%);
+    }
+    .tuner-meter-needle {
+        position: absolute;
+        top: 4px;
+        bottom: 4px;
+        width: 6px;
+        background: #e53935;
+        border-radius: 3px;
+        left: 50%;
+        transform: translateX(-50%);
+        transition: left 0.08s ease-out;
+    }
+    .tuner-status {
+        font-size: 1.1rem;
+        font-weight: 800;
+        min-height: 1.5rem;
+        margin-top: 0.25rem;
+    }
+    .tuner-status.in-tune { color: #2e7d32; }
+    .tuner-status.flat { color: #e65100; }
+    .tuner-status.sharp { color: #c62828; }
+    .tuner-strings {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 0.75rem;
+    }
+    .tuner-string-btn {
+        padding: 0.5rem 1rem;
+        border: 2px solid #90caf9;
+        border-radius: 999px;
+        font-size: 1rem;
+        font-weight: 800;
+        cursor: pointer;
+        background: #fff;
+        color: #1565c0;
+        transition: all 0.15s;
+        min-width: 56px;
+    }
+    .tuner-string-btn:hover { border-color: #1565c0; background: #e3f2fd; }
+    .tuner-string-btn.active { border-color: #1565c0; background: #1565c0; color: #fff; }
+    .tuner-string-btn .string-freq {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        opacity: 0.7;
+    }
+    .tuner-btn {
+        min-height: 48px;
+        padding: 0.6rem 1.5rem;
+        border-radius: 999px;
+        font-weight: 800;
+        font-size: 1rem;
+        border: 2px solid #1565c0;
+        background: #1565c0;
+        color: #fff;
+        cursor: pointer;
+        margin-top: 0.5rem;
+        transition: all 0.15s;
+    }
+    .tuner-btn:hover { background: #0d47a1; transform: translateY(-1px); }
+    .tuner-btn.running { background: #e53935; border-color: #c62828; }
+    .tuner-hint {
+        font-size: 0.8rem;
+        color: #5c6bc0;
+        margin-top: 0.5rem;
+    }
+
     /* ── Responsive ── */
     @media (max-width: 560px) {
         .chord-display { gap: 1rem; padding: 1rem; }
@@ -815,6 +926,35 @@
         <div id="chord-svg" aria-hidden="true"></div>
     </div>
     <div class="fingering-hint" id="fingering-hint" aria-live="polite" aria-label="手指位置說明"></div>
+
+    {# ── Tuner (competitor-research vs Yousician/UkeBuddy/UkuTabs: built-in GCEA tuner) ── #}
+    <div class="tuner-section" id="tuner-section">
+        <h3>🎸 調音器</h3>
+        <p style="margin:0 0 0.5rem; font-size:0.85rem; color:#1565c0;">彈一根弦，看指針是否對準中間</p>
+        <div class="tuner-note" id="tuner-note">—</div>
+        <div class="tuner-freq" id="tuner-freq"></div>
+        <div class="tuner-meter">
+            <div class="tuner-meter-center"></div>
+            <div class="tuner-meter-needle" id="tuner-needle"></div>
+        </div>
+        <div class="tuner-status" id="tuner-status"></div>
+        <div class="tuner-strings" role="radiogroup" aria-label="選擇要調的弦">
+            <button type="button" class="tuner-string-btn" data-string="0" onclick="selectTunerString(0)">
+                G<span class="string-freq">392 Hz</span>
+            </button>
+            <button type="button" class="tuner-string-btn" data-string="1" onclick="selectTunerString(1)">
+                C<span class="string-freq">262 Hz</span>
+            </button>
+            <button type="button" class="tuner-string-btn" data-string="2" onclick="selectTunerString(2)">
+                E<span class="string-freq">330 Hz</span>
+            </button>
+            <button type="button" class="tuner-string-btn" data-string="3" onclick="selectTunerString(3)">
+                A<span class="string-freq">440 Hz</span>
+            </button>
+        </div>
+        <button type="button" class="tuner-btn" id="tuner-btn" onclick="toggleTuner()">🎤 開始調音</button>
+        <p class="tuner-hint">需要麥克風權限 · 請在安靜環境使用 · 點弦名可播放標準音</p>
+    </div>
 
     {# ── Section tabs ── #}
     {% if analysis.sections %}
@@ -1726,6 +1866,203 @@ function stopDrill() {
         btn.classList.remove('active');
     });
 }
+
+/* ── Tuner (GCEA pitch detection via autocorrelation) ── */
+const TUNER_TARGETS = [
+    { name: 'G', freq: 392.00 },
+    { name: 'C', freq: 261.63 },
+    { name: 'E', freq: 329.63 },
+    { name: 'A', freq: 440.00 },
+];
+let tunerStream = null;
+let tunerAnalyser = null;
+let tunerBufLen = 0;
+let tunerRunning = false;
+let tunerSelected = -1; // -1 = auto-detect nearest
+let tunerRafId = null;
+
+function selectTunerString(idx) {
+    tunerSelected = (tunerSelected === idx) ? -1 : idx;
+    document.querySelectorAll('.tuner-string-btn').forEach(function(btn, i) {
+        btn.classList.toggle('active', i === tunerSelected);
+    });
+}
+
+function toggleTuner() {
+    if (tunerRunning) {
+        stopTuner();
+    } else {
+        startTuner();
+    }
+}
+
+async function startTuner() {
+    try {
+        tunerStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    } catch (e) {
+        document.getElementById('tuner-status').textContent = '❌ 無法取得麥克風權限';
+        document.getElementById('tuner-status').className = 'tuner-status sharp';
+        return;
+    }
+    var ctx = getAudioCtx();
+    var source = ctx.createMediaStreamSource(tunerStream);
+    tunerAnalyser = ctx.createAnalyser();
+    tunerAnalyser.fftSize = 4096;
+    tunerBufLen = tunerAnalyser.fftSize;
+    source.connect(tunerAnalyser);
+
+    tunerRunning = true;
+    var btn = document.getElementById('tuner-btn');
+    btn.textContent = '⏹ 停止調音';
+    btn.classList.add('running');
+    tunerTick();
+}
+
+function stopTuner() {
+    tunerRunning = false;
+    if (tunerRafId) { cancelAnimationFrame(tunerRafId); tunerRafId = null; }
+    if (tunerStream) {
+        tunerStream.getTracks().forEach(function(t) { t.stop(); });
+        tunerStream = null;
+    }
+    tunerAnalyser = null;
+    var btn = document.getElementById('tuner-btn');
+    btn.textContent = '🎤 開始調音';
+    btn.classList.remove('running');
+    document.getElementById('tuner-note').textContent = '—';
+    document.getElementById('tuner-freq').textContent = '';
+    document.getElementById('tuner-status').textContent = '';
+    document.getElementById('tuner-status').className = 'tuner-status';
+    document.getElementById('tuner-needle').style.left = '50%';
+}
+
+function tunerTick() {
+    if (!tunerRunning || !tunerAnalyser) return;
+    var buf = new Float32Array(tunerBufLen);
+    tunerAnalyser.getFloatTimeDomainData(buf);
+    var freq = autoCorrelate(buf, audioCtx.sampleRate);
+
+    if (freq > 0) {
+        // Find nearest GCEA target
+        var bestIdx = 0;
+        var bestDist = Infinity;
+        for (var i = 0; i < TUNER_TARGETS.length; i++) {
+            var d = Math.abs(freq - TUNER_TARGETS[i].freq);
+            if (d < bestDist) { bestDist = d; bestIdx = i; }
+        }
+        // If a specific string is selected, use that
+        var target = (tunerSelected >= 0) ? TUNER_TARGETS[tunerSelected] : TUNER_TARGETS[bestIdx];
+        var targetFreq = target.freq;
+
+        // Cents deviation: 1200 * log2(f / target)
+        var cents = 1200 * Math.log2(freq / targetFreq);
+        // Clamp to ±50 cents for display
+        var clampedCents = Math.max(-50, Math.min(50, cents));
+        var needlePct = 50 + (clampedCents / 50) * 50; // 0% = -50 cents, 100% = +50 cents
+
+        document.getElementById('tuner-note').textContent = target.name;
+        document.getElementById('tuner-freq').textContent = freq.toFixed(1) + ' Hz';
+        document.getElementById('tuner-needle').style.left = needlePct + '%';
+
+        var statusEl = document.getElementById('tuner-status');
+        if (Math.abs(cents) < 5) {
+            statusEl.textContent = '✅ 準了！';
+            statusEl.className = 'tuner-status in-tune';
+        } else if (cents < 0) {
+            statusEl.textContent = '⬇️ 偏低 ' + Math.abs(cents).toFixed(0) + ' cent' + (Math.abs(cents) >= 2 ? 's' : '') + ' — 轉緊一點';
+            statusEl.className = 'tuner-status flat';
+        } else {
+            statusEl.textContent = '⬆️ 偏高 ' + cents.toFixed(0) + ' cent' + (cents >= 2 ? 's' : '') + ' — 轉鬆一點';
+            statusEl.className = 'tuner-status sharp';
+        }
+    } else {
+        document.getElementById('tuner-note').textContent = '…';
+        document.getElementById('tuner-freq').textContent = '';
+        document.getElementById('tuner-status').textContent = '';
+        document.getElementById('tuner-needle').style.left = '50%';
+    }
+
+    tunerRafId = requestAnimationFrame(tunerTick);
+}
+
+/* ── Autocorrelation pitch detection (classic ACF algorithm) ── */
+function autoCorrelate(buf, sampleRate) {
+    var SIZE = buf.length;
+    var rms = 0;
+    for (var i = 0; i < SIZE; i++) rms += buf[i] * buf[i];
+    rms = Math.sqrt(rms / SIZE);
+    if (rms < 0.01) return -1; // too quiet
+
+    // Trim leading/trailing silence
+    var r1 = 0, r2 = SIZE - 1;
+    var threshold = 0.2;
+    for (var i = 0; i < SIZE / 2; i++) {
+        if (Math.abs(buf[i]) < threshold) { r1 = i; } else break;
+    }
+    for (var i = 1; i < SIZE / 2; i++) {
+        if (Math.abs(buf[SIZE - i]) < threshold) { r2 = SIZE - i; } else break;
+    }
+    buf = buf.slice(r1, r2 + 1);
+    SIZE = buf.length;
+
+    // Autocorrelation
+    var c = new Float32Array(SIZE);
+    for (var lag = 0; lag < SIZE; lag++) {
+        var sum = 0;
+        for (var i = 0; i < SIZE - lag; i++) {
+            sum += buf[i] * buf[i + lag];
+        }
+        c[lag] = sum;
+    }
+
+    // Find first dip after lag 0
+    var d = 0;
+    while (c[d] > c[d + 1]) {
+        d++;
+        if (d >= SIZE - 1) return -1;
+    }
+
+    // Find peak after dip
+    var maxVal = -1;
+    var maxPos = -1;
+    for (var i = d; i < SIZE; i++) {
+        if (c[i] > maxVal) { maxVal = c[i]; maxPos = i; }
+        if (c[i] < 0) break; // gone negative, stop
+    }
+
+    if (maxPos < 0) return -1;
+
+    // Parabolic interpolation for sub-sample accuracy
+    var prev = c[maxPos - 1] || 0;
+    var next = c[maxPos + 1] || 0;
+    var shift = (next - prev) / (2 * (2 * maxVal - next - prev));
+    var period = maxPos + shift;
+
+    return sampleRate / period;
+}
+
+/* ── Play reference tone for a tuner string (click G/C/E/A button) ── */
+document.querySelectorAll('.tuner-string-btn').forEach(function(btn) {
+    btn.addEventListener('dblclick', function(e) {
+        e.preventDefault();
+        var idx = parseInt(btn.dataset.string, 10);
+        var target = TUNER_TARGETS[idx];
+        if (!target) return;
+        // Play a pure tone for 1.5s
+        var ctx = getAudioCtx();
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(target.freq, ctx.currentTime);
+        gain.gain.setValueAtTime(0, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 1.5);
+    });
+});
 
 /* ── Init ── */
 updateDisplay();

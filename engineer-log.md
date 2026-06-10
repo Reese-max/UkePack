@@ -318,6 +318,74 @@ L092（index.lock 並發）+ L008/L009（KPI-frozen 反思 bloat）已涵蓋本�
 
 **下一步**：owner (1) 確認 Render deploy (2) 設定 TRIAL_URL (3) 寄 teacher invite → K6 0→1
 
+---
+## 反思 2026-06-10T22:30+08:00（v222 /pua KPI-driven 深度回顧）
+
+### KPI 進展表
+
+| KPI | 上次值 (v219 06-10T19:00) | 當前值 | Δ | 狀態 |
+|-----|-------|-------|---|------|
+| K1 北極星（<30min 能彈第一段） | 699 passed, 31 songs, mastery loop, auto-tempo | 710 passed, +3 competitor feat (SVG chord rendering, auto-scroll, known-chords filter) | +3 features | ✅進步 |
+| K2 匯入成功率（30 首 ≥90%） | 100% | 100% | 0 | ✅飽和 |
+| K5 Baseline（pytest/ruff/mypy） | 699 passed / ruff green / mypy 58 green | 710 passed / ruff green / mypy 58 green | +11 tests | ✅進步 |
+| K6 Teacher trial 回饋（≥5 老師） | 0/5 (frozen 87+ 輪) | 0/5 (frozen 88+ 輪) | 0 | ⚠️卡住（owner-gated） |
+| K7 Onboarding 文件覆蓋 | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布（10 commits, window 06-09→06-10）
+
+- **feat（KPI 推進）**: 3 件（30%）
+  - `feat(api): add chord SVG rendering and audio playback on analysis page` — K1 vs Chordify
+  - `feat(practice): add auto-scroll during chord practice` — K1 vs Ultimate Guitar
+  - `feat(templates): add known-chords-only filter` — K1 vs UkuTabs
+- **test（K5 護城河）**: 1 件（10%）
+  - `test(api): add SVG safety, XSS, and audio-data verification tests` — K5 安全守門
+- **chore（Housekeeping）**: 6 件（60%）
+  - 4× `chore(auto-salvage): index.lock 並發搶救` — L092 結構性噪音
+  - 1× `chore(evolve): v219 idle confirm`
+  - 1× `chore(log): v218 idle`
+- **chore_ratio**: 60%（>30% ⚠️）；扣 salvage 噪音後 **true chore = 20%**（健康）
+
+**chore_ratio 說明**：4 salvage 是 L092 結構性問題（排程器並發 fire → index.lock 競爭），非避真任務。真 KPI 推進 4 件（3 feat + 1 test）全部來自 competitor-research 驅動，品質佳。
+
+### 環境問題：venv 損壞已修復
+
+`.venv/` 僅含 `lib64` + `pyvenv.cfg`，缺 `Scripts/`（Windows），導致 `uv run` 全部 error 5。本輪 `rm -rf .venv && uv sync --all-extras` 重建成功，baseline 恢復可跑。
+
+### 卡住的 KPI 與根因
+
+**K6（Teacher trial 回饋 0/5）**：連續 ≥88 輪 frozen。根因鏈不變：
+1. Push ✅ 已完成（0 unpushed）
+2. Render.com deploy 狀態 **未確認**
+3. `{{TRIAL_URL}}` **未填**
+4. 邀請信 **未寄**
+5. P1-18b/c/d 全 `[O]`（OWNER-only）
+
+**唯一 unblock = owner 完成 Step 1-3（~5 min 真人）**。daemon 對 K6 無槓桿。
+
+### daemon survival 分析
+
+- `.engineer-loop.failures.jsonl` **不存在**
+- auto-salvage 24h 內 4 筆（L092 持續，趨勢穩定）
+- 無 SIGABRT/SIGSEGV/429/quota/API error
+- 無結構性 bug 需 L4 arch proposal
+
+### 本次無新 global learning
+
+L092（index.lock 並發）已涵蓋本輪 salvage 觀察。competitor-research → feature pipeline 運作順暢但屬本專案 workflow，非跨專案可重用智慧。
+
+### 下一步 3 個 KPI 推進動作
+
+1. **K6**: owner 確認 Render.com deploy 狀態 + 設定 `{{TRIAL_URL}}` + 寄出 P1-18b 邀請信 → K6 0→1（唯一活槓桿）
+2. **K1**: 繼續 competitor-research 驅動 feature 深化（曲庫擴充 31→50+、MIDI 格式支援）
+3. **K5**: 修 L092 auto-salvage 根因（排程器 single-instance lock）→ chore_ratio 降回 <30%
+
+### program.md 待辦重排
+
+**現狀**：Phase 0-2 + U1-U7 全 done-green。BACKLOG 0 個 non-owner-gated `[ ]`。
+**重排結果**：無需重排——所有 KPI-推進 task 已完成，剩餘全是 owner-gated（`[O]`）。
+
+**禁止事項確認**：本輪未新增任何純治理 task 給 daemon。
+
 **踩雷紀錄**：無新 learning
 
 ### Competitor Research Round - 2026-06-10
@@ -407,3 +475,20 @@ L092（index.lock 並發）+ L008/L009（KPI-frozen 反思 bloat）已涵蓋本�
   - 撰寫 `test_build_playability_payload_includes_svg_in_chord_hints` 與 `test_build_analysis_includes_fingerings_json`，測試順利通過。
 - Commit: `feat(api): add chord SVG rendering and audio playback on analysis page — competitor-research(UkePack): vs Chordify`
 - KPI-impact: **KPI-K1**。提供視覺加聽覺的直接回饋，減少查指法與對齊音高的摩擦，推進北極星指標。
+
+### Competitor Research Round - 2026-06-10 (v223)
+### 1. 對標掃描
+- **Yousician (yousician.com)**: 互動樂器練習，核心：即時聽音回饋、strumming patterns 聽覺示範、tempo 漸進調整、獎勵進度系統。
+- **UkeBuddy (ukebuddy.com)**: 和弦庫 + scales + 調音器，核心：chord namer、difficulty-based song categorization。
+- **UkuTabs / Ultimate Guitar**: 已 ship features 涵蓋（known-chords-only, auto-scroll, fingering hints）。
+
+### 2. Gap 評估與 feature 選擇
+- practice.html 的 auto-play (`tick()`) 呼叫 `playChordAudio`（單音 pluck），完全忽略已選的 strum pattern。
+- 初學者選了「入門單刷 ↓↓↓↓」跟著節拍走，聽到的卻是單音，視覺與聽覺不一致 → 學不到刷法節奏。
+- 選的 feature：**auto-play strum pattern audio**。改 `tick()` → `playStrumAudio`，1 行核心改動。
+
+### 3. 動工與 KPI 推進
+- 實作：`practice.html` line 1382 `playChordAudio(CHORDS[currentIdx])` → `playStrumAudio(CHORDS[currentIdx])`。
+- 驗證：`tests/test_pages.py::test_practice_page_tick_uses_strum_audio` 紅→綠；full suite 三綠。
+- Commit: `feat(practice): auto-play uses strum pattern audio instead of single chord hit — competitor-research(UkePack): vs Yousician`
+- KPI-impact: **K1 北極星**。auto-play 現在播放完整刷法節奏，兒童聽覺與視覺一致，降低學習刷法的認知負擔。

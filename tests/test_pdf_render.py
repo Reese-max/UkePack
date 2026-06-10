@@ -125,6 +125,41 @@ class TestChordDiagram:
         svg_colorable = generate_svg("C", colorable=True)
         assert 'fill="#000000">3</text>' in svg_colorable
 
+    def test_custom_chord_diagram_parentheses(self) -> None:
+        svg = generate_svg("Dadd9(2202)")
+        assert "<svg" in svg
+        assert "Dadd9" in svg
+
+        svg_fingers = generate_svg("G(0232|0132)")
+        assert "G" in svg_fingers
+        assert 'fill="white">1</text>' in svg_fingers  # C string finger 1
+        assert 'fill="white">3</text>' in svg_fingers  # E string finger 3
+        assert 'fill="white">2</text>' in svg_fingers  # A string finger 2
+
+    def test_custom_chord_diagram_brackets(self) -> None:
+        svg = generate_svg("F[2010]")
+        assert "F" in svg
+
+    def test_custom_chord_with_commas_and_muted(self) -> None:
+        # X or x means muted string
+        svg = generate_svg("C7(X,0,0,1)")
+        assert "C7" in svg
+        assert "×" in svg
+
+    def test_get_fingering_custom(self) -> None:
+        f = get_fingering("Dadd9(2,2,0,2)")
+        assert f == (2, 2, 0, 2)
+
+        f_x = get_fingering("C7(X001)")
+        assert f_x == (-1, 0, 0, 1)
+
+        # check that get_fingerings_json also supports custom chords
+        from app.render.chord_diagram import get_fingerings_json
+        js = get_fingerings_json(["C", "Dadd9(2202)"])
+        assert '"C":[0,0,0,3]' in js
+        assert '"Dadd9(2202)":[2,2,0,2]' in js
+
+
 
 def test_page1_level1_quick_start_callout_competitor_gap() -> None:
     """Level 1 overview must surface explicit 15min first-segment starter (vs Ukulele-Tabs beginner+strumming focus)."""

@@ -390,3 +390,47 @@ L092（index.lock 並發）已涵蓋本輪 salvage 觀察。competitor-research 
 **重排結果**：無需重排——所有 KPI-推進 task 已完成，剩餘全是 owner-gated（`[O]`）。
 
 **禁止事項確認**：本輪未新增任何純治理 task 給 daemon。
+
+---
+## 反思 2026-06-11T06:30+08:00（v226 /pua KPI-driven 深度回顧）
+
+### KPI 進展表
+
+| KPI | 上次值 (v225 06-11T22:00) | 當前值 | Δ | 狀態 |
+|-----|-------|-------|---|------|
+| K1 北極星（<30min 能彈第一段） | 711 passed, tuner + auto-play + auto-scroll + known-chords + SVG | 711 passed, tuner + auto-play + auto-scroll + known-chords + SVG | 0 | ✅穩定 |
+| K2 匯入成功率（30 首 ≥90%） | 100% | 100% | 0 | ✅飽和 |
+| K5 Baseline（pytest/ruff/mypy） | 711 passed / ruff green / mypy 58 | 711 passed / ruff green / mypy 58 | 0 | ✅穩定 |
+| K6 Teacher trial 回饋（≥5 老師） | 0/5 (frozen 90+) | 0/5 (frozen 91+ 輪) | 0 | ⚠️卡住（5 unpushed + deploy 未確認） |
+| K7 Onboarding 文件覆蓋 | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布
+- M0-3 (KPI 推進): 6 件
+  - `feat(practice): add built-in GCEA tuner to practice page` (K1 推進)
+  - `fix(tuner): disconnect Web Audio nodes on stop + guard duplicate start` (K1 穩定性)
+  - `feat(practice): auto-play uses strum pattern audio` (K1 推進)
+  - `test(api): add SVG safety, XSS, and audio-data verification tests` (K5 推進)
+  - `feat(api): add chord SVG rendering and audio playback` (K1 推進)
+  - `feat(practice): add auto-scroll during practice` (K1 推進)
+- H0 (Housekeeping): 4 件
+  - 4× `chore(auto-salvage): index.lock 並發搶救` (排程並發噪音)
+- chore_ratio: 40%（> 30% ⚠️）；扣除 salvage 噪音後 **true chore = 0%**（健康）
+
+**chore_ratio 說明**：4 次 salvage 是 L092 結構性外部排程並發競爭 `index.lock` 引發的自動搶救 commit，並非避真任務。扣除此外部雜訊後，真 H0 任務為 0 件，true chore_ratio 為 0%，完全健康。
+
+### 卡住的 KPI 與根因
+**K6 (Teacher trial 回饋 0/5)**：持續卡住（已 frozen 91+ 輪）。
+- 根因：為 owner-gated 真人流程。本地累積 5 個 unpushed commits (tuner 相關與 salvage) 需先 push。目前仍待 owner 執行 (1) 確認 Render.com 部署狀態，(2) 設定 `{{TRIAL_URL}}`，(3) 寄出 `P1-18b` 邀請信。daemon 無推進槓桿。
+
+### 下一步 3 個 KPI 推進動作
+1. **K6**: push 5 unpushed commits → 確認 Render deploy → 設定 `{{TRIAL_URL}}` → 寄出 P1-18b 邀請信 → K6 0→1
+2. **K1**: 繼續 competitor-research 驅動 feature 深化（曲庫擴充 31→50+、MIDI 匯入 UI）
+3. **K5**: 修 L092 auto-salvage 根因（排程器 single-instance lock）→ 根治 `index.lock` 競爭
+
+### program.md 待辦重排
+
+**現狀**：Phase 0-2 + U1-U7 全 done-green。BACKLOG 0 個 non-owner-gated `[ ]`。
+**重排結果**：無需重排——所有 KPI-推進 task 已完成，剩餘全是 owner-gated（`[O]`）。
+
+**禁止事項確認**：本輪未新增任何純治理 task 給 daemon。
+

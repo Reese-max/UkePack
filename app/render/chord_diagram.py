@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import html as _html
 import json as _json
+import re as _re
 
 # (G_fret, C_fret, E_fret, A_fret) — string order left-to-right on diagram
 # -1 would mean muted; all known beginner chords are open-or-fretted here
@@ -61,6 +62,63 @@ _FRET_LINES = 5   # nut + 4 fret lines
 _DOT_R = 5
 _OPEN_R = 4
 
+_CUSTOM_CHORD_PATTERN = _re.compile(
+    r"^([A-Za-z0-9#b/]+)(?:\(([^)]+)\)|\[([^\]]+)\])$"
+)
+
+def parse_custom_chord(
+    chord_name: str,
+) -> tuple[str, tuple[int, int, int, int], tuple[int, int, int, int] | None] | None:
+    """Parse custom ukulele chord like 'Dadd9(2202)' or 'G(0232|0132)'.
+
+    Returns (display_name, frets, fingers) or None if not custom.
+    """
+    match = _CUSTOM_CHORD_PATTERN.match(chord_name.strip())
+    if not match:
+        return None
+    name = match.group(1)
+    pattern = match.group(2) or match.group(3)
+    if not pattern:
+        return None
+
+    parts = pattern.split("|")
+    frets_str = parts[0].strip()
+    fingers_str = parts[1].strip() if len(parts) > 1 else None
+
+    frets = _parse_string_values(frets_str)
+    if frets is None or len(frets) != 4:
+        return None
+
+    fingers = None
+    if fingers_str:
+        fingers = _parse_string_values(fingers_str)
+        if fingers is None or len(fingers) != 4:
+            fingers = None
+
+    return name, tuple(frets), tuple(fingers) if fingers else None  # type: ignore[return-value]
+
+
+def _parse_string_values(s: str) -> list[int] | None:
+    if "," in s:
+        parts = [p.strip() for p in s.split(",")]
+    else:
+        parts = list(s)
+
+    if len(parts) != 4:
+        return None
+
+    values: list[int] = []
+    for p in parts:
+        if p.upper() in ("X", "P", "-1"):
+            values.append(-1)
+        else:
+            try:
+                values.append(int(p))
+            except ValueError:
+                return None
+    return values
+
+
 
 def generate_svg(
     chord_name: str,
@@ -75,6 +133,19 @@ def generate_svg(
     """
     if chord_name == "N.C.":
         return _nc_svg()
+
+    custom = parse_custom_chord(chord_name)
+    if custom is not None:
+        display_name, fingering, fingers = custom
+        if left_handed:
+            fingering = fingering[::-1]
+            if fingers is not None:
+                fingers = fingers[::-1]
+        start_fret, display = _compute_display(fingering)
+        return _render_svg(
+            display_name, display, start_fret, colorable, fingers, left_handed=left_handed
+        )
+
     fingering = _CHORD_FINGERINGS.get(chord_name)
     if fingering is None:
         return _unknown_svg(chord_name)
@@ -92,6 +163,9 @@ def generate_svg(
 
 def get_fingering(chord_name: str) -> tuple[int, int, int, int] | None:
     """Return (G, C, E, A) fret tuple for the chord, or None if unknown."""
+    custom = parse_custom_chord(chord_name)
+    if custom is not None:
+        return custom[1]
     return _CHORD_FINGERINGS.get(chord_name)
 
 
@@ -103,7 +177,7 @@ def get_fingerings_json(chord_names: list[str]) -> str:
     """
     data: dict[str, list[int]] = {}
     for name in chord_names:
-        f = _CHORD_FINGERINGS.get(name)
+        f = get_fingering(name)
         if f is not None:
             data[name] = list(f)
     return _json.dumps(data, separators=(",", ":"))
@@ -123,7 +197,7 @@ def _compute_display(
     if not non_zero or max(non_zero) <= 4:
         return 1, list(frets)
     start = min(non_zero)
-    shifted = [f - start + 1 if f > 0 else 0 for f in frets]
+    shifted = [f - start + 1 if f > 0 else f for frets_idx, f in enumerate(frets)]
     return start, shifted
 
 
@@ -210,8 +284,15 @@ def _append_dots(
     fingers: tuple[int, int, int, int] | None = None,
 ) -> None:
     for idx, (sx, fret) in enumerate(zip(_STRING_XS, display_frets, strict=False)):
-        if fret == 0:
-            open_cy: float = float(_NUT_Y - 9)
+        if fret < 0:
+            open_cy = _NUT_Y - 9
+            p.append(
+                f'<text x="{sx}" y="{open_cy + 3}" text-anchor="middle" '
+                f'font-family="Helvetica,Arial,sans-serif" font-size="10" '
+                f'font-weight="bold" fill="black">×</text>'
+            )
+        elif fret == 0:
+            open_cy = float(_NUT_Y - 9)
             p.append(
                 f'<circle cx="{sx}" cy="{open_cy}" r="{_OPEN_R}" '
                 f'fill="white" stroke="black" stroke-width="1.2"/>'

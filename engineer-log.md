@@ -1,6 +1,39 @@
 ---
 ### [auto-archive 2026-06-10 by context-budget guard] 原 602 行 > 600，已封存至 docs/archive/engineer-log.md-archived-20260610-210605.md，保留最近 300 行防 context overflow
 ---
+## 反思 2026-06-12T00:25:36+08:00（v229 /pua KPI-driven 深度回顧）
+
+### KPI 進展表
+| KPI | 上次值 (v224 06-11) | 當前值 | Δ | 狀態 |
+|-----|-------|-------|---|------|
+| K1 北極星（<30min 能彈第一段） | 715 passed, +5 competitor feat | 788 passed, +7 competitor feat (add metronome, section loop) | +73 tests, +2 features | ✅進步 |
+| K2 匯入成功率（30 首 ≥90%） | 100% | 100% | 0 | ✅飽和 |
+| K5 Baseline（pytest/ruff/mypy） | 715 passed / ruff green / mypy 58 | 788 passed / ruff green / mypy 58 | +73 tests | ✅進步 |
+| K6 Teacher trial 回饋（≥5 老師） | 0/5 | 0/5 | 0 | ⚠️卡住（owner-gated） |
+| K7 Onboarding 文件覆蓋 | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布
+- M0-3 (KPI 推進): 2 件 (3b9593e, 6f346f6)
+- H0 (Housekeeping): 6 件
+- chore_ratio: 75%（> 30% 原因：其中 5 件為 auto-salvage 結構性噪音，1 件為 docs/log。扣除 5 件 auto-salvage 後，真實 commit 共 3 件，其餘 1 件為 H0，真實 chore_ratio = 33.3%）
+
+### 卡住 the KPI 與根因
+- **K6（Teacher trial 回饋 0/5）**：持續卡住（已 frozen 90+ 輪）。
+  - 根因：外部真人流程阻塞（Render.com 部署未確認、`{{TRIAL_URL}}` 未設定、邀請信未寄出）。此部分皆為 owner-gated，對 daemon 無推進槓桿。唯一解鎖方式是 owner 投入 5 分鐘操作。
+
+### daemon failures.jsonl 統計（最後 20 筆）
+- **api_error_status 分布**：全部 20 筆皆為 `""` (空)
+- **engine 分布**：全部 20 筆皆為 `mimo`
+- **exit_code 分布**：全部 20 筆皆為 `1`
+- **signal_name 分布**：全部 20 筆皆為 `""` (空)
+- **結構性 bug 與 L4 proposal**：連續 20 筆 exit_code=1 且無 API error 屬結構性 bug，根因為並發排程器多次觸發 daemon 實體造成 git `index.lock` 競爭。已提交 L4 arch proposal 至 `proposals/arch/20260611T162858Z-9d76bf6e.json` 引入 single-instance 鎖。
+
+### 下一步 3 個 KPI 推進動作
+1. **K6**: owner 確認 Render.com 部署狀態、填入 `{{TRIAL_URL}}`，並寄出第一封 Teacher Trial 邀請信 -> 解鎖 K6 (0/5 -> 1/5)。
+2. **K1**: 繼續對標 Yousician/Chordify 深化練習頁功能（如和弦彈奏正確性的音頻視覺化回饋）。
+3. **K5**: 透過 L4 提案落地 flock 鎖機制以消除 `index.lock` 並發競爭，將真實 chore_ratio 降至 <30%。
+
+---
 **禁止事項確認**：本輪未新增任何純治理 task 給 daemon。
 
 ### v221 — 2026-06-11T00:30 (K6 blocker chain push)

@@ -99,10 +99,7 @@ def parse_custom_chord(
 
 
 def _parse_string_values(s: str) -> list[int] | None:
-    if "," in s:
-        parts = [p.strip() for p in s.split(",")]
-    else:
-        parts = list(s)
+    parts = [p.strip() for p in s.split(",")] if "," in s else list(s)
 
     if len(parts) != 4:
         return None
@@ -146,12 +143,12 @@ def generate_svg(
             display_name, display, start_fret, colorable, fingers, left_handed=left_handed
         )
 
-    fingering = _CHORD_FINGERINGS.get(chord_name)
-    if fingering is None:
+    default_fingering = _CHORD_FINGERINGS.get(chord_name)
+    if default_fingering is None:
         return _unknown_svg(chord_name)
     if left_handed:
-        fingering = fingering[::-1]
-    start_fret, display = _compute_display(fingering)
+        default_fingering = default_fingering[::-1]
+    start_fret, display = _compute_display(default_fingering)
     fingers = _CHORD_FINGERS.get(chord_name)
     if left_handed and fingers is not None:
         fingers = fingers[::-1]
@@ -292,7 +289,7 @@ def _append_dots(
                 f'font-weight="bold" fill="black">×</text>'
             )
         elif fret == 0:
-            open_cy = float(_NUT_Y - 9)
+            open_cy = _NUT_Y - 9
             p.append(
                 f'<circle cx="{sx}" cy="{open_cy}" r="{_OPEN_R}" '
                 f'fill="white" stroke="black" stroke-width="1.2"/>'

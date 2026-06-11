@@ -1534,12 +1534,14 @@ function tick() {
 
     // Move to next chord after one full bar
     playTimer = setTimeout(() => {
-        if (currentIdx < CHORDS.length - 1) {
-            currentIdx++;
+        const vis = getVisibleIndices();
+        const pos = vis.indexOf(currentIdx);
+        if (pos >= 0 && pos < vis.length - 1) {
+            currentIdx = vis[pos + 1];
             tick();
         } else {
-            // Loop back to start
-            currentIdx = 0;
+            // Loop back to start of visible section
+            currentIdx = vis[0] || 0;
             if (autoTempoChk && autoTempoChk.checked) {
                 const maxBpm = 160;
                 const newBpm = Math.min(bpm + 5, maxBpm);

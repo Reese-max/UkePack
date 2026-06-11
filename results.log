@@ -542,3 +542,6 @@
 [2026-06-10T20:45:00+08:00] | M0 | PASS | KPI-impact: baseline-green | fix(tuner): disconnect Web Audio nodes + guard duplicate start — code review WARN fix
 [2026-06-10T20:48:00+08:00] | M0 | PASS | KPI-impact: baseline-green | code review WARN fix done — tuner resource leak + duplicate guard. No M0-M3 available, BACKLOG agent-doable 100% done, K6 owner-blocked.
 2026-06-10 21:15:46 | verify:pytest | PASS | exit=0
+[2026-06-11T10:26:00+08:00] | competitor-research | PASS | KPI-K1 | feat: section-specific loop practice vs Yousician/Chordify
+2026-06-11 10:26:00 | verify:pytest | PASS | exit=0
+

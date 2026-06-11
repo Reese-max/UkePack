@@ -1405,5 +1405,24 @@ def test_chords_transposed_large_range(db_client: TestClient) -> None:
     assert "F#</span>" in resp_down.text or "Gb</span>" in resp_down.text
 
 
+def test_practice_page_chord_svg_shows_finger_numbers(db_client: TestClient) -> None:
+    """Practice page buildChordSvg should render finger number labels on fretted dots."""
+    create = db_client.post(
+        "/api/projects", json={"title": "Finger Num Song", "source_type": "public_domain"}
+    )
+    pid = create.json()["id"]
+    with TWINKLE.open("rb") as fh:
+        db_client.post(
+            f"/api/projects/{pid}/import",
+            files={"file": ("twinkle.musicxml", fh, "application/xml")},
+        )
+
+    resp = db_client.get(f"/projects/{pid}/practice")
+    assert resp.status_code == 200
+    # The buildChordSvg function should include finger number assignment logic
+    assert "fingerMap" in resp.text
+    # Should render finger numbers as white text on dots
+    assert 'fill="white"' in resp.text
+    assert 'font-weight="bold"' in resp.text
 
 

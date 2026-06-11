@@ -1831,7 +1831,16 @@ function buildChordSvg(name, frets) {
         svg += '<text x="' + stringXs[i] + '" y="' + (bottomY + 12) + '" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="7">' + stringLabels[i] + '</text>';
     }
 
-    // Dots
+    // Assign finger numbers: sort fretted strings low→high, assign 1→4
+    const fingerMap = {};
+    const fretted = [];
+    for (let i = 0; i < 4; i++) {
+        if (display[i] > 0) fretted.push({ idx: i, fret: display[i] });
+    }
+    fretted.sort(function(a, b) { return a.fret - b.fret || a.idx - b.idx; });
+    fretted.forEach(function(item, idx) { fingerMap[item.idx] = idx + 1; });
+
+    // Dots with finger numbers
     for (let i = 0; i < 4; i++) {
         const sx = stringXs[i];
         const fret = display[i];
@@ -1841,6 +1850,7 @@ function buildChordSvg(name, frets) {
         } else {
             const cy = nutY + (fret - 0.5) * fretSpacing;
             svg += '<circle cx="' + sx + '" cy="' + cy.toFixed(1) + '" r="' + dotR + '" fill="black"/>';
+            svg += '<text x="' + sx + '" y="' + (cy + 3).toFixed(1) + '" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="7" fill="white" font-weight="bold">' + fingerMap[i] + '</text>';
         }
     }
 

@@ -91,6 +91,68 @@
         height: auto;
     }
 
+    /* ── Next chord preview (competitor-research vs Yousician: next chord countdown warning) ── */
+    .next-chord-preview {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0.6rem 0.8rem;
+        background: rgba(255, 152, 0, 0.08);
+        border: 2px dashed #ff9800;
+        border-radius: var(--radius);
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        margin-left: 2rem;
+        min-width: 130px;
+    }
+    .next-chord-preview.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .next-chord-preview .next-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #e65100;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.15rem;
+    }
+    .next-chord-preview .next-name {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: #ff9800;
+        line-height: 1.1;
+    }
+    .next-chord-preview svg {
+        width: 55px !important;
+        height: auto;
+        margin: 0.15rem 0;
+    }
+    .next-chord-preview .next-countdown {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #e65100;
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        margin-top: 0.15rem;
+    }
+    .countdown-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #ffe0b2;
+        display: inline-block;
+        transition: background-color 0.15s ease;
+    }
+    .countdown-dot.active {
+        background-color: #ff9800;
+        box-shadow: 0 0 4px #ff9800;
+    }
+
+
     /* ── Fingering hint text ── */
     .fingering-hint {
         font-size: 0.95rem;
@@ -944,8 +1006,18 @@
 
     {# ── Current chord display ── #}
     <div class="chord-display" id="chord-display" aria-live="polite" role="region" aria-label="目前和弦">
-        <div class="chord-name" id="chord-name">{{ unique_chords[0] if unique_chords else '?' }}</div>
-        <div id="chord-svg" aria-hidden="true"></div>
+        <div style="display: flex; align-items: center; gap: 1.5rem;">
+            <div class="chord-name" id="chord-name">{{ unique_chords[0] if unique_chords else '?' }}</div>
+            <div id="chord-svg" aria-hidden="true"></div>
+        </div>
+
+        {# ── Next chord preview (competitor-research vs Yousician: next chord countdown warning) ── #}
+        <div class="next-chord-preview" id="next-chord-preview" role="status" aria-live="polite">
+            <div class="next-title">準備下一個</div>
+            <div class="next-name" id="next-chord-name">—</div>
+            <div class="next-svg" id="next-chord-svg"></div>
+            <div class="next-countdown" id="next-chord-countdown"></div>
+        </div>
     </div>
     <div class="fingering-hint" id="fingering-hint" aria-live="polite" aria-label="手指位置說明"></div>
 
@@ -1385,6 +1457,15 @@ function playStrumAudio(chordName) {
         // Highlight the beat visually
         setTimeout(() => highlightStrumBeat(idx), (offset - now) * 1000);
 
+        // Show next chord warning
+        setTimeout(() => {
+            const vis = getVisibleIndices();
+            const pos = vis.indexOf(currentIdx);
+            const nextIdx = (pos >= 0 && pos < vis.length - 1) ? vis[pos + 1] : vis[0];
+            const nextChordName = (vis.length > 1) ? CHORDS[nextIdx] : null;
+            showNextChordWarning(nextChordName, idx, strokes.length);
+        }, (offset - now) * 1000);
+
         const fingering = FINGERINGS[chordName];
         if (!fingering) return;
 
@@ -1563,6 +1644,48 @@ function highlightStrumBeat(idx) {
     setTimeout(() => { el.textContent = notation; }, 200);
 }
 
+function showNextChordWarning(nextChordName, currentBeatIdx, totalBeats) {
+    const previewEl = document.getElementById('next-chord-preview');
+    if (!previewEl) return;
+
+    if (!nextChordName || totalBeats <= 1) {
+        previewEl.classList.remove('visible');
+        return;
+    }
+
+    const triggerBeat = Math.max(1, Math.floor(totalBeats / 2));
+    if (currentBeatIdx < triggerBeat) {
+        previewEl.classList.remove('visible');
+        return;
+    }
+
+    // Update name
+    document.getElementById('next-chord-name').textContent = nextChordName;
+
+    // Update SVG
+    const svgEl = document.getElementById('next-chord-svg');
+    const fingering = FINGERINGS[nextChordName];
+    if (fingering) {
+        svgEl.innerHTML = buildChordSvg(nextChordName, fingering);
+    } else {
+        svgEl.innerHTML = '<span style="color:var(--muted);font-size:0.7rem">無指法</span>';
+    }
+
+    // Render countdown dots
+    const countdownEl = document.getElementById('next-chord-countdown');
+    const warningBeats = totalBeats - triggerBeat;
+    const activeWarningIdx = currentBeatIdx - triggerBeat;
+
+    let dotsHtml = '';
+    for (let i = 0; i < warningBeats; i++) {
+        const isActive = i <= activeWarningIdx;
+        dotsHtml += '<span class="countdown-dot' + (isActive ? ' active' : '') + '"></span>';
+    }
+    countdownEl.innerHTML = dotsHtml;
+
+    previewEl.classList.add('visible');
+}
+
 /* ── Play controls ── */
 function togglePlay() {
     if (isPlaying) {
@@ -1589,6 +1712,8 @@ function stopPlay() {
     const btn = document.getElementById('play-btn');
     btn.textContent = '▶ 自動播放';
     btn.classList.remove('playing');
+    const previewEl = document.getElementById('next-chord-preview');
+    if (previewEl) previewEl.classList.remove('visible');
 }
 
 function tick() {
@@ -2233,6 +2358,8 @@ function pausePlayAlong() {
     var btn = document.getElementById('playalong-btn');
     btn.textContent = '▶ 繼續';
     btn.classList.remove('playing');
+    const previewEl = document.getElementById('next-chord-preview');
+    if (previewEl) previewEl.classList.remove('visible');
 }
 
 function seekPlayAlong(pct) {
@@ -2257,6 +2384,16 @@ function syncChordToAudio() {
         updateDisplay();
     }
 
+    // Show next chord warning in Play-Along mode
+    var barSec = beatSec * beatsPerChord;
+    var barElapsedBeats = (t % barSec) / beatSec;
+    var currentBeatIdx = Math.floor(barElapsedBeats);
+    var vis = getVisibleIndices();
+    var pos = vis.indexOf(currentIdx);
+    var nextIdx = (pos >= 0 && pos < vis.length - 1) ? vis[pos + 1] : vis[0];
+    var nextChordName = (vis.length > 1) ? CHORDS[nextIdx] : null;
+    showNextChordWarning(nextChordName, currentBeatIdx, beatsPerChord);
+
     // Update seek bar
     var pct = (t / PA_AUDIO.duration) * 100;
     document.getElementById('playalong-seek').value = pct;
@@ -2279,6 +2416,8 @@ PA_AUDIO.addEventListener('ended', function() {
     var btn = document.getElementById('playalong-btn');
     btn.textContent = '▶ 跟著彈';
     btn.classList.remove('playing');
+    var previewEl = document.getElementById('next-chord-preview');
+    if (previewEl) previewEl.classList.remove('visible');
 });
 
 PA_AUDIO.addEventListener('pause', function() {

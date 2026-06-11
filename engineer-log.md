@@ -486,3 +486,9 @@ L092（index.lock 並發）已涵蓋本輪 salvage 觀察。competitor-research 
 - 3 對標: Yousician, Chordify, Ultimate Guitar
 - 1 ship feature: Visual & audio metronome clicks (play downbeat-accented metronome clicks via Web Audio API and trigger synchronized visual flashing dots for auto-play and transition drills).
 - KPI-impact: KPI-K1. Guiding children to keep a steady tempo during practice directly lowers training friction and helps them play their first song segment within 30 minutes.
+
+### Competitor Research Round - 2026-06-11
+- 3 對標: Yousician, Chordify, Soundslice
+- 1 ship feature: Next-chord preview & countdown warning (shows the upcoming chord and its fingering diagram 2 beats before switching, with countdown dots to help children prepare fingering transitions).
+- KPI-impact: KPI-K1. Tackling slow chord changes with pre-transition prompts helps children start playing their first segment within 15 minutes.
+

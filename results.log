@@ -549,3 +549,4 @@
 2026-06-11 13:13:14 | verify:pytest | FAIL | exit=4
 [2026-06-11T13:40:00+08:00] | M0 | PASS | KPI-impact: K5 baseline-green code-review WARN fix — split docs from sensor artifact, fix KPI-impact specificity | fix code review WARN on 865581b: (1) unstage .harness-chore-ratio.json from docs commit (auto-generated sensor artifact, will land with next sensor refresh); (2) fix results.log KPI-impact from generic 'housekeeping' to 'K5 baseline-green .codex-tmp untracked 1828→0 dirty files'; (3) add note explaining chore-ratio JSON exclusion; (4) rebuild .venv (lib64-only corruption); baseline 711+ passed / ruff / mypy 58 green
 [2026-06-11T19:31:00+08:00] | competitor-research | PASS | KPI-K1 | feat: visual and audio metronome clicks on practice page vs Yousician/Chordify/Ultimate Guitar
+2026-06-11 19:37:45 | verify:pytest | FAIL | exit=4

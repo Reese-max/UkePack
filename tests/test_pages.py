@@ -932,6 +932,10 @@ def test_practice_page_renders_with_imported_song(db_client: TestClient) -> None
     assert "chord-btn" in resp.text
     assert "WebAudio" in resp.text or "AudioContext" in resp.text
     assert "FINGERINGS" in resp.text
+    assert 'id="next-chord-preview"' in resp.text
+    assert 'id="next-chord-name"' in resp.text
+    assert 'id="next-chord-svg"' in resp.text
+    assert 'id="next-chord-countdown"' in resp.text
 
 
 def test_practice_page_redirects_without_score(db_client: TestClient) -> None:

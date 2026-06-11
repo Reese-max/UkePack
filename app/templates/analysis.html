@@ -229,6 +229,13 @@ F | G | C | C |"
                     {% endfor %}
                 </div>
                 {% endif %}
+                {% if analysis.key_recommendation.semitone_shift != 0 %}
+                <div style="margin-top:0.6rem">
+                    <form method="POST" action="/projects/{{ project.id }}/save-transpose?semitones={{ project.semitone_shift + analysis.key_recommendation.semitone_shift }}">
+                        <button type="submit" class="btn btn-primary btn-sm" style="font-size:0.8rem; padding:0.25rem 0.5rem">🎯 套用建議 Key</button>
+                    </form>
+                </div>
+                {% endif %}
             </div>
             {% if analysis.playability.capo and analysis.playability.capo.recommended %}
             <div class="data-cell">
@@ -376,7 +383,7 @@ F | G | C | C |"
         </p>
         <div style="display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center; margin-bottom:0.75rem">
             <span style="font-size:0.85rem; color:var(--muted)">半音：</span>
-            {% for s in [-2, -1, 0, 1, 2] %}
+            {% for s in [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6] %}
             <button class="btn btn-ghost btn-sm{% if s == project.semitone_shift %} active{% endif %}"
                     hx-get="/projects/{{ project.id }}/chords-transposed?semitones={{ s }}"
                     hx-target="#chord-list-transposed"
@@ -385,8 +392,8 @@ F | G | C | C |"
                     style="min-width:2.5rem">{{ s }}</button>
             {% endfor %}
             <span style="margin-left:1rem; font-size:0.85rem; color:var(--muted)">Capo：</span>
-            {% for c in [0, 1, 2, 3, 4, 5] %}
-            <button class="btn btn-ghost btn-sm{% if (project.semitone_shift < 0 and c == -project.semitone_shift) or (project.semitone_shift >= 0 and c == 0 and c == 0) or (project.semitone_shift == 0 and c == 0) %} active{% endif %}"
+            {% for c in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] %}
+            <button class="btn btn-ghost btn-sm{% if (project.semitone_shift < 0 and c == -project.semitone_shift) or (project.semitone_shift >= 0 and c == 0) %} active{% endif %}"
                     hx-get="/projects/{{ project.id }}/chords-transposed?capo_fret={{ c }}"
                     hx-target="#chord-list-transposed"
                     hx-swap="outerHTML"

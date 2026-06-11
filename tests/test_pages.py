@@ -1361,4 +1361,49 @@ def test_save_transpose_success(db_client: TestClient) -> None:
     assert "D" in analysis_resp.text
 
 
+def test_save_transpose_recommended_key_ui(db_client: TestClient) -> None:
+    """🎯 套用建議 Key button is rendered when target key semitones differ from current shift."""
+    create = db_client.post(
+        "/api/projects", json={"title": "Recommended Key Test", "source_type": "public_domain"}
+    )
+    pid = create.json()["id"]
+    db_client.post(f"/api/projects/{pid}/chords", json={"text": "{key: E major}\nE | A | B7"})
+
+    resp = db_client.get(f"/projects/{pid}")
+    assert resp.status_code == 200
+    assert "套用建議 Key" in resp.text
+
+    import re
+    match = re.search(r'save-transpose\?semitones=(-?\d+)', resp.text)
+    assert match is not None
+    recommended_shift = int(match.group(1))
+
+    # Let's post to save-transpose to apply the recommended key shift dynamically
+    save_resp = db_client.post(f"/projects/{pid}/save-transpose?semitones={recommended_shift}")
+    assert save_resp.status_code == 200
+
+    resp2 = db_client.get(f"/projects/{pid}")
+    assert "套用建議 Key" not in resp2.text
+
+
+
+def test_chords_transposed_large_range(db_client: TestClient) -> None:
+    """Support transposition with full 12 semitones (-6 to 6)."""
+    create = db_client.post(
+        "/api/projects", json={"title": "Large Transpose", "source_type": "public_domain"}
+    )
+    pid = create.json()["id"]
+    db_client.post(f"/api/projects/{pid}/chords", json={"text": "C | G"})
+
+    # Test +6 and -6 semitones
+    resp_up = db_client.get(f"/projects/{pid}/chords-transposed?semitones=6")
+    assert resp_up.status_code == 200
+    assert "F#</span>" in resp_up.text or "Gb</span>" in resp_up.text
+
+    resp_down = db_client.get(f"/projects/{pid}/chords-transposed?semitones=-6")
+    assert resp_down.status_code == 200
+    assert "F#</span>" in resp_down.text or "Gb</span>" in resp_down.text
+
+
+
 

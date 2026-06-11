@@ -481,3 +481,8 @@ L092（index.lock 並發）已涵蓋本輪 salvage 觀察。competitor-research 
 - **髒檔根因**：`.codex-tmp/` (harness 執行暫存目錄) 被誤 track 進 repository，導致實體檔案刪除後 index 仍有 1827 個 deletion 髒檔。已運行 \`git rm -r --cached .codex-tmp\` 解鎖並在 \`.gitignore\` 中加入 \`.codex-tmp/\` 以阻斷未來污染。
 - **mypy 失敗根因**：WSL mount NTFS filesystem \`/mnt/d/\` 下 mypy 連接 sqlite cache db 時出現 \`OperationalError: disk I/O error\`。已通過 \`--cache-dir=/tmp/mypy_cache\` 替代快取目錄成功解決，並驗證 baseline 100% 綠 (pytest 711+ passed/ruff green/mypy green)。
 - **實作落地**：將上一輪 \`competitor-research\` 未 commit 的 \`section-specific loop practice\` 變更與對應 integration test 提交落地。
+
+### Competitor Research Round - 2026-06-11
+- 3 對標: Yousician, Chordify, Ultimate Guitar
+- 1 ship feature: Visual & audio metronome clicks (play downbeat-accented metronome clicks via Web Audio API and trigger synchronized visual flashing dots for auto-play and transition drills).
+- KPI-impact: KPI-K1. Guiding children to keep a steady tempo during practice directly lowers training friction and helps them play their first song segment within 30 minutes.

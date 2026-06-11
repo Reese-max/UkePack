@@ -986,6 +986,8 @@ def test_practice_page_has_metronome_controls(db_client: TestClient) -> None:
     assert "bpm-slider" in resp.text
     assert "自動播放" in resp.text
     assert "auto-tempo-chk" in resp.text
+    assert "metronome-sound-chk" in resp.text
+    assert 'id="metronome-dot"' in resp.text
 
 
 def test_practice_page_auto_tempo_acceleration_logic(db_client: TestClient) -> None:

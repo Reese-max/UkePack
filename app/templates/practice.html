@@ -894,6 +894,28 @@
         margin-top: 0.5rem;
     }
 
+    /* ── Metronome visual dot ── */
+    .metronome-dot {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background-color: #e0e0e0;
+        margin-left: 0.5rem;
+        transition: background-color 0.05s ease-out, transform 0.05s ease-out;
+        border: 1px solid var(--border);
+    }
+    .metronome-dot.flash {
+        background-color: #4caf50 !important;
+        transform: scale(1.3);
+        box-shadow: 0 0 8px #4caf50;
+    }
+    .metronome-dot.flash-downbeat {
+        background-color: #ff9800 !important;
+        transform: scale(1.5);
+        box-shadow: 0 0 10px #ff9800;
+    }
+
     /* ── Responsive ── */
     @media (max-width: 560px) {
         .chord-display { gap: 1rem; padding: 1rem; }
@@ -1032,7 +1054,10 @@
     {# ── Controls ── #}
     <div class="controls-bar">
         <button type="button" class="ctrl-btn ctrl-btn-ghost" onclick="prevChord()" aria-label="上一個和弦">⏮ 上一個</button>
-        <button type="button" class="ctrl-btn ctrl-btn-primary" id="play-btn" onclick="togglePlay()" aria-label="播放或暫停">▶ 自動播放</button>
+        <div style="position: relative; display: inline-flex; align-items: center;">
+            <button type="button" class="ctrl-btn ctrl-btn-primary" id="play-btn" onclick="togglePlay()" aria-label="播放或暫停">▶ 自動播放</button>
+            <span id="metronome-dot" class="metronome-dot" title="節拍器視覺閃爍"></span>
+        </div>
         <button type="button" class="ctrl-btn ctrl-btn-ghost" onclick="nextChord()" aria-label="下一個和弦">下一個 ⏭</button>
     </div>
 
@@ -1066,6 +1091,10 @@
         <label class="left-handed-label" style="margin-left:1.5rem; display:inline-flex; align-items:center; gap:0.25rem; cursor:pointer">
             <input type="checkbox" id="left-handed-chk" onchange="toggleLeftHanded(this.checked)">
             <span>🫲 左撇子模式</span>
+        </label>
+        <label class="metronome-sound-label" style="margin-left:1.5rem; display:inline-flex; align-items:center; gap:0.25rem; cursor:pointer">
+            <input type="checkbox" id="metronome-sound-chk" checked>
+            <span>🔊 節拍器音效</span>
         </label>
     </div>
 
@@ -1300,6 +1329,25 @@ function playChordAudio(chordName) {
     });
 }
 
+/* ── Play metronome click ── */
+function playMetronomeClick(ctx, time, isDownbeat) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(isDownbeat ? 1000 : 750, time);
+    
+    gain.gain.setValueAtTime(0, time);
+    gain.gain.linearRampToValueAtTime(0.25, time + 0.002);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+    
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    osc.start(time);
+    osc.stop(time + 0.06);
+}
+
 /* ── Play a strum pattern (sequential strokes) ── */
 function playStrumAudio(chordName) {
     const pattern = STRUMS[selectedStrumIdx];
@@ -1311,8 +1359,29 @@ function playStrumAudio(chordName) {
     const strokes = pattern.strokes;
 
     strokes.forEach((stroke, idx) => {
-        if (stroke === '-') return; // rest
         const offset = now + idx * beatSec;
+        const isDownbeat = (idx === 0);
+
+        // Schedule metronome click if enabled
+        const metronomeSoundChk = document.getElementById('metronome-sound-chk');
+        if (metronomeSoundChk && metronomeSoundChk.checked) {
+            playMetronomeClick(ctx, offset, isDownbeat);
+        }
+
+        // Flash visual metronome dot
+        setTimeout(() => {
+            const dot = document.getElementById('metronome-dot');
+            if (dot) {
+                const flashClass = isDownbeat ? 'flash-downbeat' : 'flash';
+                dot.classList.add(flashClass);
+                setTimeout(() => {
+                    dot.classList.remove('flash', 'flash-downbeat');
+                }, 100);
+            }
+        }, (offset - now) * 1000);
+
+        if (stroke === '-') return; // rest
+
         // Highlight the beat visually
         setTimeout(() => highlightStrumBeat(idx), (offset - now) * 1000);
 
@@ -1848,9 +1917,32 @@ function drillTick() {
     var t = TRANSITIONS[drillIdx];
     var chord = drillShowingFirst ? t.from : t.to;
     var beatMs = (60 / bpm) * 1000;
+    var beatSec = 60 / bpm;
 
     // Play chord
     playChordAudio(chord);
+
+    // Schedule metronome clicks (2 beats per tick)
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
+    const metronomeSoundChk = document.getElementById('metronome-sound-chk');
+    if (metronomeSoundChk && metronomeSoundChk.checked) {
+        playMetronomeClick(ctx, now, true);
+        playMetronomeClick(ctx, now + beatSec, false);
+    }
+
+    // Flash visual metronome dot (2 beats per tick)
+    const dot = document.getElementById('metronome-dot');
+    if (dot) {
+        dot.classList.add('flash-downbeat');
+        setTimeout(() => { dot.classList.remove('flash-downbeat'); }, 100);
+
+        setTimeout(() => {
+            if (!drillActive) return;
+            dot.classList.add('flash');
+            setTimeout(() => { dot.classList.remove('flash'); }, 100);
+        }, beatSec * 1000);
+    }
 
     // Update visual
     if (drillShowingFirst) {

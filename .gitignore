@@ -111,3 +111,4 @@ auto-dev-summary.md
 .tmp_*.lock
 .tmp-pytest-*/
 logs/
+.codex-tmp/

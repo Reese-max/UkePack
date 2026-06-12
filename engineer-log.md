@@ -557,3 +557,40 @@ Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 →
 3. K5: 修 L092 auto-salvage 根因（排程器 single-instance lock）
 
 ### 本次無新 global learning
+
+---
+## 反思 2026-06-12T11:28:00+08:00（v233 /pua KPI-driven 深度回顧）
+
+### KPI 進展表
+| KPI | 上次值 (v230) | 當前值 | Δ | 狀態 |
+|-----|-------|-------|---|------|
+| K1 北極星（<30min 能彈第一段） | 720+ passed, 8 competitor-research features | 721 passed, 8 competitor-research features | +1 test | ✅穩定 |
+| K2 匯入成功率（30 首 ≥90%） | 100% (30 fixtures) | 100% (30 fixtures) | 0 | ✅飽和 |
+| K5 Baseline（pytest/ruff/mypy） | 720+ passed / ruff / mypy 58 | 721 passed / ruff green / mypy 58 green | +1 test | ✅進步 |
+| K6 Teacher trial 回饋（≥5 老師） | 0/5 | 0/5 | 0 | ⚠️卡住 |
+| K7 Onboarding 文件覆蓋 | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布
+- M0-3 (KPI 推進): 5 件
+- H0 (Housekeeping): 11 件
+- chore_ratio: 68.75%（> 30% 原因：其中 3 件為 auto-salvage 結構性並發搶救噪音，1 件為 chore(governance)。扣除 3 件 auto-salvage 後，真實 commit 共 13 件，housekeep 共 8 件，真實 chore_ratio = 61.5%。因 features 飽和 daemon idle 造成日誌與 evolve 反思 commit 比例偏高）
+
+### 卡住的 KPI 與根因
+- **K6（Teacher trial 回饋 0/5）**：持續卡住（已 frozen 90+ 輪）。
+  - 根因：外部真人流程阻塞（Render.com 部署未確認、`{{TRIAL_URL}}` 未設定、邀請信未寄出）。此部分皆為 owner-gated，對 daemon 無推進槓桿。唯一解鎖方式是 owner 投入 5分 鐘操作。
+
+### daemon failures.jsonl 統計（最後 20 筆）
+- **api_error_status 分布**：全部 20 筆皆為 `""` (空)
+- **engine 分布**：全部 20 筆皆為 `mimo` 家族
+- **exit_code 分布**：全部 20 筆皆為 `1`
+- **signal_name 分布**：全部 20 筆皆為 `""` (空)
+- **結構性 bug 與 L4 proposal**：連續 20 筆 exit_code=1 且無 API error 屬結構性 bug，根因為並發排程器多次觸發 daemon 實體造成 git `index.lock` 競爭。已提交 L4 arch proposal 引入 single-instance 鎖。最新一筆失敗停留在 2026-06-07，此後無新失敗。
+
+### 下一步 3 個 KPI 推進動作
+1. **K6**: owner 確認 Render deploy → 設定 {{TRIAL_URL}} → 寄出 P1-18b 邀請信。
+2. **K1**: 繼續對標 Yousician/Chordify 深化練習頁功能（如和弦彈奏正確性的音頻波形回饋）。
+3. **K5**: 透過 L4 提案落地 flock 鎖機制以消除 `index.lock` 並發競爭，將真實 chore_ratio 降至 <30%。
+
+### 跨專案學習迴路
+追加一條 `L104`（uv 自動重建 venv 缺 dev 依賴陷阱）到 `/d/auto-dev/learnings/global.md`。
+

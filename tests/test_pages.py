@@ -1475,3 +1475,33 @@ def test_practice_page_has_progress_ring(db_client: TestClient) -> None:
     # 15-min and 30-min milestone messages
     assert "15 分鐘到了" in resp.text
     assert "30 分鐘北極星達成" in resp.text
+
+
+def test_practice_page_has_listen_and_play(db_client: TestClient) -> None:
+    """Practice page includes Listen & Play call-and-response mode with mic detection."""
+    create = db_client.post(
+        "/api/projects", json={"title": "ListenPlay Song", "source_type": "public_domain"}
+    )
+    pid = create.json()["id"]
+    with TWINKLE.open("rb") as fh:
+        db_client.post(
+            f"/api/projects/{pid}/import",
+            files={"file": ("twinkle.musicxml", fh, "application/xml")},
+        )
+
+    resp = db_client.get(f"/projects/{pid}/practice")
+    assert resp.status_code == 200
+    # Listen & Play section present
+    assert "listen-play" in resp.text
+    assert "聽你彈" in resp.text
+    assert "lp-btn" in resp.text
+    assert "lp-chord" in resp.text
+    assert "lp-status" in resp.text
+    assert "lp-meter" in resp.text
+    # JS functions present
+    assert "toggleListenPlay" in resp.text
+    assert "startListenPlay" in resp.text
+    assert "stopListenPlay" in resp.text
+    assert "listenPlayReference" in resp.text
+    assert "lpDetectLoop" in resp.text
+    assert "LP_RMS_THRESHOLD" in resp.text

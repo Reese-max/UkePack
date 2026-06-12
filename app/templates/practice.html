@@ -1050,6 +1050,68 @@
         margin-top: 0.5rem;
     }
 
+    /* ── Listen & Play (call-and-response practice) ── */
+    .listen-play {
+        background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+        border: 2px solid #66bb6a;
+        border-radius: 16px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+    .listen-play h3 { margin: 0 0 0.25rem; font-size: 1.15rem; color: #2e7d32; }
+    .listen-play-sub { font-size: 0.85rem; color: #558b2f; margin: 0 0 0.75rem; }
+    .listen-play-status {
+        font-size: 1.6rem;
+        font-weight: 700;
+        min-height: 2.4rem;
+        line-height: 2.4rem;
+        transition: color 0.3s;
+    }
+    .listen-play-status.waiting { color: #1565c0; }
+    .listen-play-status.listening { color: #e65100; animation: pulse-glow 1s infinite; }
+    .listen-play-status.success { color: #2e7d32; }
+    .listen-play-chord {
+        font-size: 2.8rem;
+        font-weight: 800;
+        color: #1b5e20;
+        margin: 0.5rem 0;
+        min-height: 3.5rem;
+    }
+    .listen-play-meter {
+        width: 100%;
+        height: 8px;
+        background: #e0e0e0;
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 0.5rem 0;
+    }
+    .listen-play-meter-fill {
+        height: 100%;
+        width: 0%;
+        background: #66bb6a;
+        border-radius: 4px;
+        transition: width 0.1s;
+    }
+    .listen-play-btn {
+        background: #2e7d32;
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 0.6rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .listen-play-btn:hover { background: #1b5e20; transform: translateY(-1px); }
+    .listen-play-btn.running { background: #e53935; border-color: #c62828; }
+    .listen-play-score {
+        font-size: 0.85rem;
+        color: #558b2f;
+        margin-top: 0.5rem;
+    }
+
     /* ── Metronome visual dot ── */
     .metronome-dot {
         display: inline-block;
@@ -1410,6 +1472,20 @@
             成功次數：<span class="starter-count" id="starter-count">0</span> / 3
         </div>
         <div class="starter-celebrate" id="starter-celebrate">🎉 15 分鐘目標達成！你可以彈第一段了！</div>
+    </div>
+
+    {# ── Listen & Play (call-and-response: system plays → student strums → mic detects → advance) ── #}
+    <div class="listen-play" id="listen-play">
+        <h3>🎤 聽你彈 Listen &amp; Play</h3>
+        <p class="listen-play-sub">系統彈一個和弦 → 你跟著彈 → 麥克風聽到就自動換下一個！</p>
+        <div class="listen-play-chord" id="lp-chord" aria-live="polite"></div>
+        <div class="listen-play-status waiting" id="lp-status">按「開始」試試看</div>
+        <div class="listen-play-meter"><div class="listen-play-meter-fill" id="lp-meter"></div></div>
+        <div style="margin-top:0.75rem; display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap;">
+            <button type="button" class="listen-play-btn" id="lp-btn" onclick="toggleListenPlay()">▶ 開始聽你彈</button>
+        </div>
+        <div class="listen-play-score" id="lp-score"></div>
+        <p style="font-size:0.75rem; color:#888; margin:0.5rem 0 0;">需要麥克風權限 · 安靜環境效果更好</p>
     </div>
 
     {# ── Practice timer + K1 30-min progress ring ── #}
@@ -2735,6 +2811,137 @@ timerInterval = setInterval(function() {
         document.getElementById('streak-badge').style.display = '';
     }
     renderHistory();
+
+    /* ── Listen & Play (call-and-response practice via microphone) ── */
+    var lpRunning = false;
+    var lpState = 'idle'; // idle | reference | listening | success
+    var lpStream = null;
+    var lpSource = null;
+    var lpAnalyser = null;
+    var lpRafId = null;
+    var lpScore = 0;
+    var lpAttempts = 0;
+    var LP_RMS_THRESHOLD = 0.015;
+
+    function toggleListenPlay() {
+        if (lpRunning) { stopListenPlay(); } else { startListenPlay(); }
+    }
+
+    async function startListenPlay() {
+        if (lpRunning) return;
+        // Stop auto-play if running
+        if (isPlaying) { togglePlay(); }
+        // Stop tuner if running
+        if (typeof tunerRunning !== 'undefined' && tunerRunning) { stopTuner(); }
+        try {
+            lpStream = await navigator.mediaDevices.getUserMedia({
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+            });
+        } catch (e) {
+            document.getElementById('lp-status').textContent = '❌ 無法取得麥克風權限';
+            document.getElementById('lp-status').className = 'listen-play-status';
+            return;
+        }
+        var ctx = getAudioCtx();
+        lpSource = ctx.createMediaStreamSource(lpStream);
+        lpAnalyser = ctx.createAnalyser();
+        lpAnalyser.fftSize = 2048;
+        lpSource.connect(lpAnalyser);
+
+        lpRunning = true;
+        lpScore = 0;
+        lpAttempts = 0;
+        updateLpScore();
+        var btn = document.getElementById('lp-btn');
+        btn.textContent = '⏹ 停止';
+        btn.classList.add('running');
+        // Start from first visible chord
+        var vis = getVisibleIndices();
+        currentIdx = vis.length > 0 ? vis[0] : 0;
+        updateDisplay();
+        lpState = 'reference';
+        listenPlayReference();
+    }
+
+    function stopListenPlay() {
+        lpRunning = false;
+        lpState = 'idle';
+        if (lpRafId) { cancelAnimationFrame(lpRafId); lpRafId = null; }
+        if (lpSource) { lpSource.disconnect(); lpSource = null; }
+        if (lpAnalyser) { lpAnalyser.disconnect(); lpAnalyser = null; }
+        if (lpStream) { lpStream.getTracks().forEach(function(t) { t.stop(); }); lpStream = null; }
+        var btn = document.getElementById('lp-btn');
+        btn.textContent = '▶ 開始聽你彈';
+        btn.classList.remove('running');
+        document.getElementById('lp-status').textContent = '按「開始」試試看';
+        document.getElementById('lp-status').className = 'listen-play-status waiting';
+        document.getElementById('lp-chord').textContent = '';
+        document.getElementById('lp-meter').style.width = '0%';
+    }
+
+    function listenPlayReference() {
+        if (!lpRunning || lpState !== 'reference') return;
+        var chord = CHORDS[currentIdx];
+        document.getElementById('lp-chord').textContent = chord;
+        document.getElementById('lp-status').textContent = '🔊 聽好了…';
+        document.getElementById('lp-status').className = 'listen-play-status waiting';
+        // Play reference chord
+        playStrumAudio(chord);
+        // After reference audio finishes (~1s for a strum), switch to listening
+        setTimeout(function() {
+            if (!lpRunning || lpState !== 'reference') return;
+            lpState = 'listening';
+            document.getElementById('lp-status').textContent = '🎸 換你彈！';
+            document.getElementById('lp-status').className = 'listen-play-status listening';
+            lpDetectLoop();
+        }, 1200);
+    }
+
+    function lpDetectLoop() {
+        if (!lpRunning || lpState !== 'listening' || !lpAnalyser) return;
+        var buf = new Float32Array(lpAnalyser.fftSize);
+        lpAnalyser.getFloatTimeDomainData(buf);
+        var rms = 0;
+        for (var i = 0; i < buf.length; i++) rms += buf[i] * buf[i];
+        rms = Math.sqrt(rms / buf.length);
+        // Update meter (scale RMS to 0-100%)
+        var pct = Math.min(100, (rms / 0.1) * 100);
+        document.getElementById('lp-meter').style.width = pct + '%';
+
+        if (rms > LP_RMS_THRESHOLD) {
+            // Strum detected!
+            lpState = 'success';
+            lpScore++;
+            lpAttempts++;
+            updateLpScore();
+            document.getElementById('lp-status').textContent = '✅ 太棒了！';
+            document.getElementById('lp-status').className = 'listen-play-status success';
+            document.getElementById('lp-meter').style.width = '100%';
+            // Advance after celebration
+            setTimeout(function() {
+                if (!lpRunning) return;
+                document.getElementById('lp-meter').style.width = '0%';
+                // Move to next visible chord
+                var vis = getVisibleIndices();
+                var pos = vis.indexOf(currentIdx);
+                if (pos >= 0 && pos < vis.length - 1) {
+                    currentIdx = vis[pos + 1];
+                } else {
+                    currentIdx = vis[0] || 0;
+                }
+                updateDisplay();
+                lpState = 'reference';
+                listenPlayReference();
+            }, 1000);
+            return;
+        }
+        lpRafId = requestAnimationFrame(lpDetectLoop);
+    }
+
+    function updateLpScore() {
+        document.getElementById('lp-score').textContent =
+            '🎯 成功 ' + lpScore + ' 個和弦' + (lpAttempts > 0 ? '（共嘗試 ' + lpAttempts + ' 次）' : '');
+    }
 })();
 
 </script>

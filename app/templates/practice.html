@@ -845,6 +845,35 @@
     }
     .guided-celebrate.show { display: block; animation: pop 0.4s ease; }
 
+    /* ── Quick-start guide ── */
+    .quickstart-banner {
+        background: linear-gradient(135deg, #fff9c4 0%, #fff3e0 100%);
+        border: 2px solid #ffb74d;
+        border-radius: var(--radius);
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+    .quickstart-banner h3 { margin: 0 0 0.6rem; font-size: 1.1rem; color: #e65100; }
+    .quickstart-steps { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    .quickstart-steps li {
+        display: flex; align-items: center; gap: 0.4rem;
+        background: #fff; border-radius: 8px; padding: 0.4rem 0.75rem;
+        font-size: 0.95rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .quickstart-steps .qs-num {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 1.5rem; height: 1.5rem; border-radius: 50%;
+        background: #ff9800; color: #fff; font-weight: 700; font-size: 0.85rem;
+    }
+    .quickstart-close {
+        position: absolute; top: 0.5rem; right: 0.75rem;
+        background: none; border: none; font-size: 1.2rem; cursor: pointer;
+        color: #bf360c; line-height: 1; padding: 0.25rem;
+    }
+    .quickstart-close:hover { color: #d84315; }
+    .quickstart-banner.hidden { display: none; }
+
     /* ── Tuner ── */
     .tuner-section {
         background: linear-gradient(135deg, #e3f2fd 0%, #e8eaf6 100%);
@@ -1002,6 +1031,17 @@
         <span class="badge badge-orange">原曲 {{ analysis.bpm }} BPM</span>
         {% endif %}
         <span class="badge badge-green">{{ analysis.key_recommendation.target_key }}</span>
+    </div>
+
+    {# ── Quick-start guide (first-visit) ── #}
+    <div class="quickstart-banner" id="quickstart-banner" role="note" aria-label="快速開始指南">
+        <button type="button" class="quickstart-close" onclick="dismissQuickStart()" aria-label="關閉指南">✕</button>
+        <h3>🌟 新手三步驟</h3>
+        <ol class="quickstart-steps">
+            <li><span class="qs-num">1</span> 按「🎤 開始調音」調好弦</li>
+            <li><span class="qs-num">2</span> 按 ▶ 自動跟著節拍走</li>
+            <li><span class="qs-num">3</span> 看上方和弦圖按弦，跟著刷！</li>
+        </ol>
     </div>
 
     {# ── Current chord display ── #}
@@ -1338,6 +1378,16 @@ const SECTIONS = [{% for sec in analysis.sections %}
 {% endfor %}];
 /* ── Chord measures (parallel to CHORDS) ── */
 const CHORD_MEASURES = [{% for ch in analysis.chords %}{{ ch.measure }}{% if not loop.last %},{% endif %}{% endfor %}];
+
+/* ── Quick-start banner dismiss ── */
+(function() {
+    var key = 'ukepack_qs_dismissed_{{ project.id }}';
+    var banner = document.getElementById('quickstart-banner');
+    if (banner && localStorage.getItem(key)) banner.classList.add('hidden');
+    window.dismissQuickStart = function() {
+        if (banner) { banner.classList.add('hidden'); localStorage.setItem(key, '1'); }
+    };
+})();
 
 /* ── GCEA open-string frequencies (Hz) ── */
 const OPEN_FREQS = [392.00, 261.63, 329.63, 440.00]; // G4, C4, E4, A4

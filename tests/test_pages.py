@@ -1426,3 +1426,23 @@ def test_practice_page_chord_svg_shows_finger_numbers(db_client: TestClient) -> 
     assert 'font-weight="bold"' in resp.text
 
 
+def test_practice_page_quickstart_banner(db_client: TestClient) -> None:
+    """Practice page shows a quick-start guide banner for first-time visitors."""
+    create = db_client.post(
+        "/api/projects", json={"title": "QS Song", "source_type": "public_domain"}
+    )
+    pid = create.json()["id"]
+    with TWINKLE.open("rb") as fh:
+        db_client.post(
+            f"/api/projects/{pid}/import",
+            files={"file": ("twinkle.musicxml", fh, "application/xml")},
+        )
+
+    resp = db_client.get(f"/projects/{pid}/practice")
+    assert resp.status_code == 200
+    # Quick-start banner present with 3 steps
+    assert "quickstart-banner" in resp.text
+    assert "新手三步驟" in resp.text
+    assert "dismissQuickStart" in resp.text
+    # localStorage key includes project id for per-project dismiss
+    assert f"ukepack_qs_dismissed_{pid}" in resp.text

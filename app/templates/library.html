@@ -60,6 +60,13 @@
 </div>
 {% endif %}
 
+{# ── Smart Recommendations (only shown when mastery data exists) ── #}
+<div id="smart-recommendations" class="smart-recs" style="display:none;">
+    <h2 class="rec-title">🎯 推薦給你</h2>
+    <p class="rec-subtitle">根據你已學會的和弦，這些歌你快能彈了！</p>
+    <div class="rec-grid" id="rec-grid"></div>
+</div>
+
 {% if songs %}
 <div class="library-grid" id="library-grid">
     {% for song in songs %}
@@ -165,6 +172,92 @@
 .badge-level-3 { background: #fde2e2; color: #a71d2a; }
 .badge-chords { background: #e8f4fd; color: #1a5276; font-size: 0.7rem; }
 .library-card[style*="display: none"] { display: none !important; }
+/* ── Smart Recommendations ── */
+.smart-recs {
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.2rem;
+    background: linear-gradient(135deg, #f0f7f0 0%, #e8f4e8 100%);
+    border-radius: 16px;
+    border: 1.5px solid #c8e6c9;
+}
+.rec-title {
+    font-size: 1.15rem;
+    margin: 0 0 0.2rem;
+    color: #2e7d32;
+}
+.rec-subtitle {
+    font-size: 0.82rem;
+    color: #5a7a5a;
+    margin: 0 0 0.8rem;
+}
+.rec-grid {
+    display: grid;
+    gap: 0.7rem;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+.rec-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 0.75rem 0.9rem;
+    border: 1.5px solid #c8e6c9;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    transition: box-shadow 0.15s ease;
+}
+.rec-card:hover { box-shadow: 0 2px 8px rgba(76,124,89,0.15); }
+.rec-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.4rem;
+}
+.rec-card-title {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #1b5e20;
+}
+.rec-card-level {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    flex-shrink: 0;
+}
+.rec-coverage-bar {
+    height: 6px;
+    background: #e0e0e0;
+    border-radius: 3px;
+    overflow: hidden;
+}
+.rec-coverage-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+.rec-coverage-fill.rec-ready { background: #4caf50; }
+.rec-coverage-fill.rec-almost { background: #ff9800; }
+.rec-coverage-fill.rec-learning { background: #f44336; }
+.rec-card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.78rem;
+    color: #5a7a5a;
+}
+.rec-card-chords {
+    font-size: 0.72rem;
+    color: #7a9a7a;
+    line-height: 1.3;
+}
+.rec-card-chords .mastered { color: #2e7d32; font-weight: 600; }
+.rec-card-chords .missing { color: #c62828; }
+.rec-card-actions {
+    margin-top: auto;
+    display: flex;
+    gap: 0.35rem;
+}
+.rec-card-actions .btn { flex: 1; }
 .chord-filter-group {
     width: 100%;
     margin-top: 0.3rem;
@@ -280,6 +373,94 @@ function syncMasteryChords() {
         var btn = document.getElementById('sync-mastery-btn');
         if (btn) btn.style.display = '';
     }
+})();
+
+// ── Smart Recommendations Engine ──
+(function() {
+    var m = {};
+    try { m = JSON.parse(localStorage.getItem('ukepack_chord_mastery')) || {}; } catch(e) {}
+    var mastered = Object.keys(m);
+    if (mastered.length === 0) return;
+
+    var cards = document.querySelectorAll('.library-card');
+    var songs = [];
+    cards.forEach(function(card) {
+        var title = card.querySelector('strong')?.textContent?.trim() || '';
+        var composer = card.querySelector('div[style*="muted"]')?.textContent?.trim() || '';
+        var songChords = (card.getAttribute('data-chords') || '').split(',').filter(Boolean);
+        var level = parseInt(card.getAttribute('data-level')) || 1;
+        var levelLabel = card.querySelector('.badge-level-' + level)?.textContent?.trim() || '';
+        var key = card.getAttribute('data-key') || '';
+        var bpm = card.querySelector('.data-cell:nth-child(2) strong')?.textContent?.trim() || '—';
+        var quickStartForm = card.querySelector('form[action*="quick-start"]');
+        var quickPdfForm = card.querySelector('form[action*="quick-pdf"]');
+
+        if (songChords.length === 0) return;
+
+        var knownCount = songChords.filter(function(c) { return mastered.indexOf(c) >= 0; }).length;
+        var coverage = knownCount / songChords.length;
+        var missing = songChords.filter(function(c) { return mastered.indexOf(c) < 0; });
+
+        songs.push({
+            title: title,
+            composer: composer,
+            chords: songChords,
+            level: level,
+            levelLabel: levelLabel,
+            key: key,
+            bpm: bpm,
+            coverage: coverage,
+            knownCount: knownCount,
+            missing: missing,
+            quickStartAction: quickStartForm?.getAttribute('action') || '',
+            quickPdfAction: quickPdfForm?.getAttribute('action') || ''
+        });
+    });
+
+    // Sort: coverage descending, then level ascending (easier first)
+    songs.sort(function(a, b) {
+        if (Math.abs(b.coverage - a.coverage) > 0.01) return b.coverage - a.coverage;
+        return a.level - b.level;
+    });
+
+    // Show top 5 with coverage > 0
+    var top = songs.filter(function(s) { return s.coverage > 0; }).slice(0, 5);
+    if (top.length === 0) return;
+
+    var container = document.getElementById('smart-recommendations');
+    var grid = document.getElementById('rec-grid');
+    if (!container || !grid) return;
+
+    top.forEach(function(s) {
+        var pct = Math.round(s.coverage * 100);
+        var fillClass = pct === 100 ? 'rec-ready' : (pct >= 60 ? 'rec-almost' : 'rec-learning');
+        var statusText = pct === 100 ? '✅ 全部和弦都會！' : '還差 ' + s.missing.length + ' 個和弦';
+        var levelBg = s.level === 1 ? '#e6f9e6' : (s.level === 2 ? '#fff3cd' : '#fde2e2');
+        var levelColor = s.level === 1 ? '#1a7a1a' : (s.level === 2 ? '#856404' : '#a71d2a');
+
+        var chordHtml = s.chords.map(function(c) {
+            var cls = mastered.indexOf(c) >= 0 ? 'mastered' : 'missing';
+            return '<span class="' + cls + '">' + c + '</span>';
+        }).join(' ');
+
+        var card = document.createElement('div');
+        card.className = 'rec-card';
+        card.innerHTML =
+            '<div class="rec-card-header">' +
+                '<span class="rec-card-title">' + s.title + '</span>' +
+                (s.levelLabel ? '<span class="rec-card-level" style="background:' + levelBg + ';color:' + levelColor + ';">' + s.levelLabel + '</span>' : '') +
+            '</div>' +
+            '<div class="rec-coverage-bar"><div class="rec-coverage-fill ' + fillClass + '" style="width:' + pct + '%;"></div></div>' +
+            '<div class="rec-card-meta"><span>' + pct + '% 已掌握</span><span>' + statusText + '</span></div>' +
+            '<div class="rec-card-chords">' + chordHtml + '</div>' +
+            '<div class="rec-card-actions">' +
+                (s.quickStartAction ? '<form method="post" action="' + s.quickStartAction + '"><button class="btn btn-primary btn-sm" type="submit">一鍵練習 →</button></form>' : '') +
+                (s.quickPdfAction ? '<form method="post" action="' + s.quickPdfAction + '"><button class="btn btn-outline btn-sm" type="submit">⬇ PDF</button></form>' : '') +
+            '</div>';
+        grid.appendChild(card);
+    });
+
+    container.style.display = '';
 })();
 </script>
 {% endblock %}

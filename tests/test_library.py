@@ -177,3 +177,36 @@ def test_library_page_has_mastery_sync_button(client: TestClient) -> None:
     assert 'id="sync-mastery-btn"' in response.text
     assert "syncMasteryChords" in response.text
     assert "ukepack_chord_mastery" in response.text
+
+
+def test_library_page_has_smart_recommendations_section(client: TestClient) -> None:
+    """Library page should include a hidden smart recommendations section populated by JS."""
+    response = client.get("/library")
+
+    assert response.status_code == 200
+    assert 'id="smart-recommendations"' in response.text
+    assert 'id="rec-grid"' in response.text
+    assert "推薦給你" in response.text
+
+
+def test_library_page_has_recommendation_engine_js(client: TestClient) -> None:
+    """Library page should include the smart recommendation JS engine."""
+    response = client.get("/library")
+
+    assert response.status_code == 200
+    # Core recommendation logic
+    assert "coverage" in response.text
+    assert "rec-card" in response.text
+    assert "rec-coverage-fill" in response.text
+    assert "Smart Recommendations Engine" in response.text
+
+
+def test_library_recommendation_shows_coverage_bar(client: TestClient) -> None:
+    """Recommendation cards should include a visual coverage progress bar."""
+    response = client.get("/library")
+
+    assert response.status_code == 200
+    assert "rec-ready" in response.text
+    assert "rec-almost" in response.text
+    assert "rec-learning" in response.text
+    assert "已掌握" in response.text

@@ -112,3 +112,4 @@ auto-dev-summary.md
 .tmp-pytest-*/
 logs/
 .codex-tmp/
+research/

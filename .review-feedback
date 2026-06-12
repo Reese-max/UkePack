@@ -1,0 +1,16 @@
+[上一輪 peer-review=BLOCK on 0b9ddf16『feat(auto-untracked): land classified project candidates』]
+
+**理由 1：違反已確立的反 Pattern**
+該 commit 的 engineer-log.md 與 results.log 內容完全符合 `docs(log)-bloat-as-chore-ratio-pollutant` 反 Pattern（788e5a2 已禁止）：記錄「K1-K5/K7 飽和、K6 owner-gated、daemon idle、零任務」卻當 feat 提交，虛胖 commit ratio。
+
+**理由 2：Commit message 與實際改動完全脫節**
+message 說「land classified project candidates」，但 diff 無新增候選檔案，只有反思日誌。讀 message 期待看到功能檔案，實際看到的是 idle 狀態記錄。
+
+**理由 3：Commit type 錯誤**
+標記為 `feat` 但無功能變更。.auto-dev.env 那行設定更改也無支撐程式碼。應改 `chore(log)`，或根本不提交（內部日誌不入版本控制）。
+
+**理由 4：自相矛盾**
+log 內容自己寫「遵守反 Pattern docs(log)-bloat，本輪不 commit」，卻又 commit 了。若無可提工作，保持 idle 態即可，不必虛偽提交。
+
+**建議**：拒絕此 commit，待有實際 candidate 檔案落地時重新整理。
+[2026-06-12 22:16:40] decision: BLOCK

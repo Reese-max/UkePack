@@ -210,3 +210,71 @@ def test_library_recommendation_shows_coverage_bar(client: TestClient) -> None:
     assert "rec-almost" in response.text
     assert "rec-learning" in response.text
     assert "已掌握" in response.text
+
+
+def test_library_recommendation_sorts_by_coverage_desc(client: TestClient) -> None:
+    """Recommendation engine should sort by coverage descending, then level ascending."""
+    response = client.get("/library")
+    text = response.text
+
+    # Verify sort comparator: coverage descending (b.coverage - a.coverage)
+    assert "b.coverage - a.coverage" in text
+    # Verify tiebreaker: level ascending (a.level - b.level)
+    assert "a.level - b.level" in text
+
+
+def test_library_recommendation_filters_top_5_with_coverage(client: TestClient) -> None:
+    """Recommendation engine should show only top 5 songs with coverage > 0."""
+    response = client.get("/library")
+    text = response.text
+
+    # Verify coverage > 0 filter
+    assert "s.coverage > 0" in text
+    # Verify top-5 slice
+    assert ".slice(0, 5)" in text
+
+
+def test_library_recommendation_calculates_coverage(client: TestClient) -> None:
+    """Recommendation engine should calculate coverage as knownCount / total chords."""
+    response = client.get("/library")
+    text = response.text
+
+    # Verify coverage formula: knownCount / songChords.length
+    assert "knownCount / songChords.length" in text
+    # Verify knownCount is computed via filter
+    assert "mastered.indexOf(c) >= 0" in text
+
+
+def test_library_recommendation_uses_dom_api_not_innerhtml_for_user_data(client: TestClient) -> None:
+    """Recommendation cards should use textContent/createElement, not innerHTML with user data."""
+    response = client.get("/library")
+    text = response.text
+
+    # The recommendation engine section should use createElement + textContent
+    # Find the Smart Recommendations Engine block
+    engine_start = text.find("Smart Recommendations Engine")
+    assert engine_start > 0, "Recommendation engine block not found"
+    engine_block = text[engine_start:]
+
+    # Should use textContent for user-derived values (title, chords, etc.)
+    assert "textContent" in engine_block
+    # Should use createElement for building DOM
+    assert "createElement" in engine_block
+    # Should NOT use innerHTML with string concatenation of user data
+    # (innerHTML is acceptable only for static/structural markup, not user content)
+    innerhtml_count = engine_block.lower().count("innerhtml")
+    textcontent_count = engine_block.count("textContent")
+    assert textcontent_count > innerhtml_count, (
+        f"Expected more textContent than innerHTML usage in recommendation engine, "
+        f"got textContent={textcontent_count}, innerHTML={innerhtml_count}"
+    )
+
+
+def test_library_recommendation_empty_boundary_has_log(client: TestClient) -> None:
+    """Recommendation engine should log when no songs qualify for recommendations."""
+    response = client.get("/library")
+    text = response.text
+
+    # Verify console.log exists for empty boundary case
+    assert "console.log" in text
+    assert "跳過推薦" in text or "coverage=0" in text

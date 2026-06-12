@@ -425,7 +425,14 @@ function syncMasteryChords() {
 
     // Show top 5 with coverage > 0
     var top = songs.filter(function(s) { return s.coverage > 0; }).slice(0, 5);
-    if (top.length === 0) return;
+    if (top.length === 0) {
+        if (songs.length === 0) {
+            console.log('[UkePack] 推薦：所有歌曲無和弦資料，跳過推薦');
+        } else {
+            console.log('[UkePack] 推薦：無已掌握和弦或所有歌曲 coverage=0，共 ' + songs.length + ' 首歌');
+        }
+        return;
+    }
 
     var container = document.getElementById('smart-recommendations');
     var grid = document.getElementById('rec-grid');
@@ -438,25 +445,85 @@ function syncMasteryChords() {
         var levelBg = s.level === 1 ? '#e6f9e6' : (s.level === 2 ? '#fff3cd' : '#fde2e2');
         var levelColor = s.level === 1 ? '#1a7a1a' : (s.level === 2 ? '#856404' : '#a71d2a');
 
-        var chordHtml = s.chords.map(function(c) {
-            var cls = mastered.indexOf(c) >= 0 ? 'mastered' : 'missing';
-            return '<span class="' + cls + '">' + c + '</span>';
-        }).join(' ');
-
         var card = document.createElement('div');
         card.className = 'rec-card';
-        card.innerHTML =
-            '<div class="rec-card-header">' +
-                '<span class="rec-card-title">' + s.title + '</span>' +
-                (s.levelLabel ? '<span class="rec-card-level" style="background:' + levelBg + ';color:' + levelColor + ';">' + s.levelLabel + '</span>' : '') +
-            '</div>' +
-            '<div class="rec-coverage-bar"><div class="rec-coverage-fill ' + fillClass + '" style="width:' + pct + '%;"></div></div>' +
-            '<div class="rec-card-meta"><span>' + pct + '% 已掌握</span><span>' + statusText + '</span></div>' +
-            '<div class="rec-card-chords">' + chordHtml + '</div>' +
-            '<div class="rec-card-actions">' +
-                (s.quickStartAction ? '<form method="post" action="' + s.quickStartAction + '"><button class="btn btn-primary btn-sm" type="submit">一鍵練習 →</button></form>' : '') +
-                (s.quickPdfAction ? '<form method="post" action="' + s.quickPdfAction + '"><button class="btn btn-outline btn-sm" type="submit">⬇ PDF</button></form>' : '') +
-            '</div>';
+
+        // Header
+        var header = document.createElement('div');
+        header.className = 'rec-card-header';
+        var titleSpan = document.createElement('span');
+        titleSpan.className = 'rec-card-title';
+        titleSpan.textContent = s.title;
+        header.appendChild(titleSpan);
+        if (s.levelLabel) {
+            var levelSpan = document.createElement('span');
+            levelSpan.className = 'rec-card-level';
+            levelSpan.style.background = levelBg;
+            levelSpan.style.color = levelColor;
+            levelSpan.textContent = s.levelLabel;
+            header.appendChild(levelSpan);
+        }
+        card.appendChild(header);
+
+        // Coverage bar
+        var bar = document.createElement('div');
+        bar.className = 'rec-coverage-bar';
+        var fill = document.createElement('div');
+        fill.className = 'rec-coverage-fill ' + fillClass;
+        fill.style.width = pct + '%';
+        bar.appendChild(fill);
+        card.appendChild(bar);
+
+        // Meta
+        var meta = document.createElement('div');
+        meta.className = 'rec-card-meta';
+        var metaLeft = document.createElement('span');
+        metaLeft.textContent = pct + '% 已掌握';
+        var metaRight = document.createElement('span');
+        metaRight.textContent = statusText;
+        meta.appendChild(metaLeft);
+        meta.appendChild(metaRight);
+        card.appendChild(meta);
+
+        // Chords
+        var chordsDiv = document.createElement('div');
+        chordsDiv.className = 'rec-card-chords';
+        s.chords.forEach(function(c, i) {
+            if (i > 0) chordsDiv.appendChild(document.createTextNode(' '));
+            var span = document.createElement('span');
+            span.className = mastered.indexOf(c) >= 0 ? 'mastered' : 'missing';
+            span.textContent = c;
+            chordsDiv.appendChild(span);
+        });
+        card.appendChild(chordsDiv);
+
+        // Actions
+        var actions = document.createElement('div');
+        actions.className = 'rec-card-actions';
+        if (s.quickStartAction) {
+            var f1 = document.createElement('form');
+            f1.method = 'post';
+            f1.action = s.quickStartAction;
+            var b1 = document.createElement('button');
+            b1.className = 'btn btn-primary btn-sm';
+            b1.type = 'submit';
+            b1.textContent = '一鍵練習 →';
+            f1.appendChild(b1);
+            actions.appendChild(f1);
+        }
+        if (s.quickPdfAction) {
+            var f2 = document.createElement('form');
+            f2.method = 'post';
+            f2.action = s.quickPdfAction;
+            var b2 = document.createElement('button');
+            b2.className = 'btn btn-outline btn-sm';
+            b2.type = 'submit';
+            b2.textContent = '⬇ PDF';
+            f2.appendChild(b2);
+            actions.appendChild(f2);
+        }
+        card.appendChild(actions);
+
         grid.appendChild(card);
     });
 

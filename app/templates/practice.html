@@ -397,6 +397,71 @@
         margin-bottom: 1rem;
     }
 
+    /* ── K1 30-min progress ring (北極星 visual) ── */
+    .progress-ring-wrap {
+        position: relative;
+        width: 72px;
+        height: 72px;
+        flex-shrink: 0;
+    }
+    .progress-ring-svg {
+        transform: rotate(-90deg);
+        width: 72px;
+        height: 72px;
+    }
+    .progress-ring-bg {
+        fill: none;
+        stroke: #d4e8dc;
+        stroke-width: 6;
+    }
+    .progress-ring-fill {
+        fill: none;
+        stroke: #2d6a4f;
+        stroke-width: 6;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 0.5s ease, stroke 0.3s;
+    }
+    .progress-ring-fill.checkpoint { stroke: #e6a817; }
+    .progress-ring-fill.complete { stroke: #1b8a4a; }
+    .progress-ring-label {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: #2d6a4f;
+        pointer-events: none;
+    }
+    .progress-ring-label span { font-size: 1.1rem; }
+
+    /* ── Milestone toast ── */
+    .milestone-toast {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.8);
+        background: linear-gradient(135deg, #1b8a4a 0%, #2d6a4f 100%);
+        color: #fff;
+        padding: 1.5rem 2.5rem;
+        border-radius: var(--radius);
+        font-size: 1.3rem;
+        font-weight: 800;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s, transform 0.4s;
+        z-index: 1000;
+    }
+    .milestone-toast.show {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+        pointer-events: auto;
+    }
+    .milestone-toast .emoji { font-size: 2rem; display: block; margin-bottom: 0.3rem; }
+
     .timer-display {
         font-family: 'Courier New', monospace;
         font-size: 1.6rem;
@@ -1347,17 +1412,29 @@
         <div class="starter-celebrate" id="starter-celebrate">🎉 15 分鐘目標達成！你可以彈第一段了！</div>
     </div>
 
-    {# ── Practice timer ── #}
+    {# ── Practice timer + K1 30-min progress ring ── #}
     <div class="timer-bar" id="timer-bar" role="region" aria-label="練習計時器">
-        <span class="timer-label">⏱ 練習時間</span>
-        <span class="timer-display" id="timer-display">00:00</span>
-        <span class="streak-badge" id="streak-badge" style="display:none">🔥 <span id="streak-count">0</span> 天連續練習</span>
+        <div class="progress-ring-wrap" id="progress-ring-wrap" title="30 分鐘北極星目標">
+            <svg class="progress-ring-svg" viewBox="0 0 72 72">
+                <circle class="progress-ring-bg" cx="36" cy="36" r="30" />
+                <circle class="progress-ring-fill" id="progress-ring-fill" cx="36" cy="36" r="30"
+                    stroke-dasharray="188.5" stroke-dashoffset="188.5" />
+            </svg>
+            <div class="progress-ring-label" id="progress-ring-label"><span>0</span>分</div>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center; gap:0.3rem;">
+            <span class="timer-label">⏱ 練習時間</span>
+            <span class="timer-display" id="timer-display">00:00</span>
+            <span class="streak-badge" id="streak-badge" style="display:none">🔥 <span id="streak-count">0</span> 天連續練習</span>
+        </div>
         <button type="button" class="timer-btn timer-btn-save" id="timer-save-btn" onclick="saveSession()">🏆 完成練習</button>
     </div>
     <div class="timer-history" id="timer-history" style="display:none">
         <div class="timer-history-title">📋 練習紀錄</div>
         <div id="timer-history-list"></div>
     </div>
+    {# ── K1 milestone toast (15min checkpoint + 30min north-star) ── #}
+    <div class="milestone-toast" id="milestone-toast"></div>
 </div>
 {% endblock %}
 
@@ -2591,10 +2668,61 @@ function renderHistory() {
     }).join('');
 }
 
+// ── K1 30-min progress ring (北極星 visual feedback) ──
+const POLARIS_TARGET = 30 * 60; // 30 minutes in seconds
+const POLARIS_CIRCUMFERENCE = 2 * Math.PI * 30; // r=30
+let milestone15Shown = false;
+let milestone30Shown = false;
+
+function updateProgressRing() {
+    const pct = Math.min(timerSeconds / POLARIS_TARGET, 1);
+    const offset = POLARIS_CIRCUMFERENCE * (1 - pct);
+    const ring = document.getElementById('progress-ring-fill');
+    const label = document.getElementById('progress-ring-label');
+    if (ring) {
+        ring.style.strokeDashoffset = offset;
+        // Color transitions: green → gold at 15min → bright green at 30min
+        if (pct >= 1) ring.classList.add('complete');
+        else if (pct >= 0.5) ring.classList.add('checkpoint');
+        else { ring.classList.remove('checkpoint', 'complete'); }
+    }
+    if (label) {
+        const mins = Math.floor(timerSeconds / 60);
+        label.innerHTML = '<span>' + mins + '</span>分';
+    }
+}
+
+function showMilestone(html) {
+    const toast = document.getElementById('milestone-toast');
+    if (!toast) return;
+    toast.innerHTML = html;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3500);
+}
+
+function checkMilestones() {
+    if (!milestone15Shown && timerSeconds >= 15 * 60) {
+        milestone15Shown = true;
+        showMilestone('<span class="emoji">⭐</span>15 分鐘到了！<br>你已經練習了北極星目標的一半！');
+    }
+    if (!milestone30Shown && timerSeconds >= 30 * 60) {
+        milestone30Shown = true;
+        showMilestone('<span class="emoji">🎉</span>30 分鐘北極星達成！<br>從匯入到練習，你做到了！');
+        // Persist north-star milestone
+        fetch(`/api/projects/${PROJECT_ID}/practice-log`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ chords_practiced: 'POLARIS_30MIN', duration_seconds: timerSeconds, speed_pct: 100 })
+        }).catch(() => {});
+    }
+}
+
 // Start timer on page load
 timerInterval = setInterval(function() {
     timerSeconds++;
     document.getElementById('timer-display').textContent = formatTime(timerSeconds);
+    updateProgressRing();
+    checkMilestones();
 }, 1000);
 
 // Show streak if active

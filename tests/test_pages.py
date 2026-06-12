@@ -1446,3 +1446,32 @@ def test_practice_page_quickstart_banner(db_client: TestClient) -> None:
     assert "dismissQuickStart" in resp.text
     # localStorage key includes project id for per-project dismiss
     assert f"ukepack_qs_dismissed_{pid}" in resp.text
+
+
+def test_practice_page_has_progress_ring(db_client: TestClient) -> None:
+    """Practice page shows a 30-min north-star progress ring with milestone toasts."""
+    create = db_client.post(
+        "/api/projects", json={"title": "Ring Song", "source_type": "public_domain"}
+    )
+    pid = create.json()["id"]
+    with TWINKLE.open("rb") as fh:
+        db_client.post(
+            f"/api/projects/{pid}/import",
+            files={"file": ("twinkle.musicxml", fh, "application/xml")},
+        )
+
+    resp = db_client.get(f"/projects/{pid}/practice")
+    assert resp.status_code == 200
+    # Progress ring SVG present
+    assert "progress-ring-fill" in resp.text
+    assert "progress-ring-label" in resp.text
+    assert "30 分鐘北極星目標" in resp.text
+    # Milestone toast present
+    assert "milestone-toast" in resp.text
+    # JS milestone constants present
+    assert "POLARIS_TARGET" in resp.text
+    assert "milestone15Shown" in resp.text
+    assert "milestone30Shown" in resp.text
+    # 15-min and 30-min milestone messages
+    assert "15 分鐘到了" in resp.text
+    assert "30 分鐘北極星達成" in resp.text

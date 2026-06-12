@@ -22,6 +22,8 @@ _SUFFIX_RULES: tuple[tuple[str, str], ...] = (
     ("sus4", ""),
     ("sus2", ""),
     ("dim7", "N.C."),
+    ("m7b5", "m"),
+    ("dim", "N.C."),
     ("m11", "m"),
     ("m9", "m"),
     ("m7", "m"),

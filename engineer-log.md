@@ -345,3 +345,25 @@ Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 →
 
 ### 本次無新 global learning
 index.lock 並發 + docs(log) 膨脹 + auto-salvage 噪音均已記錄於 L092/L104。本輪無新增可重用智慧。
+
+### Competitor Research Round - 2026-06-12 (v244)
+
+### 1. 對標掃描
+- **Yousician (yousician.com)**: gamification loop（streak/achievements/chord mastery）、即時聽音回饋、structured lesson path、progress tracking
+- **Chordify (chordify.com)**: auto-detect chords from audio、community chord charts、transpose
+- **Ultimate Guitar (ultimate-guitar.com)**: user tabs、chord variations、difficulty ratings、community
+
+### 2. Gap 評估與 feature 選擇
+- library.html 已有「我會彈這些和弦」filter，但 practice 頁沒有 chord mastery tracker 讓孩子追蹤已學會的和弦
+- Yousician 核心 engagement loop = 「學會一個和弦 → 解鎖新歌 → 繼續學」
+- UkePack 有 filter infrastructure 卻沒有 mastery 輸入端
+- 選的 feature：**Chord mastery tracker**（localStorage 持久化 + practice 頁勾選 + library filter 自動同步）
+
+### 3. 動工與 KPI 推進
+- 實作：
+  - `practice.html` CSS + HTML：mastery-section、mastery-chip（點擊切換 mastered 狀態）
+  - `practice.html` JS：`toggleMastery` / `loadMastery` / `saveMastery` / `updateMasteryCount`（localStorage `ukepack_chord_mastery`）
+  - `library.html`：sync-mastery-btn 按鈕 + `syncMasteryChords()` 函式 + init 自動顯示
+- 驗證：`test_practice_page_has_chord_mastery_tracker` + `test_library_page_has_mastery_sync_button` 通過；full suite 三綠
+- Commit: `feat(practice): add chord mastery tracker with library sync — competitor-research(UkePack): vs Yousician`
+- KPI-impact: **K1 北極星**。chord mastery → library sync gamification loop，降低「找適合歌」的 friction

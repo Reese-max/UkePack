@@ -575,3 +575,5 @@
 
 [2026-06-12T17:56:00+08:00] | -- | IDLE | KPI-impact: none (code saturation, 0 M-task) | v242 /pua round: pytest 722 passed / ruff green / mypy 58 green; 24h 0 commits; chore_ratio 0%; BACKLOG 0 non-owner-gated [ ]; K6=0/5 owner-gated frozen 100+ rounds; K7=5/5 saturated; K1-K5 saturated; verdict=IDLE — owner must: (1) confirm Render deploy (2) set TRIAL_URL (3) send teacher invitations for K6 0→1
 [2026-06-12T19:35:00+08:00] | evolve-v244 | PASS | KPI-impact: housekeeping — 新增反 Pattern docs(log)-bloat（13 輪確認），MISSION.md 追加 SOP 修正；K1-K5/K7 飽和、K6 owner-gated、daemon idle、0 task 變動
+[2026-06-12T20:15+08:00] | M1 | PASS | KPI-K1 | feat(practice): chord mastery tracker + library sync — vs Yousician gamification loop
+2026-06-12 20:19:09 | verify:pytest | PASS | exit=0

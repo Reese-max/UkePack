@@ -189,7 +189,7 @@ def test_analysis_page_shows_chord_teaching_hints(db_client: TestClient) -> None
     assert resp.status_code == 200
     assert "綠色可直接教，橘色建議先簡化，灰色代表先慢速換和弦。" in resp.text
     assert "建議先用 C" in resp.text
-    assert "建議先用 Dm" in resp.text
+    assert "建議先用 Am" in resp.text
     assert "可直接教" in resp.text
     assert "先慢練" in resp.text
 

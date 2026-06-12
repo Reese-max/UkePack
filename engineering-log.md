@@ -504,3 +504,28 @@ Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 →
 
 ### 全域學習
 - v250→v251 零 delta，KPI 飽和態穩定。唯一活槓桿 = K6 owner action。
+
+## 反思 2026-06-13T02:51+08:00（v252 /pua Code Review Bugfix）
+
+### KPI 進展表
+| KPI | v251 | v252 | Δ | 狀態 |
+|-----|------|------|---|------|
+| K1 北極星（<30min） | 724 passed, 9 competitor features | 782 passed, 9 competitor features | +58 tests | ✅飽和 |
+| K2 匯入成功率 | 100% (30 fixtures) | 100% (30 fixtures) | 0 | ✅飽和 |
+| K5 Baseline | 724/ruff/mypy 58 | 782/ruff/mypy 58 | +58 tests | ✅綠 |
+| K6 Teacher trial | 0/5 | 0/5 | 0 | ⚠️卡住（owner-gated） |
+| K7 Onboarding | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布
+- M0-3 (KPI 推進): 1 件 (本輪 M0 bugfix)
+- H0 (Housekeeping): 0 件
+- chore_ratio: 0% (24h 1 M0 commit)
+
+### 本輪動作
+- 修正 `F#m7b5` 和 `C#m7b5` 簡化映射為 `Am` 和 `Em`，解決複製貼上 typo。
+- 修正相關的簡化與頁面測試斷言，保持一致性。
+- 執行全套測試，`pytest` (782 passed)、`ruff` 和 `mypy --no-sqlite-cache` 全部通過。
+
+### 判定
+- K5 Baseline 綠，本輪任務完成。
+- 下一步繼續等待 K6 真人流程（push -> deploy -> URL -> invite）。

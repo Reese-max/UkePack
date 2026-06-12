@@ -1050,6 +1050,65 @@
         margin-top: 0.5rem;
     }
 
+    /* ── Chord mastery tracker ── */
+    .mastery-section {
+        margin-bottom: 1rem;
+        padding: 0.8rem 1rem;
+        background: linear-gradient(135deg, #f0f9f0 0%, #e8f5e9 100%);
+        border-radius: 16px;
+        border: 1.5px solid #c8e6c9;
+    }
+    .mastery-section h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1.05rem;
+        color: #2e7d32;
+    }
+    .mastery-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .mastery-chip {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.4rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        background: #fff;
+        border: 2px solid #e0e0e0;
+        color: #616161;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+    .mastery-chip:hover {
+        border-color: #81c784;
+        transform: translateY(-1px);
+    }
+    .mastery-chip.mastered {
+        background: #4caf50;
+        border-color: #388e3c;
+        color: #fff;
+    }
+    .mastery-chip.mastered::after {
+        content: '✓';
+        font-size: 0.75rem;
+        margin-left: 0.15rem;
+    }
+    .mastery-count {
+        font-size: 0.8rem;
+        color: #558b2f;
+        margin-top: 0.4rem;
+    }
+    .mastery-hint {
+        font-size: 0.75rem;
+        color: #7cb342;
+        margin-top: 0.25rem;
+    }
+
     /* ── Listen & Play (call-and-response practice) ── */
     .listen-play {
         background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
@@ -1262,6 +1321,28 @@
     {# ── Progress ── #}
     <div class="progress-bar"><span class="progress-fill" id="progress-fill" style="width:0%"></span></div>
     <p class="progress-label" id="progress-label">1 / {{ analysis.chords | length }}</p>
+
+    {# ── Chord mastery tracker ── #}
+    {% if unique_chords %}
+    <div class="mastery-section" id="mastery-section" role="region" aria-label="和弦學習追蹤">
+        <h3>🎯 我學會的和弦</h3>
+        <p style="margin:0 0 0.5rem; font-size:0.8rem; color:#689f38;">點一下標記已學會，在歌曲庫就能篩選適合你的歌！</p>
+        <div class="mastery-grid" id="mastery-grid">
+            {% for ch in unique_chords %}
+            <button
+                type="button"
+                class="mastery-chip"
+                data-chord="{{ ch }}"
+                onclick="toggleMastery('{{ ch }}', this)"
+                aria-label="標記 {{ ch }} 為已學會"
+                aria-pressed="false"
+            >{{ ch }}</button>
+            {% endfor %}
+        </div>
+        <p class="mastery-count" id="mastery-count"></p>
+        <p class="mastery-hint">💡 學會的和弦會同步到歌曲庫的「只看我會彈的歌」篩選</p>
+    </div>
+    {% endif %}
 
     {# ── Strum pattern selector ── #}
     {% if analysis.strum_patterns %}
@@ -2942,6 +3023,54 @@ timerInterval = setInterval(function() {
         document.getElementById('lp-score').textContent =
             '🎯 成功 ' + lpScore + ' 個和弦' + (lpAttempts > 0 ? '（共嘗試 ' + lpAttempts + ' 次）' : '');
     }
+
+    /* ── Chord mastery tracker ── */
+    var MASTERY_KEY = 'ukepack_chord_mastery';
+
+    function loadMastery() {
+        try { return JSON.parse(localStorage.getItem(MASTERY_KEY)) || {}; }
+        catch(e) { return {}; }
+    }
+
+    function saveMastery(m) {
+        try { localStorage.setItem(MASTERY_KEY, JSON.stringify(m)); } catch(e) {}
+    }
+
+    function toggleMastery(chord, btn) {
+        var m = loadMastery();
+        if (m[chord]) {
+            delete m[chord];
+            btn.classList.remove('mastered');
+            btn.setAttribute('aria-pressed', 'false');
+        } else {
+            m[chord] = true;
+            btn.classList.add('mastered');
+            btn.setAttribute('aria-pressed', 'true');
+        }
+        saveMastery(m);
+        updateMasteryCount();
+    }
+
+    function updateMasteryCount() {
+        var m = loadMastery();
+        var total = document.querySelectorAll('.mastery-chip').length;
+        var done = Object.keys(m).length;
+        var el = document.getElementById('mastery-count');
+        if (el) el.textContent = '已學會 ' + done + ' / ' + total + ' 個和弦' + (done >= total ? ' 🎉 全部學會了！' : '');
+    }
+
+    // Init mastery state from localStorage
+    (function initMastery() {
+        var m = loadMastery();
+        document.querySelectorAll('.mastery-chip').forEach(function(btn) {
+            var ch = btn.getAttribute('data-chord');
+            if (m[ch]) {
+                btn.classList.add('mastered');
+                btn.setAttribute('aria-pressed', 'true');
+            }
+        });
+        updateMasteryCount();
+    })();
 })();
 
 </script>

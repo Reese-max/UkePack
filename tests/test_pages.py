@@ -1505,3 +1505,29 @@ def test_practice_page_has_listen_and_play(db_client: TestClient) -> None:
     assert "listenPlayReference" in resp.text
     assert "lpDetectLoop" in resp.text
     assert "LP_RMS_THRESHOLD" in resp.text
+
+
+def test_practice_page_has_chord_mastery_tracker(db_client: TestClient) -> None:
+    """Practice page should show a chord mastery tracker with unique chords from the song."""
+    create = db_client.post(
+        "/api/projects", json={"title": "Mastery Song", "source_type": "public_domain"}
+    )
+    pid = create.json()["id"]
+    with TWINKLE.open("rb") as fh:
+        db_client.post(
+            f"/api/projects/{pid}/import",
+            files={"file": ("twinkle.musicxml", fh, "application/xml")},
+        )
+
+    resp = db_client.get(f"/projects/{pid}/practice")
+    assert resp.status_code == 200
+    # Mastery section present
+    assert "mastery-section" in resp.text
+    assert "我學會的和弦" in resp.text
+    assert "mastery-chip" in resp.text
+    # JS functions for localStorage persistence
+    assert "ukepack_chord_mastery" in resp.text
+    assert "toggleMastery" in resp.text
+    assert "loadMastery" in resp.text
+    # Each unique chord gets a mastery chip button
+    assert 'data-chord="C"' in resp.text or 'data-chord="F"' in resp.text

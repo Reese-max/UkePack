@@ -167,3 +167,13 @@ def test_library_sorted_by_chord_count_easiest_first(client: TestClient) -> None
     # Songs with chords should be sorted ascending by chord count
     nonzero = [c for c in counts if c > 0]
     assert nonzero == sorted(nonzero), f"Chord counts not sorted: {nonzero}"
+
+
+def test_library_page_has_mastery_sync_button(client: TestClient) -> None:
+    """Library page should include a sync-mastery button for importing chord mastery from practice."""
+    response = client.get("/library")
+
+    assert response.status_code == 200
+    assert 'id="sync-mastery-btn"' in response.text
+    assert "syncMasteryChords" in response.text
+    assert "ukepack_chord_mastery" in response.text

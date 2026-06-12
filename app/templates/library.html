@@ -50,6 +50,10 @@
             <input id="filter-known-only" type="checkbox" onchange="filterLibrary()">
             <span>只看我會彈的歌</span>
         </label>
+        <button type="button" class="btn btn-outline btn-sm" id="sync-mastery-btn"
+                onclick="syncMasteryChords()" style="margin-top:0.4rem; font-size:0.8rem; display:none;">
+            🎯 自動勾選我在練習頁學會的和弦
+        </button>
     </div>
     {% endif %}
     <span id="filter-count" class="filter-count" aria-live="polite">{{ songs | length }} 首</span>
@@ -252,5 +256,30 @@ function filterLibrary() {
     var countEl = document.getElementById('filter-count');
     if (countEl) countEl.textContent = shown + ' 首';
 }
+
+// ── Ch mastery sync from practice page ──
+function syncMasteryChords() {
+    var m = {};
+    try { m = JSON.parse(localStorage.getItem('ukepack_chord_mastery')) || {}; } catch(e) {}
+    var mastered = Object.keys(m);
+    if (mastered.length === 0) return;
+    document.querySelectorAll('.chord-chip input[type="checkbox"]').forEach(function(cb) {
+        if (mastered.indexOf(cb.value) >= 0) cb.checked = true;
+    });
+    // Also enable "known only" filter
+    var knownOnly = document.getElementById('filter-known-only');
+    if (knownOnly) knownOnly.checked = true;
+    filterLibrary();
+}
+
+// Show sync button if mastery data exists
+(function() {
+    var m = {};
+    try { m = JSON.parse(localStorage.getItem('ukepack_chord_mastery')) || {}; } catch(e) {}
+    if (Object.keys(m).length > 0) {
+        var btn = document.getElementById('sync-mastery-btn');
+        if (btn) btn.style.display = '';
+    }
+})();
 </script>
 {% endblock %}

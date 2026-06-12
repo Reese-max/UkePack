@@ -301,3 +301,47 @@ Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 →
 - 無 executable M0-M3 task
 - K6 owner-gated（Render deploy + TRIAL_URL + 邀請信）
 - daemon idle
+
+---
+
+## 反思 2026-06-12T15:33+08:00（v239 /pua KPI-driven 深度回顧）
+
+### KPI 進展表
+| KPI | 上次值 (v237) | 當前值 | Δ | 狀態 |
+|-----|-------|-------|---|------|
+| K1 北極星（<30min） | 722 passed, 8 competitor features | 722 passed, 8 competitor features | 0 | ✅飽和 |
+| K2 匯入成功率（30 首 ≥90%） | 100% (30 fixtures) | 100% (30 fixtures) | 0 | ✅飽和 |
+| K5 Baseline（pytest/ruff/mypy） | green | green | 0 | ✅飽和 |
+| K6 Teacher trial 回饋（≥5 老師） | 0/5 | 0/5 | 0 | ⚠️卡住（owner-gated） |
+| K7 Onboarding 文件覆蓋 | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布
+- M0-3 (KPI 推進): 5 件（feat practice × 4 + feat progress ring × 1）
+- H0 (Housekeeping): 15 件（docs(log) × 9 + chore(auto-salvage) × 3 + chore(log) × 1 + chore(archive) × 1 + docs(archive) × 1）
+- chore_ratio: 75%（20 筆中 15 筆 chore/docs；> 30% 原因見下）
+
+### chore_ratio 75% 根因分析
+1. **feature 飽和**：K1-K5 + K7 全部飽和，competitor-research 驅動的新功能（Listen & Play、metronome、finger labels、quick-start）是唯一可推進的 K1 槓桿，但每輪產出有限
+2. **docs(log) 膨脹**：v230–v238 每輪 /pua evolve 產生 1 筆 docs(log) commit，內容為重複的「K1-K5 saturated, K6 owner-gated, daemon idle」——純治理噪音
+3. **auto-salvage 噪音**：3 筆 `chore(auto-salvage)` 是 index.lock 並發搶救的結構性重複（根因未修）
+4. **扣除噪音後**：真實 KPI commit = 5/20 = 25%，真實 chore = 10/17（扣除 3 auto-salvage）≈ 59%
+
+### daemon failures.jsonl 統計
+- `.engineer-loop.failures.jsonl` 不存在（daemon 未在此 repo 產生失敗紀錄）
+- 24h 內 auto-salvage × 3 = index.lock 並發結構性 bug 仍在（根因：排程器多次 spawn daemon 實體）
+
+### 卡住的 KPI 與根因
+- **K6（Teacher trial 0/5）**：frozen 90+ 輪，owner-gated blocker chain：
+  - Push ✅ → origin ✅（`https://github.com/Reese-max/UkePack.git` 已設定）
+  - → Render deploy 未確認
+  - → `{{TRIAL_URL}}` 未填
+  - → 邀請信未寄出
+  - **唯一解鎖**：owner 投入 ~5 分鐘操作 Render dashboard + 寄信
+
+### 下一步 3 個 KPI 推進動作
+1. **K6**：owner 確認 Render deploy 狀態 → 設定 `{{TRIAL_URL}}` → 寄出 P1-18b 邀請信（唯一 blocker）
+2. **K1**：competitor-research 驅動 feature 深化（曲庫 31→50+、MIDI 匯入 UI、音訊回饋）
+3. **K5**：修 index.lock 並發根因（L4 arch proposal：flock/mutex single-instance lock），消除 auto-salvage 噪音
+
+### 本次無新 global learning
+index.lock 並發 + docs(log) 膨脹 + auto-salvage 噪音均已記錄於 L092/L104。本輪無新增可重用智慧。

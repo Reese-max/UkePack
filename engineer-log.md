@@ -506,3 +506,49 @@ Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 →
 
 ### 全域學習
 - v246→v247 零 delta，KPI 飽和態穩定。唯一活槓桿 = K6 owner action。
+
+---
+
+## 反思 2026-06-12T22:45+08:00（v248 /pua KPI-driven idle）
+
+### Sensor Snapshot
+- chore_ratio_24h: 20% pure / 72% broad（25 commits；11 docs(log) bloat）
+- micro_polish_ratio: 0%
+- 24h commits: 25（7 feat + 11 docs(log) + 2 docs(other) + 5 chore）
+
+### KPI 進展表
+| KPI | 上次值 (v247) | 當前值 | Δ | 狀態 |
+|-----|-------|-------|---|------|
+| K1 北極星（<30min） | 724 passed, 9 competitor features | 724+ passed, 9 competitor features | 0 | ✅飽和 |
+| K2 匯入成功率 | 100% (30 fixtures) | 100% (30 fixtures) | 0 | ✅飽和 |
+| K5 Baseline | 724/ruff/mypy 58 | 724+/ruff/mypy 58 | 0 | ✅飽和 |
+| K6 Teacher trial | 0/5 (frozen 97+) | 0/5 (frozen 98+) | 0 | ⚠️卡住（owner-gated） |
+| K7 Onboarding | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布
+- M0-3 (KPI 推進): 7 件 feat（chord mastery tracker、Listen & Play、30-min progress ring、quick-start banner、finger labels、auto-untracked ×2）
+- H0 (Housekeeping): 18 件（docs(log) × 11 + chore × 5 + docs(other) × 2）
+- chore_ratio: pure 20% PASS / broad 72% FAIL
+
+### chore_ratio broad 72% 根因
+11 筆 `docs(log)` commit 內容全同「K1-K5 saturated, K6 owner-gated, daemon idle」→ 反 Pattern `docs(log)-bloat-as-chore-ratio-pollutant` 已立規（788e5a2），v230–v242 仍累積 11 筆。根因：evolve 每輪產 1 筆 docs(log)，feature 飽和期 docs(log) 成為噪音主體。
+
+### 判定
+- K1-K5 + K7 全飽和，0 個 daemon-executable `[ ]`
+- K6 owner-gated（Render deploy → TRIAL_URL → 邀請信）
+- daemon idle = 正解
+- **遵守反 Pattern**：不產 docs(log) commit（`docs(log)-bloat-as-chore-ratio-pollutant` 788e5a2）
+- 本輪反思只寫 engineering-log.md，不 commit
+- program.md 無需改動
+
+### K6 Blocker Chain（unchanged）
+Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 → 邀請信未寄
+
+### 下一步 3 個 KPI 推進動作
+1. **K6**: owner 確認 Render deploy → 設定 {{TRIAL_URL}} → 寄出 P1-18b 邀請信
+2. **K1**: competitor-research 驅動 feature 深化（曲庫 31→50+、MIDI 匯入 UI）
+3. **K5**: 修 L092 index.lock 並發根因（flock/mutex single-instance lock）
+
+### 全域學習
+- v247→v248 零 delta，KPI 飽和態穩定。唯一活槓桿 = K6 owner action。
+- 24h broad chore_ratio 72% 全因 docs(log) bloat；pure chore 20% 健康。反 Pattern 生效但歷史存量仍在 24h 窗口內。

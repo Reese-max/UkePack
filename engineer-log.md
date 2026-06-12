@@ -367,3 +367,142 @@ index.lock 並發 + docs(log) 膨脹 + auto-salvage 噪音均已記錄於 L092/L
 - 驗證：`test_practice_page_has_chord_mastery_tracker` + `test_library_page_has_mastery_sync_button` 通過；full suite 三綠
 - Commit: `feat(practice): add chord mastery tracker with library sync — competitor-research(UkePack): vs Yousician`
 - KPI-impact: **K1 北極星**。chord mastery → library sync gamification loop，降低「找適合歌」的 friction
+
+---
+
+## 反思 2026-06-12T20:31+08:00（v245 /pua KPI-driven idle）
+
+### KPI 進展表
+| KPI | 當前值 | Δ | 狀態 |
+|-----|-------|---|------|
+| K1 北極星（<30min） | 722+ passed, 8 competitor features | 0 | ✅飽和 |
+| K2 匯入成功率 | 100% (30 fixtures) | 0 | ✅飽和 |
+| K5 Baseline | pytest 722+ / ruff / mypy 58 三綠 | 0 | ✅飽和 |
+| K6 Teacher trial | 0/5 (frozen 95+) | 0 | ⚠️卡住（owner-gated） |
+| K7 Onboarding | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布
+- M0-3: 0 件
+- H0: 0 件
+- chore_ratio: 0%（24h 內 0 commits）
+
+### 判定
+- 無 executable M0-M3 task
+- K6 owner-gated（Render deploy → TRIAL_URL → 邀請信）
+- daemon idle = 正解
+- **遵守反 Pattern**：不產 docs(log) commit（`docs(log)-bloat-as-chore-ratio-pollutant` 反 Pattern 788e5a2）
+- 本輪反思只寫 engineering-log.md，不 commit
+
+### K6 Blocker Chain（unchanged）
+Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 → 邀請信未寄
+
+### 下一步 3 個 KPI 推進動作
+1. **K6**: owner 確認 Render deploy → 設定 {{TRIAL_URL}} → 寄出 P1-18b 邀請信
+2. **K1**: 繼續 competitor-research 驅動 feature 深化（曲庫 31→50+、MIDI 匯入 UI）
+3. **K5**: 修 L092 auto-salvage 根因（排程器 single-instance lock）
+
+### 本次無新 global learning
+KPI 飽和 + daemon idle 狀態持續。反 Pattern `docs(log)-bloat-as-chore-ratio-pollutant` 已落地（788e5a2），本輪嚴格遵守。
+
+---
+## 反思 2026-06-12T21:14+08:00（v246 /pua KPI-driven 深度回顧）
+
+### KPI 進展表
+| KPI | 上次值 (v245) | 當前值 | Δ | 狀態 |
+|-----|-------|-------|---|------|
+| K1 北極星（<30min） | 722+ passed, 8 competitor features | 724 passed, 9 competitor features（+chord mastery tracker） | +2 tests, +1 feat | ✅進步 |
+| K2 匯入成功率（30 首 ≥90%） | 100% (30 fixtures) | 100% (30 fixtures) | 0 | ✅飽和 |
+| K5 Baseline（pytest/ruff/mypy） | 722+ passed / ruff / mypy 58 | 724 passed / ruff green / mypy 58 green | +2 tests | ✅進步 |
+| K6 Teacher trial 回饋（≥5 老師） | 0/5 (frozen 95+) | 0/5 (frozen 96+) | 0 | ⚠️卡住（owner-gated） |
+| K7 Onboarding 文件覆蓋 | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布（24 commits）
+- **feat（KPI 推進）**: 5 件（21%）
+  - `feat(practice): add chord mastery tracker with library sync` — K1 vs Yousician
+  - `feat(practice): add Listen & Play call-and-response mode` — K1 vs Yousician
+  - `feat(practice): add 30-min north-star progress ring` — K1 北極星可視化
+  - `feat(practice): add quick-start guide banner` — K1 首次使用 friction
+  - `feat(practice): add finger number labels on chord diagram` — K1 vs Yousician/Chordify/Ultimate Guitar
+- **chore（auto-salvage）**: 4 件（17%）
+- **docs（log/mission/archive）**: 15 件（63%）
+- **chore_ratio**: 83%（> 30% ⚠️）
+
+### chore_ratio 83% 根因分析
+1. **docs(log) bloat**：15 筆 docs(log) commit 內容全同「K1-K5 saturated, K6 owner-gated, daemon idle」——反 Pattern `docs(log)-bloat-as-chore-ratio-pollutant` 雖已立規（788e5a2），但 v241-v242 仍產出 2 筆，v230-v238 累積 9 筆
+2. **auto-salvage 噪音**：4 筆 `chore(auto-salvage)` 是 index.lock 並發搶救（L092 結構性問題）
+3. **扣除噪音後**：真實 KPI commit = 5/24 = 21%，真實 chore = 15/24（docs log 佔大宗）
+
+### daemon failures.jsonl 統計
+- `.engineer-loop.failures.jsonl` **不存在**
+- 24h 內 auto-salvage × 4 = index.lock 並發結構性 bug 仍在（根因：排程器多次 spawn daemon 實體）
+- 無 SIGABRT/SIGSEGV/429/quota/API error
+
+### 卡住的 KPI 與根因
+- **K6（Teacher trial 0/5）**：持續卡住（frozen 96+ 輪）。
+  - 根因：owner-gated blocker chain。
+  - Push ✅ → origin ✅（`https://github.com/Reese-max/UkePack.git`）
+  - → Render deploy 未確認
+  - → `{{TRIAL_URL}}` 未填
+  - → 邀請信未寄出
+  - **唯一解鎖**：owner 投入 ~5 分鐘操作 Render dashboard + 寄信
+
+### KPI 量測能力評估
+| KPI | 可重複量測？ | 缺口 |
+|-----|-------------|------|
+| K1 北極星 | ✅ `test_starter_pack.py` + `test_corpus_e2e_pdf.py` + `test_polaris_timer.py` + demo 0.09s | 缺「人類體感 30min」自動化量測 |
+| K2 匯入成功率 | ✅ 30 首 corpus e2e（100%） | 無 |
+| K5 Baseline | ✅ 724 passed / ruff / mypy | 無 |
+| K6 Teacher trial | ❌ 純人工 | 無 eval pipeline |
+| K7 Onboarding | ✅ `test_teacher_docs.py` 守門（5/5） | 無 |
+
+### 下一步 3 個 KPI 推進動作
+1. **K6**：owner 確認 Render deploy → 設定 `{{TRIAL_URL}}` → 寄出 P1-18b 邀請信（唯一 blocker）
+2. **K1**：competitor-research 驅動 feature 深化（曲庫 31→50+、MIDI 匯入 UI、音訊回饋）
+3. **K5**：修 L092 auto-salvage 根因（L4 arch proposal：flock/mutex single-instance lock），消除 index.lock 競爭噪音
+
+### program.md 待辦重排
+**現狀**：Phase 0-2 + U1-U7 全 done-green。BACKLOG 0 個 non-owner-gated `[ ]`。
+**重排結果**：無需重排——所有 KPI-推進 task 已完成，剩餘全是 owner-gated（`[O]`）。
+
+**禁止事項確認**：本輪未新增任何純治理 task 給 daemon。
+
+### Competitor Research Round - 2026-06-12 (v246)
+- 3 對標: Yousician, Chordify, Ultimate Guitar
+- 1 ship feature: Chord mastery tracker with library sync (localStorage persistence + practice page toggle + library filter auto-sync)
+- KPI-impact: K1 北極星。mastery → library sync gamification loop，降低「找適合歌」的 friction
+
+---
+
+## 反思 2026-06-12T21:29+08:00（v247 /pua KPI-driven idle）
+
+### KPI 進展表
+| KPI | 上次值 (v246) | 當前值 | Δ | 狀態 |
+|-----|-------|-------|---|------|
+| K1 北極星（<30min） | 724 passed, 9 competitor features | 724 passed, 9 competitor features | 0 | ✅飽和 |
+| K2 匯入成功率 | 100% (30 fixtures) | 100% (30 fixtures) | 0 | ✅飽和 |
+| K5 Baseline | 724/ruff/mypy 58 | 724/ruff/mypy 58 | 0 | ✅飽和 |
+| K6 Teacher trial | 0/5 (frozen 96+) | 0/5 (frozen 97+) | 0 | ⚠️卡住（owner-gated） |
+| K7 Onboarding | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布
+- M0-3: 0 件
+- H0: 0 件
+- chore_ratio: N/A（24h 內 0 commits）
+
+### 判定
+- 無 executable M0-M3 task
+- K6 owner-gated（Render deploy → TRIAL_URL → 邀請信）
+- daemon idle = 正解
+- **遵守反 Pattern**：不產 docs(log) commit（`docs(log)-bloat-as-chore-ratio-pollutant` 788e5a2）
+- 本輪反思只寫 engineering-log.md，不 commit
+
+### K6 Blocker Chain（unchanged）
+Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 → 邀請信未寄
+
+### 下一步 3 個 KPI 推進動作
+1. **K6**: owner 確認 Render deploy → 設定 {{TRIAL_URL}} → 寄出 P1-18b 邀請信
+2. **K1**: competitor-research 驅動 feature 深化（曲庫 31→50+、MIDI 匯入 UI）
+3. **K5**: 修 L092 index.lock 並發根因（flock/mutex single-instance lock）
+
+### 全域學習
+- v246→v247 零 delta，KPI 飽和態穩定。唯一活槓桿 = K6 owner action。

@@ -594,3 +594,24 @@ Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 →
 ### 跨專案學習迴路
 追加一條 `L104`（uv 自動重建 venv 缺 dev 依賴陷阱）到 `/d/auto-dev/learnings/global.md`。
 
+
+## 反思 2026-06-12T14:09:00+08:00（v237 /pua KPI-driven 深度回顧）
+
+### KPI 進展表
+| KPI | 上次值 (v236) | 當前值 | Δ | 狀態 |
+|-----|-------|-------|---|------|
+| K1 北極星（<30min） | ~721 passed, Listen & Play 新增 | 722 passed | +1 test | ✅飽和 |
+| K2 匯入成功率 | 100% | 100% | 0 | ✅飽和 |
+| K5 Baseline | green | green | 0 | ✅飽和 |
+| K6 Teacher trial | 0/5 | 0/5 | 0 | ⚠️owner-gated |
+| K7 Onboarding | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布
+- M0-3: 1 件（f22fbc3 Listen & Play）
+- H0: 0 件
+- chore_ratio: 0%（24h 僅 1 commit）
+
+### 判定
+- 無 executable M0-M3 task
+- K6 owner-gated（Render deploy + TRIAL_URL + 邀請信）
+- daemon idle

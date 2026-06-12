@@ -525,3 +525,35 @@ L092（index.lock 並發）已涵蓋本輪 salvage 觀察。competitor-research 
 - 1 ship feature: Next-chord preview & countdown warning (shows the upcoming chord and its fingering diagram 2 beats before switching, with countdown dots to help children prepare fingering transitions).
 - KPI-impact: KPI-K1. Tackling slow chord changes with pre-transition prompts helps children start playing their first segment within 15 minutes.
 
+
+---
+## 反思 2026-06-12T09:12+08:00（v230 /pua KPI-driven evolve）
+
+### Sensor Snapshot
+- chore_ratio_24h: 33% (broad) / 16% (pure) — PASS
+- micro_polish_ratio: 0% — PASS
+- 24h commits: 10 (4 feat + 1 fix + 1 test + 3 auto-salvage + 1 governance)
+
+### KPI 進展表
+
+| KPI | 當前值 | Δ | 狀態 |
+|-----|-------|---|------|
+| K1 北極星 | 720+ passed, 8 competitor-research features | +1 feat (quick-start banner) | ✅進步 |
+| K2 匯入成功率 | 100% (30 fixtures) | 0 | ✅鲍和 |
+| K5 Baseline | 720+ passed / ruff / mypy 58 | 0 | ✅穩定 |
+| K6 Teacher trial | 0/5 (frozen 90+ rounds) | 0 | ⚠️卡住（owner-gated） |
+| K7 Onboarding | 5/5 | 0 | ✅鲍和 |
+
+### 改動量
+- 移除: 0 / 新增: 0 / 重排: 0
+- daemon idle = 正解。所有 KPI 饱和或 owner-gated，BACKLOG 0 個 daemon-executable `[ ]`。
+
+### K6 Blocker Chain（unchanged）
+Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 → 邀請信 未寄
+
+### 下一步 3 個 KPI 推進動作
+1. K6: owner 確認 Render deploy → 設定 {{TRIAL_URL}} → 寄出 P1-18b 邀請信
+2. K1: 繼續 competitor-research 驅動 feature 深化（曲庫 31→50+、MIDI 匯入 UI）
+3. K5: 修 L092 auto-salvage 根因（排程器 single-instance lock）
+
+### 本次無新 global learning

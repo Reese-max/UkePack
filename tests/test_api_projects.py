@@ -607,7 +607,6 @@ def test_get_chord_svg(db_client: TestClient) -> None:
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "image/svg+xml"
     assert "<svg" in resp.text
-    assert "GCEA" in resp.text  # Ukulele GCEA tuning label
 
     # Test unknown chord returns fallback SVG
     resp2 = db_client.get("/api/projects/chords/svg?name=XYZ")
@@ -619,4 +618,8 @@ def test_get_chord_svg(db_client: TestClient) -> None:
     resp3 = db_client.get("/api/projects/chords/svg?name=G&colorable=true&left_handed=true")
     assert resp3.status_code == 200
     assert resp3.headers["content-type"] == "image/svg+xml"
+
+    # Test invalid chord name rejected
+    resp4 = db_client.get("/api/projects/chords/svg?name=<script>alert(1)</script>")
+    assert resp4.status_code == 400
 

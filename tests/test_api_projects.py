@@ -599,3 +599,24 @@ def test_404_on_missing_project(
     else:
         resp = db_client.get(path)
     assert resp.status_code == 404
+
+
+def test_get_chord_svg(db_client: TestClient) -> None:
+    # Test getting standard chord SVG
+    resp = db_client.get("/api/projects/chords/svg?name=C")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "image/svg+xml"
+    assert "<svg" in resp.text
+    assert "GCEA" in resp.text  # Ukulele GCEA tuning label
+
+    # Test unknown chord returns fallback SVG
+    resp2 = db_client.get("/api/projects/chords/svg?name=XYZ")
+    assert resp2.status_code == 200
+    assert resp2.headers["content-type"] == "image/svg+xml"
+    assert "<svg" in resp2.text
+
+    # Test options
+    resp3 = db_client.get("/api/projects/chords/svg?name=G&colorable=true&left_handed=true")
+    assert resp3.status_code == 200
+    assert resp3.headers["content-type"] == "image/svg+xml"
+

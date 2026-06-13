@@ -403,7 +403,7 @@ F | G | C | C |"
         </div>
         <div id="chord-list-transposed" style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:0.5rem">
             {% for ch in analysis.chords %}
-            <span class="badge badge-green" style="font-size:0.9rem">{{ ch.symbol }}</span>
+            <span class="badge badge-green" style="font-size:0.9rem; cursor:pointer;" data-symbol="{{ ch.symbol }}">{{ ch.symbol }}</span>
             {% endfor %}
             {% if project.semitone_shift < 0 %}
             <p style="margin:0.4rem 0 0; color:var(--muted); font-size:0.85rem; width:100%">

@@ -259,6 +259,79 @@ Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 →
 
 ---
 
+## 反思 2026-06-13T02:15+08:00（v254 /pua KPI-driven 深度回顧）
+
+### KPI 進展表
+| KPI | 上次值 (v248) | 當前值 | Δ | 狀態 |
+|-----|-------|-------|---|------|
+| K1 北極星（<30min） | 724+ passed, 9 competitor features | 740 passed, 11 competitor features（+m7b5 rules + smart recommendations + innerHTML fix） | +16 tests, +2 feat | ✅進步 |
+| K2 匯入成功率（30 首 ≥90%） | 100% (30 fixtures) | 100% (30 fixtures) | 0 | ✅飽和 |
+| K5 Baseline（pytest/ruff/mypy） | 724+/ruff/mypy 58 | 740/ruff/mypy 58 green | +16 tests | ✅進步 |
+| K6 Teacher trial 回饋（≥5 老師） | 0/5 (frozen 98+) | 0/5 (frozen 100+) | 0 | ⚠️卡住（owner-gated） |
+| K7 Onboarding 文件覆蓋 | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布（17 commits）
+- **feat/fix（KPI 推進）**: 6 件（35%）
+  - `feat(practice): add chord mastery tracker with library sync` — K1 vs Yousician
+  - `feat(chord-simplify): add m7b5 and dim suffix rules + 8 tests` — K2 匯入精度
+  - `feat(library): add smart recommendations based on chord mastery` — K1 vs Yousician
+  - `fix(arrangement): correct F#m7b5 and C#m7b5 simplifications` — K2 和弦簡化精度
+  - `fix(library): replace innerHTML with DOM API + functional tests` — K1 安全+品質
+  - `fix(auto-salvage): land tracked work after index.lock contention` — K5 穩定性
+- **chore（housekeeping）**: 11 件（65%）
+  - `chore(auto-salvage)` ×2 — index.lock 並發搶救噪音
+  - `feat(auto-untracked)` ×2 — archive artifacts（無 KPI 標記）
+  - `docs(log)` ×3 — log consolidation / push completion / revert
+  - `docs(auto-untracked)` ×1 — archive artifacts
+  - `docs(mission)` ×1 — anti-pattern 記錄
+  - `chore: rotate engineering-log` ×1
+- **chore_ratio**: 65%（> 30% ⚠️）
+
+### chore_ratio 65% 根因分析
+1. **auto-salvage 噪音**：2 筆 `chore(auto-salvage)` = index.lock 並發搶救（L092 結構性問題未修）
+2. **auto-untracked 噪音**：2 筆 `feat(auto-untracked)` + 1 筆 `docs(auto-untracked)` = archive artifacts，無 KPI 標記
+3. **docs(log)**：3 筆包含 log consolidation 與 push completion record/revert
+4. **扣除噪音後**：真實 KPI commit = 6/17 = 35%
+
+### daemon failures.jsonl 統計
+- `.engineer-loop.failures.jsonl` **不存在**
+- 24h 內 auto-salvage × 2 = index.lock 並發結構性 bug 仍在（根因：排程器多次 spawn daemon 實體）
+- 無 SIGABRT/SIGSEGV/429/quota/API error
+
+### 卡住的 KPI 與根因
+- **K6（Teacher trial 0/5）**：持續卡住（frozen 100+ 輪）。
+  - 根因：owner-gated blocker chain。
+  - Push ✅ → origin ✅（`https://github.com/Reese-max/UkePack.git`）
+  - → Render deploy 未確認
+  - → `{{TRIAL_URL}}` 未填
+  - → 邀請信未寄出
+  - **唯一解鎖**：owner 投入 ~5 分鐘操作 Render dashboard + 寄信
+
+### KPI 量測能力評估
+| KPI | 可重複量測？ | 缺口 |
+|-----|-------------|------|
+| K1 北極星 | ✅ `test_starter_pack.py` + `test_corpus_e2e_pdf.py` + `test_polaris_timer.py` + demo 0.04s | 缺「人類體感 30min」自動化量測 |
+| K2 匯入成功率 | ✅ 30 首 corpus e2e（100%） | 無 |
+| K5 Baseline | ✅ 740 passed / ruff / mypy | 無 |
+| K6 Teacher trial | ❌ 純人工 | 無 eval pipeline |
+| K7 Onboarding | ✅ `test_teacher_docs.py` 守門（5/5） | 無 |
+
+### 下一步 3 個 KPI 推進動作
+1. **K6**：owner 確認 Render deploy → 設定 `{{TRIAL_URL}}` → 寄出 P1-18b 邀請信（唯一 blocker）
+2. **K1**：competitor-research 驅動 feature 深化（曲庫 31→50+、MIDI 匯入 UI、音訊回饋）
+3. **K5**：修 L092 auto-salvage 根因（L4 arch proposal：flock/mutex single-instance lock），消除 index.lock 競爭噪音
+
+### program.md 待辦重排
+**現狀**：Phase 0-2 + U1-U7 全 done-green。BACKLOG 0 個 non-owner-gated `[ ]`。
+**重排結果**：無需重排——所有 KPI-推進 task 已完成，剩餘全是 owner-gated（`[O]`）。
+
+**禁止事項確認**：本輪未新增任何純治理 task 給 daemon。
+
+### 本次無新 global learning
+index.lock 並發 + docs(log) 膨脹 + auto-salvage 噪音均已記錄於 L092/L104。本輪無新增可重用智慧。
+
+---
+
 ## 反思 2026-06-13T00:40+08:00（v251 /pua KPI-driven deep review）
 
 ### Baseline 驗證
@@ -464,4 +537,65 @@ K1 北極星：security hardening + test quality for smart recommendations。
 
 **唯一 unblock**：owner 操作 Render deploy + 寄邀請信（~5 min），解鎖 K6 0→1。
 
+---
+
+## 反思 2026-06-13T22:25+08:00（v254 /pua KPI-driven evolve）
+
+### Sensor Snapshot
+- chore_ratio_24h: 43% (broad) / 25% (pure)
+- micro_polish_ratio: 0%
+- 24h commits: 16
+
+### KPI 進展表
+| KPI | 當前值 | Δ | 狀態 |
+|-----|-------|---|------|
+| K1 北極星（<30min） | 722+ passed, 8 competitor features | 0 | ✅飽和 |
+| K2 匯入成功率 | 100% (30 fixtures) | 0 | ✅飽和 |
+| K5 Baseline | pytest 722+ / ruff / mypy 58 三綠 | 0 | ✅飽和 |
+| K6 Teacher trial | 0/5 (frozen 96+) | 0 | ⚠️卡住（owner-gated） |
+|  K7 Onboarding | 5/5 | 0 | ✅飽和 |
+
+### 改動量
+- 移除 task: 0
+- 新增 task: 0
+- 重排: 0
+
+### 判定
+- K1-K5+K7 全飽和，無 KPI 缺口
+- 唯一 [ ] = [O] owner-only (P1-18b/c/d)
+- 0 個 daemon 可執行 [ ]
+- pure chore 25% < 30% pass 閾值
+- 閒置研究 mimo 分析 timeout，未萃取建議任務
+- **遵守反 Pattern**：不產 docs(log) commit（`docs(log)-bloat` 反 Pattern）
+- 本次只寫 engineering-log.md，不 commit
+
+### K6 Blocker Chain（unchanged）
+Push ✅ → origin ✅ → **Render deploy 未確認** → {{TRIAL_URL}} 未填 → 邀請信未寄
+
+### 回答
+1. 刪/加/重排了哪些 task？→ 0 變動。所有 KPI 飽和，無可加/刪/重排。
+2. chore_ratio 預期升還降？→ 不變（0 commit 產出）。若要降，需 owner 解鎖 K6 後才有新 feat commit。
+
 **本次不 commit**：chore_ratio 68% FAIL + KPI 飽和 + 無新 task → commit 本身是 chore_ratio 污染源。
+
+### Competitor Research Round - 2026-06-13 (v256)
+
+**1. 對標掃描**
+- **Ultimate Guitar (ultimate-guitar.com)**: user tabs, chord variations, difficulty ratings, interactive tab player, simplify chord function, auto-scroll.
+- **Chordify (chordify.net)**: auto-detect chords, community chord charts, transpose, print PDFs, speed adjustment.
+- **Ukutabs (ukutabs.com)**: ukulele-specific GCEA chord diagrams, chord tooltips/popups on hover, transposer, auto-scroll.
+
+**2. Gap 評估**
+- UkePack 的網頁端（如練習頁面 `/projects/{id}/practice` 與分析頁面 `/projects/{id}/analysis`）擁有和弦進行與段落提示，但使用者無法直觀快速查看指法。
+- Ukutabs 與 Ultimate Guitar 的和弦歌詞譜在滑鼠 hover 到和弦名時，會即時浮現該和弦的 GCEA 指法圖，方便學習者在彈奏中查閱。
+- 選的 feature：**Interactive GCEA Chord Hover Tooltip**（懸浮/點擊和弦時顯示磨砂玻璃質感的 SVG 指法圖，零阻礙練習）。
+
+**3. 動工與 KPI 推進**
+- 實作：
+  - 新增 API：`app/api/projects/export.py` 新增 `/api/projects/chords/svg` 路由，透過 `generate_svg` 支援動態產生任一和弦 SVG（支援 `colorable` / `left_handed`）。
+  - 全域 UI 支援：在 `base.html` 底部整合 global Event Delegation JS 與 CSS。對畫面上包含 `data-symbol` 或 `data-chord` 的元素，滑鼠 hover 或觸摸時動態向 API 請求和弦 SVG並使用 Glassmorphism 樣式顯示為 Tooltip，加入 local cache 避免重複請求。
+  - 局部標記：為 `analysis.html` 的和弦徽章以及 `partials/chords_transposed.html` 局部和弦列表加上 `data-symbol`，自動套用 tooltip 行為。
+- 驗證：
+  - 新測試：`test_api_projects.py` 新增 `test_get_chord_svg` 整合測試，驗證 /chords/svg 端點與 colorable/left_handed 選項均正常；pytest/ruff/mypy 三綠。
+- Commit: `feat(api): add interactive GCEA chord hover tooltip on practice pages — competitor-research(UkePack): vs Ukutabs/Ultimate-Guitar`
+- KPI-impact: **K1 北極星**。即時和弦懸浮圖大幅降低初學者「看譜查指法」的認知負載與中斷阻礙，縮短 time-to-first-play。

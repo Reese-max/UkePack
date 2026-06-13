@@ -108,3 +108,16 @@ def export_practice_audio(
 
     media_type = "audio/midi" if file_format == "mid" else "audio/mpeg"
     return FileResponse(str(full_path), media_type=media_type, filename=full_path.name)
+
+
+@router.get("/chords/svg")
+def get_chord_svg(
+    name: str,
+    colorable: bool = False,
+    left_handed: bool = False,
+) -> Response:
+    """Return an SVG string for the named ukulele chord diagram."""
+    from app.render.chord_diagram import generate_svg
+    svg_content = generate_svg(name, colorable=colorable, left_handed=left_handed)
+    return Response(content=svg_content, media_type="image/svg+xml")
+

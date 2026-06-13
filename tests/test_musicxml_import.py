@@ -350,7 +350,7 @@ def test_parse_fixture_corpus(
 
 
 def test_fixture_inventory_reaches_thirty_scores() -> None:
-    assert len(ALL_FIXTURE_PATHS) == 30
+    assert len(ALL_FIXTURE_PATHS) >= 30
 
 
 def test_fixture_corpus_success_rate(

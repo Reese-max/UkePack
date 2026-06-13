@@ -172,6 +172,10 @@
 {% endif %}
 
 {% if recent_sessions %}
+<div class="section-title" style="margin-top:1.5rem">🏆 成就徽章</div>
+<div class="achievements-grid" id="achievements-grid" style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem"></div>
+<p id="achievement-count" style="font-size:0.85rem;color:#bf360c;margin-bottom:1rem"></p>
+
 <div class="section-title">📋 最近練習紀錄</div>
 <ul class="session-list">
     {% for lg in recent_sessions|reverse %}

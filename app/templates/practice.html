@@ -1193,6 +1193,72 @@
         box-shadow: 0 0 10px #ff9800;
     }
 
+    /* ── Achievements ── */
+    .achievements-section {
+        background: linear-gradient(135deg, #fff8e1 0%, #fff3e0 100%);
+        border: 2px solid #ffcc80;
+        border-radius: var(--radius);
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .achievements-section h3 { margin: 0 0 0.5rem; font-size: 1.1rem; color: #e65100; }
+    .achievements-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .achievement-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.4rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        background: #fff;
+        border: 2px solid #e0e0e0;
+        color: #9e9e9e;
+        transition: all 0.3s ease;
+        user-select: none;
+    }
+    .achievement-badge.unlocked {
+        background: #fff3e0;
+        border-color: #ff9800;
+        color: #e65100;
+        box-shadow: 0 0 8px rgba(255, 152, 0, 0.3);
+    }
+    .achievement-badge .ach-icon { font-size: 1.1rem; }
+    .achievement-badge .ach-name { font-size: 0.8rem; }
+    .achievement-count {
+        font-size: 0.8rem;
+        color: #bf360c;
+        margin-top: 0.4rem;
+    }
+    .achievement-toast {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        color: #fff;
+        padding: 1rem 1.5rem;
+        border-radius: var(--radius);
+        font-size: 1rem;
+        font-weight: 700;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        opacity: 0;
+        transform: translateX(100%);
+        transition: opacity 0.4s, transform 0.4s;
+        z-index: 1000;
+        max-width: 280px;
+    }
+    .achievement-toast.show {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    .achievement-toast .ach-toast-icon { font-size: 1.5rem; display: block; margin-bottom: 0.25rem; }
+    .achievement-toast .ach-toast-name { font-size: 1.1rem; font-weight: 800; }
+    .achievement-toast .ach-toast-desc { font-size: 0.8rem; opacity: 0.9; margin-top: 0.15rem; }
+
     /* ── Responsive ── */
     @media (max-width: 560px) {
         .chord-display { gap: 1rem; padding: 1rem; }
@@ -1343,6 +1409,19 @@
         <p class="mastery-hint">💡 學會的和弦會同步到歌曲庫的「只看我會彈的歌」篩選</p>
     </div>
     {% endif %}
+
+    {# ── Achievements (competitor-research vs Yousician: gamification badges) ── #}
+    <div class="achievements-section" id="achievements-section" role="region" aria-label="成就徽章">
+        <h3>🏆 成就徽章</h3>
+        <p style="margin:0 0 0.5rem; font-size:0.8rem; color:#bf360c;">練習越多，解鎖越多成就！</p>
+        <div class="achievements-grid" id="achievements-grid"></div>
+        <p class="achievement-count" id="achievement-count"></p>
+    </div>
+    <div class="achievement-toast" id="achievement-toast">
+        <span class="ach-toast-icon" id="ach-toast-icon"></span>
+        <span class="ach-toast-name" id="ach-toast-name"></span>
+        <span class="ach-toast-desc" id="ach-toast-desc"></span>
+    </div>
 
     {# ── Strum pattern selector ── #}
     {% if analysis.strum_patterns %}
@@ -3072,6 +3151,112 @@ timerInterval = setInterval(function() {
         updateMasteryCount();
     })();
 })();
+
+/* ── Achievement System (competitor-research vs Yousician: gamification badges) ── */
+var ACH_KEY = 'ukepack_achievements';
+var ACH_DEFS = [
+    { id: 'first_strum', icon: '🎸', name: '第一次刷弦', desc: '按下第一個和弦！', check: function() { return true; } },
+    { id: 'streak_2', icon: '🔥', name: '兩天連續', desc: '連續練習 2 天', check: function(s) { return s.streak >= 2; } },
+    { id: 'streak_7', icon: '🔥🔥', name: '一週不間斷', desc: '連續練習 7 天', check: function(s) { return s.streak >= 7; } },
+    { id: 'chord_5', icon: '🎯', name: '和弦收集家', desc: '學會 5 個和弦', check: function(s) { return s.masteryCount >= 5; } },
+    { id: 'chord_10', icon: '🎯🎯', name: '和弦大師', desc: '學會 10 個和弦', check: function(s) { return s.masteryCount >= 10; } },
+    { id: 'practice_5', icon: '⏱', name: '暖身完成', desc: '練習滿 5 分鐘', check: function(s) { return s.totalMinutes >= 5; } },
+    { id: 'practice_15', icon: '⏱⭐', name: '十五分鐘達標', desc: '練習滿 15 分鐘', check: function(s) { return s.totalMinutes >= 15; } },
+    { id: 'practice_30', icon: '🌟', name: '北極星達成！', desc: '練習滿 30 分鐘', check: function(s) { return s.totalMinutes >= 30; } },
+    { id: 'speed_100', icon: '⚡', name: '原速挑戰', desc: '用 100% 速度練習', check: function(s) { return s.maxBpm >= 100; } },
+    { id: 'listen_play_5', icon: '🎤', name: '聽你彈高手', desc: 'Listen & Play 成功 5 次', check: function(s) { return s.lpSuccess >= 5; } },
+];
+
+function loadAchievements() {
+    try { return JSON.parse(localStorage.getItem(ACH_KEY)) || {}; }
+    catch(e) { return {}; }
+}
+function saveAchievements(a) {
+    try { localStorage.setItem(ACH_KEY, JSON.stringify(a)); } catch(e) {}
+}
+function getAchievementState() {
+    var streak = getStreak();
+    var m = loadMastery();
+    var sessions = getSessions();
+    var totalMin = Math.floor(sessions.reduce(function(sum, s) { return sum + (s.duration || 0); }, 0) / 60);
+    return {
+        streak: streak.count || 0,
+        masteryCount: Object.keys(m).length,
+        totalMinutes: totalMin + Math.floor(timerSeconds / 60),
+        maxBpm: bpm,
+        lpSuccess: parseInt(localStorage.getItem('ukepack_lp_success') || '0', 10)
+    };
+}
+function checkAchievements() {
+    var state = getAchievementState();
+    var unlocked = loadAchievements();
+    var changed = false;
+    ACH_DEFS.forEach(function(ach) {
+        if (!unlocked[ach.id] && ach.check(state)) {
+            unlocked[ach.id] = Date.now();
+            changed = true;
+            showAchievementToast(ach);
+        }
+    });
+    if (changed) saveAchievements(unlocked);
+    renderAchievements(unlocked);
+}
+function renderAchievements(unlocked) {
+    if (!unlocked) unlocked = loadAchievements();
+    var grid = document.getElementById('achievements-grid');
+    if (!grid) return;
+    grid.innerHTML = ACH_DEFS.map(function(ach) {
+        var isUnlocked = !!unlocked[ach.id];
+        return '<span class="achievement-badge' + (isUnlocked ? ' unlocked' : '') + '" title="' + ach.desc + '">' +
+            '<span class="ach-icon">' + ach.icon + '</span>' +
+            '<span class="ach-name">' + ach.name + '</span>' +
+            '</span>';
+    }).join('');
+    var count = Object.keys(unlocked).length;
+    var el = document.getElementById('achievement-count');
+    if (el) el.textContent = '已解鎖 ' + count + ' / ' + ACH_DEFS.length + ' 個成就';
+}
+var achToastTimer = null;
+function showAchievementToast(ach) {
+    var toast = document.getElementById('achievement-toast');
+    if (!toast) return;
+    document.getElementById('ach-toast-icon').textContent = ach.icon;
+    document.getElementById('ach-toast-name').textContent = ach.name;
+    document.getElementById('ach-toast-desc').textContent = ach.desc;
+    toast.classList.add('show');
+    if (achToastTimer) clearTimeout(achToastTimer);
+    achToastTimer = setTimeout(function() { toast.classList.remove('show'); }, 4000);
+}
+
+// Init achievements
+renderAchievements();
+checkAchievements();
+
+// Check on BPM change (wrap existing function)
+var _origUpdateBpm = window.updateBpm;
+if (_origUpdateBpm) {
+    window.updateBpm = function(val) {
+        _origUpdateBpm(val);
+        checkAchievements();
+    };
+}
+
+// Check on Listen & Play success (track via MutationObserver on score element)
+var lpScoreEl = document.getElementById('lp-score');
+if (lpScoreEl) {
+    var lpObserver = new MutationObserver(function() {
+        var text = lpScoreEl.textContent || '';
+        var match = text.match(/成功\s*(\d+)/);
+        if (match) {
+            localStorage.setItem('ukepack_lp_success', String(parseInt(match[1], 10)));
+            checkAchievements();
+        }
+    });
+    lpObserver.observe(lpScoreEl, { childList: true, characterData: true, subtree: true });
+}
+
+// Periodic check (every 30s for time-based achievements)
+setInterval(checkAchievements, 30000);
 
 </script>
 {% endblock %}

@@ -343,6 +343,7 @@
             .nav { padding: 0.6rem 1rem; }
             .shell { width: calc(100% - 1.5rem); margin: 1rem auto; }
             .card { padding: 1.1rem; }
+        }
         /* ── Chord Tooltip Style ── */
         .chord-tooltip-box {
             position: absolute;
@@ -479,6 +480,7 @@
                         return res.text();
                     })
                     .then(svgText => {
+                        if (!svgText.trim().startsWith('<svg')) throw new Error('Invalid SVG');
                         cache[chordName] = svgText;
                         if (currentTarget === target) {
                             tooltipEl.innerHTML = svgText;
@@ -487,7 +489,10 @@
                     })
                     .catch(err => {
                         if (err.name !== 'AbortError' && currentTarget === target) {
-                            tooltipEl.innerHTML = `<span style="font-size:0.75rem;color:red;font-weight:700">${chordName}</span>`;
+                            tooltipEl.textContent = chordName;
+                            tooltipEl.style.fontSize = '0.75rem';
+                            tooltipEl.style.color = 'red';
+                            tooltipEl.style.fontWeight = '700';
                         }
                     });
             }
@@ -520,12 +525,10 @@
             document.addEventListener('touchstart', function(e) {
                 const target = e.target.closest('[data-chord], [data-symbol], [data-chord-tooltip]');
                 if (target) {
-                    // If clicking on same target, toggle it
-                    if (currentTarget === target) {
-                        hideTooltip(e);
-                    } else {
+                    if (currentTarget !== target) {
                         showTooltip(e);
                     }
+                    // same target: keep tooltip visible
                 } else {
                     hideTooltip(e);
                 }

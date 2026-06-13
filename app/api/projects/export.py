@@ -117,7 +117,14 @@ def get_chord_svg(
     left_handed: bool = False,
 ) -> Response:
     """Return an SVG string for the named ukulele chord diagram."""
+    if len(name) > 20 or not all(
+        c.isalnum() or c in "#.b()/ " for c in name
+    ):
+        raise HTTPException(400, "Invalid chord name")
     from app.render.chord_diagram import generate_svg
-    svg_content = generate_svg(name, colorable=colorable, left_handed=left_handed)
+    try:
+        svg_content = generate_svg(name, colorable=colorable, left_handed=left_handed)
+    except Exception as exc:
+        raise HTTPException(500, "Failed to generate chord diagram") from exc
     return Response(content=svg_content, media_type="image/svg+xml")
 

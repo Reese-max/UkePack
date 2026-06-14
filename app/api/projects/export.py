@@ -110,6 +110,34 @@ def export_practice_audio(
     return FileResponse(str(full_path), media_type=media_type, filename=full_path.name)
 
 
+@router.get("/{project_id}/practice-report.pdf")
+def export_practice_report(
+    project_id: int,
+    session: SessionDep,
+) -> Response:
+    """Download a practice session report PDF."""
+    project = get_project_or_404(session, project_id)
+
+    # Reuse the practice-progress aggregation logic
+    from app.api.projects.practice import get_practice_progress
+
+    stats = get_practice_progress(project_id, session)
+    if stats.get("total_sessions", 0) == 0:
+        raise HTTPException(404, "No practice sessions recorded yet")
+
+    from app.render.practice_report import render_practice_report
+
+    pdf_bytes = render_practice_report(project.title or "Untitled", stats)
+    safe_title = (project.title or "practice")[:40].replace("/", "_")
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{safe_title}_practice_report.pdf"'
+        },
+    )
+
+
 @router.get("/chords/svg")
 def get_chord_svg(
     name: str,

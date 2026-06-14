@@ -1,5 +1,5 @@
 {
-  "version": "1.0",
+  "version": "2.0",
   "name": "UkePack Starter Pack",
   "songs": [
     "twinkle.musicxml",
@@ -11,6 +11,16 @@
     "three_blind_mice.musicxml",
     "old_macdonald_had_a_farm.musicxml",
     "yankee_doodle.musicxml",
-    "little_brown_jug.musicxml"
+    "little_brown_jug.musicxml",
+    "row_row_row_your_boat.musicxml",
+    "oh_susanna.musicxml",
+    "frere_jacques.musicxml",
+    "hot_cross_buns.musicxml",
+    "ode_to_joy.musicxml",
+    "kumbaya.musicxml",
+    "when_the_saints.musicxml",
+    "you_are_my_sunshine.musicxml",
+    "she_ll_be_coming.musicxml",
+    "skip_to_my_lou.musicxml"
   ]
 }

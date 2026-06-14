@@ -1,4 +1,4 @@
-"""U6-a starter pack coverage: 10 public-domain songs end-to-end to PDF."""
+"""U6-a starter pack coverage: 20 public-domain songs end-to-end to PDF."""
 
 from __future__ import annotations
 
@@ -20,13 +20,13 @@ def _load_starter_pack_song_paths() -> list[Path]:
     assert isinstance(songs, list), "starter_pack.json should define songs: list[str]"
     paths = [SAMPLES_DIR / str(name) for name in songs]
     assert all(isinstance(song, Path) for song in paths)
-    assert len(paths) == 10, f"Starter pack must contain 10 songs, got {len(paths)}."
+    assert len(paths) == 20, f"Starter pack must contain 20 songs, got {len(paths)}."
     return paths
 
 
-def test_starter_pack_has_10_public_domain_songs() -> None:
+def test_starter_pack_has_20_public_domain_songs() -> None:
     paths = _load_starter_pack_song_paths()
-    assert len(paths) == 10
+    assert len(paths) == 20
     for path in paths:
         assert path.exists(), f"Missing starter song: {path.name}"
 

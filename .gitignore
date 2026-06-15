@@ -113,3 +113,20 @@ auto-dev-summary.md
 logs/
 .codex-tmp/
 research/
+
+# Harness auto-generated artifacts — mutated every daemon wake, never useful diff;
+# tracking pollutes git status + inflates chore_ratio with no KPI value
+.harness-chore-ratio.json
+.harness-memory.db
+.lp-notify-cache/
+.lp-notify.jsonl
+
+# Temp test output dirs (Windows %TEMP% leakage into repo root)
+%TEMP%ukepack-pytest/
+runs/
+
+# Archived logs — already committed content snapshots, no need to track originals
+# (docs/archive/ files are committed for history; these patterns prevent re-tracking
+# of new archive copies created by auto-archive hooks)
+docs/archive/engineer-log.md-archived-*.md
+docs/archive/results.log-archived-*.md

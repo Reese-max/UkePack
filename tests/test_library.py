@@ -11,6 +11,7 @@ def test_library_page_renders(client: TestClient) -> None:
     assert "library-grid" in response.text
     assert "quick-start" in response.text
     assert "quick-pdf" in response.text
+    assert "preview-btn" in response.text
 
 
 def test_library_page_shows_difficulty_badges(client: TestClient) -> None:
@@ -95,6 +96,23 @@ def test_library_quick_pdf_returns_pdf(client: TestClient) -> None:
 def test_library_quick_pdf_rejects_path_traversal(client: TestClient) -> None:
     """Path traversal attempts should be rejected."""
     response = client.post("/library/..%2F..%2Fetc%2Fpasswd/quick-pdf")
+
+    assert response.status_code in (400, 404)
+
+
+def test_library_preview_audio_returns_wav(client: TestClient) -> None:
+    """Preview audio endpoint should return a valid WAV file."""
+    response = client.get("/library/twinkle.musicxml/preview-audio")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "audio/wav"
+    # WAV files start with "RIFF" header
+    assert response.content[:4] == b"RIFF"
+
+
+def test_library_preview_audio_rejects_path_traversal(client: TestClient) -> None:
+    """Path traversal attempts should be rejected."""
+    response = client.get("/library/..%2F..%2Fetc%2Fpasswd/preview-audio")
 
     assert response.status_code in (400, 404)
 

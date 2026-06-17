@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Any
@@ -116,6 +117,52 @@ async def create_project_htmx(
                 )
 
     return RedirectResponse(url=f"/projects/{project.id}", status_code=303)
+
+
+@router.get("/library/{filename}/preview-audio")
+def library_preview_audio(filename: str) -> Response:
+    """Return a short WAV preview of the chord progression for a library song.
+
+    Lets users audition a song before committing to a full practice pack
+    (K1 north-star: reduce song-picking friction).
+    """
+    if "/" in filename or "\\" in filename or ".." in filename:
+        raise HTTPException(400, "Invalid filename")
+    source = _LIBRARY_DIR / filename
+    if not source.is_file():
+        raise HTTPException(404, "Song not found in library")
+
+    from app.arrangement.chord_simplify import simplify as simplify_chord
+    from app.core.musicxml import parse as parse_musicxml
+    from app.core.practice_audio import render_reference_wav
+
+    try:
+        score = parse_musicxml(source)
+    except Exception as exc:
+        logger.warning("library preview parse failed for %s: %s", filename, exc)
+        raise HTTPException(422, "Cannot parse song") from exc
+
+    chords: list[str] = []
+    for ce in score.chords:
+        try:
+            chords.append(simplify_chord(ce.symbol))
+        except (ValueError, KeyError):
+            chords.append(ce.symbol)
+
+    if not chords:
+        raise HTTPException(422, "No chords found in song")
+
+    bpm = score.bpm or 120
+    import tempfile
+
+    fd, tmp_path = tempfile.mkstemp(suffix=".wav")
+    os.close(fd)
+    try:
+        render_reference_wav(chords, bpm, Path(tmp_path))
+        wav_bytes = Path(tmp_path).read_bytes()
+    finally:
+        Path(tmp_path).unlink(missing_ok=True)
+    return Response(content=wav_bytes, media_type="audio/wav")
 
 
 @router.post("/library/{filename}/quick-pdf")

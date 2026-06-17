@@ -125,6 +125,10 @@
                 ⬇ 快速下載 PDF
             </button>
         </form>
+        <button type="button" class="btn btn-outline btn-sm preview-btn" data-filename="{{ song.filename }}"
+                style="width:100%; margin-top:0.35rem;" onclick="previewSong(this)">
+            ▶ 試聽
+        </button>
     </div>
     {% endfor %}
 </div>
@@ -326,6 +330,48 @@
 </style>
 
 <script>
+/* ── Song preview (K1: audition before committing) ── */
+var _previewAudio = null;
+var _previewBtn = null;
+function previewSong(btn) {
+    var filename = btn.getAttribute('data-filename');
+    // Stop any currently playing preview
+    if (_previewAudio) {
+        _previewAudio.pause();
+        _previewAudio = null;
+    }
+    if (_previewBtn) {
+        _previewBtn.textContent = '▶ 試聽';
+        _previewBtn = null;
+    }
+    // If clicking the same button, just stop
+    if (btn.dataset.playing === '1') {
+        btn.dataset.playing = '0';
+        return;
+    }
+    btn.textContent = '⏳ 載入中…';
+    btn.dataset.playing = '1';
+    _previewBtn = btn;
+    var audio = new Audio('/library/' + encodeURIComponent(filename) + '/preview-audio');
+    _previewAudio = audio;
+    audio.addEventListener('canplay', function() {
+        btn.textContent = '⏸ 停止';
+        audio.play();
+    });
+    audio.addEventListener('ended', function() {
+        btn.textContent = '▶ 試聽';
+        btn.dataset.playing = '0';
+        _previewAudio = null;
+        _previewBtn = null;
+    });
+    audio.addEventListener('error', function() {
+        btn.textContent = '▶ 試聽';
+        btn.dataset.playing = '0';
+        _previewAudio = null;
+        _previewBtn = null;
+    });
+}
+
 function filterLibrary() {
     var level = document.getElementById('filter-level')?.value || '';
     var key = document.getElementById('filter-key')?.value || '';

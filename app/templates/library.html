@@ -18,6 +18,11 @@
 {% if show_filters %}
 <div class="library-filters" role="search" aria-label="篩選歌曲">
     <label>
+        搜尋
+        <input type="text" id="filter-search" placeholder="歌名或作曲者…"
+               oninput="filterLibrary()" style="padding:0.35rem 0.6rem; border:1px solid var(--border,#f1d8c7); border-radius:8px; font-size:0.95rem; background:var(--surface,#fff); min-width:140px;">
+    </label>
+    <label>
         難度
         <select id="filter-level" onchange="filterLibrary()">
             <option value="">全部</option>
@@ -324,6 +329,7 @@
 function filterLibrary() {
     var level = document.getElementById('filter-level')?.value || '';
     var key = document.getElementById('filter-key')?.value || '';
+    var search = (document.getElementById('filter-search')?.value || '').toLowerCase().trim();
     // Collect selected chords
     var selectedChords = [];
     var knownOnly = document.getElementById('filter-known-only')?.checked || false;
@@ -335,6 +341,12 @@ function filterLibrary() {
     cards.forEach(function(card) {
         var matchLevel = !level || card.getAttribute('data-level') === level;
         var matchKey = !key || card.getAttribute('data-key') === key;
+        var matchSearch = true;
+        if (search) {
+            var title = (card.querySelector('strong')?.textContent || '').toLowerCase();
+            var composer = (card.querySelector('div[style*="muted"]')?.textContent || '').toLowerCase();
+            matchSearch = title.indexOf(search) >= 0 || composer.indexOf(search) >= 0;
+        }
         var matchChords = true;
         if (selectedChords.length > 0) {
             var songChords = (card.getAttribute('data-chords') || '').split(',').filter(Boolean);
@@ -346,7 +358,7 @@ function filterLibrary() {
                 matchChords = selectedChords.every(function(c) { return songChords.indexOf(c) >= 0; });
             }
         }
-        if (matchLevel && matchKey && matchChords) {
+        if (matchLevel && matchKey && matchSearch && matchChords) {
             card.style.display = '';
             shown++;
         } else {

@@ -547,6 +547,12 @@ def project_progress_page(
 
     recent = logs[-10:] if logs else []
 
+    # Daily practice minutes for heatmap
+    practice_minutes_by_date: dict[str, int] = {}
+    for lg in logs:
+        day = lg.created_at.astimezone(UTC).strftime("%Y-%m-%d")
+        practice_minutes_by_date[day] = practice_minutes_by_date.get(day, 0) + lg.duration_seconds // 60
+
     return _TEMPLATES.TemplateResponse(
         request=request,
         name="progress.html",
@@ -560,6 +566,7 @@ def project_progress_page(
             "chord_counts": dict(chord_counter.most_common()),
             "recent_sessions": recent,
             "last_practice": logs[-1].created_at if logs else None,
+            "practice_minutes_by_date": practice_minutes_by_date,
         },
     )
 

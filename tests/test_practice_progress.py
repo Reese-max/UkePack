@@ -258,3 +258,28 @@ def test_practice_page_has_progress_link(session: Session, project: Project):
     resp = client.get(f"/projects/{project.id}/practice")
     assert resp.status_code == 200
     assert f"/projects/{project.id}/progress" in resp.text
+
+
+def test_progress_page_has_heatmap(session: Session, project: Project):
+    """K1: practice calendar heatmap renders with practice data."""
+    client = _make_client(session)
+    client.post(
+        f"/api/projects/{project.id}/practice-log",
+        json={"chords_practiced": "C,G", "duration_seconds": 300},
+    )
+    resp = client.get(f"/projects/{project.id}/progress")
+    assert resp.status_code == 200
+    html = resp.text
+    assert "練習日曆" in html
+    assert "practice-heatmap" in html
+    assert "heatmap-cell" in html
+    assert "heatmap-legend" in html
+
+
+def test_progress_page_heatmap_empty(session: Session, project: Project):
+    """Heatmap still renders when no practice data."""
+    client = _make_client(session)
+    resp = client.get(f"/projects/{project.id}/progress")
+    assert resp.status_code == 200
+    # Empty state shows "還沒有練習紀錄", heatmap not shown
+    assert "還沒有練習紀錄" in resp.text

@@ -114,6 +114,55 @@
         margin-bottom: 1rem;
     }
     .back-link:hover { text-decoration: underline; }
+
+    /* Practice Calendar Heatmap */
+    .heatmap-container {
+        margin-bottom: 1.5rem;
+        overflow-x: auto;
+    }
+    .heatmap {
+        display: inline-grid;
+        grid-template-columns: 2rem repeat(12, 1fr);
+        gap: 3px;
+        font-size: 0.7rem;
+    }
+    .heatmap-day-label {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 0.3rem;
+        color: var(--muted);
+        font-size: 0.65rem;
+    }
+    .heatmap-cell {
+        width: 14px;
+        height: 14px;
+        border-radius: 2px;
+        background: #ebedf0;
+        position: relative;
+    }
+    .heatmap-cell[data-level="1"] { background: #9be9a8; }
+    .heatmap-cell[data-level="2"] { background: #40c463; }
+    .heatmap-cell[data-level="3"] { background: #30a14e; }
+    .heatmap-cell[data-level="4"] { background: #216e39; }
+    .heatmap-cell[title] { cursor: default; }
+    .heatmap-month-labels {
+        display: inline-grid;
+        grid-template-columns: 2rem repeat(12, 1fr);
+        gap: 3px;
+        margin-bottom: 2px;
+        font-size: 0.65rem;
+        color: var(--muted);
+    }
+    .heatmap-legend {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        margin-top: 0.5rem;
+        font-size: 0.7rem;
+        color: var(--muted);
+    }
+    .heatmap-legend .heatmap-cell { display: inline-block; }
 </style>
 {% endblock %}
 
@@ -160,6 +209,72 @@
 </div>
 
 {% if chord_counts %}
+
+<div class="section-title">📅 練習日曆</div>
+<div class="heatmap-container">
+    {% set today = practice_minutes_by_date.keys() | map('truncate', 10) | list %}
+    <div class="heatmap-month-labels">
+        <span></span>
+        {% for w in range(12) %}
+        <span></span>
+        {% endfor %}
+    </div>
+    <div class="heatmap" id="practice-heatmap">
+        <script>
+        (function() {
+            var data = {{ practice_minutes_by_date | tojson }};
+            var today = new Date();
+            today.setHours(0,0,0,0);
+            // Go back to the Monday 11 weeks ago
+            var start = new Date(today);
+            var dayOfWeek = (start.getDay() + 6) % 7; // Mon=0
+            start.setDate(start.getDate() - dayOfWeek - 77); // 11 full weeks back
+            var grid = document.getElementById('practice-heatmap');
+            var dayLabels = ['一','二','三','四','五','六','日'];
+            var lastMonth = -1;
+            for (var row = 0; row < 7; row++) {
+                // Day label
+                var lbl = document.createElement('span');
+                lbl.className = 'heatmap-day-label';
+                lbl.textContent = dayLabels[row];
+                grid.appendChild(lbl);
+                for (var col = 0; col < 12; col++) {
+                    var d = new Date(start);
+                    d.setDate(d.getDate() + col * 7 + row);
+                    if (d > today) {
+                        var empty = document.createElement('span');
+                        empty.className = 'heatmap-cell';
+                        grid.appendChild(empty);
+                        continue;
+                    }
+                    var key = d.toISOString().slice(0,10);
+                    var mins = data[key] || 0;
+                    var level = 0;
+                    if (mins > 0 && mins <= 5) level = 1;
+                    else if (mins > 5 && mins <= 15) level = 2;
+                    else if (mins > 15 && mins <= 30) level = 3;
+                    else if (mins > 30) level = 4;
+                    var cell = document.createElement('span');
+                    cell.className = 'heatmap-cell';
+                    if (level > 0) cell.setAttribute('data-level', level);
+                    cell.title = key + ': ' + (mins > 0 ? mins + ' 分鐘' : '沒有練習');
+                    grid.appendChild(cell);
+                }
+            }
+        })();
+        </script>
+    </div>
+    <div class="heatmap-legend">
+        <span>少</span>
+        <span class="heatmap-cell"></span>
+        <span class="heatmap-cell" data-level="1"></span>
+        <span class="heatmap-cell" data-level="2"></span>
+        <span class="heatmap-cell" data-level="3"></span>
+        <span class="heatmap-cell" data-level="4"></span>
+        <span>多</span>
+    </div>
+</div>
+
 <div class="section-title">🎯 和弦掌握度</div>
 <div class="chord-mastery">
     {% for chord, count in chord_counts.items() %}

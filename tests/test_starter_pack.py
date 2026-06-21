@@ -1,4 +1,4 @@
-"""U6-a starter pack coverage: 207 public-domain songs end-to-end to PDF."""
+"""U6-a starter pack coverage: 305 public-domain songs end-to-end to PDF."""
 
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ def _load_starter_pack_song_paths() -> list[Path]:
     assert isinstance(songs, list), "starter_pack.json should define songs: list[str]"
     paths = [SAMPLES_DIR / str(name) for name in songs]
     assert all(isinstance(song, Path) for song in paths)
-    assert len(paths) == 207, f"Starter pack must contain 207 songs, got {len(paths)}."
+    assert len(paths) == 305, f"Starter pack must contain 305 songs, got {len(paths)}."
     return paths
 
 
@@ -82,9 +82,9 @@ def _percentile(samples: Sequence[float], quantile: float) -> float:
     return lower_value + (upper_value - lower_value) * (index - lower_index)
 
 
-def test_starter_pack_has_207_public_domain_songs() -> None:
+def test_starter_pack_has_305_public_domain_songs() -> None:
     paths = _load_starter_pack_song_paths()
-    assert len(paths) == 207
+    assert len(paths) == 305
     for path in paths:
         assert path.exists(), f"Missing starter song: {path.name}"
 
@@ -102,7 +102,7 @@ def test_starter_pack_end_to_end_demo_runtime(tmp_path: Path) -> None:
 
 
 def test_starter_pack_render_p95(tmp_path: Path) -> None:
-    """207-song corpus p95 render time must stay under the north-star gate."""
+    """305-song corpus p95 render time must stay under the north-star gate."""
     timings: list[float] = []
     for path in _load_starter_pack_song_paths():
         output = tmp_path / f"{path.stem}.pdf"

@@ -467,3 +467,70 @@ IDLE. 0 executable M-task. K6 owner-gated — owner must: (1) confirm Render dep
 - 本輪只寫 engineering-log.md，不 commit（無新代碼變更）
 
 **KPI-impact**: K6 deploy-chain push lag cleared（14 commits → origin）
+
+---
+
+## v291 /pua KPI-driven deep review (2026-06-21T21:30+08:00)
+
+### Baseline
+- pytest: 793 passed (99s)
+- ruff: green
+- mypy: green (59 files)
+- demo: 0.05s
+
+### KPI 進展表
+| KPI | v290 值 | 當前值 | Δ | 狀態 |
+|-----|--------|-------|---|------|
+| K1 北極星 | 207 songs / 793 pass | 207 songs / 793 pass | 0 | ✅飽和 |
+| K2 匯入成功率 | 100% 30 fixtures | 100% 30 fixtures | 0 | ✅飽和 |
+| K5 測試/品質 | 793/ruff/mypy 59 | 793/ruff/mypy 59 | 0 | ✅飽和 |
+| K6 老師回饋 | 0/5 frozen 113+ | 0/5 frozen 113+ | 0 | ❌ owner-gated |
+| K7 onboarding | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布
+- M0-3 (KPI 推進): 1 件（p95 trend alert = K5 量測補強）
+- H0 (Housekeeping): 10 件（10× auto-salvage index.lock contention）
+- chore_ratio: **91%**（10/11，> 30% 閾值）
+- 根因：`C:/UkePack-git` index.lock 並發搶救持續產生 salvage commits，非 daemon 主動避真任務
+
+### 7d 任務分布
+- total: 35 commits
+- feat/fix/perf/refactor: 14 件（40%）
+- chore/docs: 19 件（54% auto-salvage 17 + docs-log 2）
+- 實質 KPI 推進：corpus 143→207 + library search/preview + heatmap + report PDF + p95 gate = ~5 件真 feature
+
+### 卡住的 KPI 與根因
+**K6（老師試用回饋 0/5）** — owner-gated **37+ 天**（自 2026-05-15 起 frozen）。
+阻塞鏈：push ✅ → Render.com deploy → `{{TRIAL_URL}}` → `invite_email.txt` → K6 0→1。
+唯一 unblock = owner 確認 Render deploy 狀態 + 寄邀請信（5 min 真人工作）。
+daemon 對 K6 零槓桿，idle = 正解。
+
+### 結構性問題：index.lock 並發搶救
+24h 內 10/11 commits 是 auto-salvage（index.lock contention）。
+`C:/UkePack-git` 使用 separate-git-dir 模式，daemon 與其他進程並發寫 `.git/index.lock`。
+反 Pattern L064 已觸發：salvage commit 缺 KPI-impact 標記。
+建議：修 root cause（單一進程寫 index.lock 時加 flock/retry），或在 auto-salvage hook 中自動帶原工作的 KPI-impact。
+
+### daemon survival
+- `.engineer-loop.failures.jsonl` 不存在（無 daemon 失敗紀錄）
+- 無結構性 daemon 死亡模式
+- index.lock contention 是唯一重複問題（已記錄 5+ 次，2026-05-27 起）
+
+### KPI 量測能力評估
+| KPI | 可重複量測 | 缺口 |
+|-----|-----------|------|
+| K1 | ✅ `test_starter_pack.py` 自動 + CSV history p95 trend | 無 |
+| K2 | ✅ `test_corpus_e2e_pdf.py` 30-fixture batch | 無 |
+| K5 | ✅ pytest/ruff/mypy 三綠 + p95 regression guard | 無 |
+| K6 | ❌ manual count | 缺自動 feedback intake pipeline |
+| K7 | ✅ docs/teacher/ checklist | 無 |
+
+### 下一步 3 個 KPI 推進動作
+1. **K6**：owner 確認 Render deploy 狀態 + 寄邀請信給 ≥1 位烏克麗麗老師（唯一真 unblock）
+2. **K6**：若 Render deploy 未完成，owner 先完成 deploy → 取得 `{{TRIAL_URL}}` → 更新 `invite_email.txt` 模板
+3. **K5**（邊際）：index.lock 並發修復 — auto-salvage hook 自動帶原工作 KPI-impact 標記，消除 chore_ratio 噪音
+
+### 跨專案學習
+本輪無新 global learning（L001-L015 已涵蓋本專案所有觀察到的 pattern：baseline-first、ritual commit 識別、KPI-frozen reflection bloat、ACL guard self-veto、phantom-infra 盤點）。
+
+**KPI-impact**: housekeeping（KPI retro + idle confirm，0 task delta）

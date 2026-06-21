@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import json
+import warnings
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from math import ceil, floor
@@ -19,6 +20,10 @@ THIRTY_MINUTES_SECONDS = 30.0 * 60.0
 # 5 s is the existing corpus E2E gate; starter pack uses the same threshold.
 STARTER_P95_RENDER_SECONDS = 5.0
 STARTER_HISTORY_PATH = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "STARTER_HISTORY.csv"
+# Trend alert: warn when current p95 exceeds rolling baseline by this factor.
+_P95_TREND_ALPHA = 2.0
+# Minimum historical entries required before trend checking activates.
+_P95_TREND_MIN_ENTRIES = 10
 
 
 def _load_starter_pack_song_paths() -> list[Path]:
@@ -30,6 +35,35 @@ def _load_starter_pack_song_paths() -> list[Path]:
     assert all(isinstance(song, Path) for song in paths)
     assert len(paths) == 207, f"Starter pack must contain 207 songs, got {len(paths)}."
     return paths
+
+
+def _check_p95_trend(current_p95: float) -> None:
+    """Warn if current p95 regresses beyond rolling baseline from CSV history."""
+    if not STARTER_HISTORY_PATH.exists() or STARTER_HISTORY_PATH.stat().st_size == 0:
+        return
+    rows: list[float] = []
+    with STARTER_HISTORY_PATH.open(encoding="utf-8") as fh:
+        reader = csv.DictReader(fh)
+        for row in reader:
+            try:
+                rows.append(float(row["p95"]))
+            except (KeyError, ValueError):
+                continue
+    if len(rows) < _P95_TREND_MIN_ENTRIES:
+        return
+    # Rolling baseline: median of last 20 entries (robust to outliers).
+    window = rows[-20:]
+    window_sorted = sorted(window)
+    mid = len(window_sorted) // 2
+    baseline = (window_sorted[mid] + window_sorted[~mid]) / 2.0
+    threshold = baseline * _P95_TREND_ALPHA
+    if current_p95 > threshold:
+        warnings.warn(
+            f"p95 trend alert: current {current_p95:.2f}s > "
+            f"baseline {baseline:.2f}s × {_P95_TREND_ALPHA:.0f} = {threshold:.2f}s. "
+            f"Possible performance regression.",
+            stacklevel=2,
+        )
 
 
 def _percentile(samples: Sequence[float], quantile: float) -> float:
@@ -94,3 +128,4 @@ def test_starter_pack_render_p95(tmp_path: Path) -> None:
         f"Starter pack p95 render time {p95:.2f}s >= {STARTER_P95_RENDER_SECONDS:.1f}s gate. "
         f"p50={p50:.2f}s, p100={p100:.2f}s across {len(timings)} songs."
     )
+    _check_p95_trend(p95)

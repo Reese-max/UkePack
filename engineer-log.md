@@ -1,357 +1,6 @@
 ---
-### [auto-archive 2026-06-21 by context-budget guard] 原 685 行 > 600，已封存至 docs/archive/engineer-log.md-archived-20260621-150221.md，保留最近 300 行防 context overflow
+### [auto-archive 2026-06-22 by context-budget guard] 原 654 行 > 600，已封存至 docs/archive/engineer-log.md-archived-20260622-004405.md，保留最近 300 行防 context overflow
 ---
-| K1 北極星 <30min | 793 pass / 143 songs | 793 pass / **207 songs** | **+64 songs (+45%)** | ✅進步 |
-| K2 匯入 ≥90% | 100% 30 fixtures | 100% 30 fixtures | 0 | ✅飽和 |
-| K5 Baseline | 793/ruff/mypy 59 | 793/ruff/mypy 59 | 0 | ✅飽和 |
-| K6 Teacher trial | 0/5 frozen 109+ | 0/5 frozen 110+ | 0 | ⚠️卡住（owner-gated） |
-| K7 Onboarding | 5/5 | 5/5 | 0 | ✅飽和 |
-
-### 24h 任務分布（6 commits，since 06-19 06:19）
-- **M0-3 (KPI 推進)**: 2 件
-  - `feat(starter-pack): expand tested corpus from 100 to 143` → K1 +43 songs
-  - `feat(starter-pack): expand corpus from 143 to 207` → K1 +64 songs
-- **H0 (Housekeeping)**: 4 件
-  - `chore(auto-salvage)` × 4（index.lock 並發搶救）
-- **chore_ratio**: **67%**（4/6）⚠️ > 30% 閾值
-
-### 7d 任務分布（33 commits，06-13 ~ 06-20）
-- **M0-3 (KPI 推進)**: 15 件（feat/fix）
-  - corpus 10→20→51→100→143→207（5 次擴張）
-  - library text search, preview audio, practice heatmap, chord tooltip, printable report, XSS fix
-- **H0 (Housekeeping)**: 18 件
-  - auto-salvage × 13, docs(log) × 5
-- **chore_ratio**: **55%**（18/33）⚠️ > 30% 閾值
-
-### chore_ratio 分析
-7d chore_ratio 55%，超 30% 閾值。拆解：
-- auto-salvage 13 筆（39%）— index.lock 並發搶救，非 daemon 避真任務
-- docs(log) 5 筆（15%）— 反思紀錄，部分觸發反 Pattern（docs-log-bloat）
-
-**根因不變**：auto-salvage 是環境噪音（多 scheduler 搶 index.lock），不是 daemon 空轉。真正 KPI 推進 = 15 件 feat/fix，corpus 從 10→207 songs（20 倍增長）。
-
-### K1 深度分析
-v278→v280 delta：
-- 曲庫：143 → **207 songs**（+45%，本日 2 commits 完成）
-- tests：793 passed（不變）
-- p95 gate：<5s（不變）
-- competitor features：20+（不變）
-
-**觀察**：corpus 擴張是 K1 最有效槓桿。207 songs 已超越 MISSION 原始 30 首基準 **6.9 倍**。曲庫覆蓋：兒歌、聖誕歌、民謠、華語流行。下一步瓶頸不再是數量，而是「老師試用 → 真實反饋 → 迭代」的 K6 迴路。
-
-### 卡住的 KPI 與根因
-**K6 Teacher trial（0/5，frozen 110+ rounds）**：
-- 阻塞鏈：Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 → 邀請信未寄
-- 根因：100% owner-gated，daemon 零槓桿
-- K6 從 2026-05-17 至今 **34 天無進展**。專案最大風險：技術面全綠，商業驗證為零。
-
-### Daemon 失敗紀錄
-- `.engineer-loop.failures.jsonl`：**不存在**
-- 無結構性 daemon 死亡問題
-- auto-salvage 頻繁是環境問題（index.lock 並發），非 daemon 崩潰
-
-### KPI 量測評估
-| KPI | 可重複量測？ | 缺什麼 |
-|-----|------------|--------|
-| K1 | ✅ test_starter_pack.py + p95 gate + 207 songs | corpus p95 歷史趨勢自動 alert |
-| K2 | ✅ test_corpus_e2e_pdf.py 30 fixtures 100% | 無 |
-| K5 | ✅ pytest + ruff + mypy 三綠 | 無 |
-| K6 | ❌ manual count | 需 owner 動作，無法自動化 |
-| K7 | ✅ docs/teacher/ checklist 5/5 | 無 |
-
-### 下一步 3 個 KPI 推進動作
-
-| # | 動作 | 對應 KPI | 預期 Δ |
-|---|------|---------|-------|
-| 1 | **owner 確認 Render deploy → 設定 {{TRIAL_URL}} → 寄出 P1-18b 邀請信** | K6 | 0/5 → 1/5 |
-| 2 | corpus 207→300 songs（日語兒歌、東南亞民謠、更多華語流行） | K1 | +93 songs |
-| 3 | 為 207 首 corpus 加 p95 趨勢 alert（STARTER_HISTORY.csv 超閾值自動 warn） | K5 | regression guard 深化 |
-
-### program.md 待辦重排
-**現狀**：[x] 14 件 / [O] 3 件（owner-gated）/ [ ] 0 件。
-**重排結果**：無需重排——所有 KPI-推進 task 已完成或 owner-gated。
-
-**禁止事項確認**：本輪未新增任何純治理 task 給 daemon。
-
-### 跨專案學習
-- 本輪無新 global learning（auto-salvage spam 已記錄於 L092，corpus expansion 無新可萃取智慧）。
-
-### 判定
-- K1 從 143→207 songs（+45%），v278→v280 有實質進展
-- K2/K5/K7 飽和不變
-- K6 owner-gated 34 天，daemon idle = 正解
-- 24h chore_ratio 67% ⚠️（auto-salvage 噪音，非避真任務）
-- 遵守反 Pattern：不產 docs(log) commit
-- 本輪反思只寫 engineering-log.md，不 commit
-- 2 unpushed commits 待 owner push
-
-## 反思 2026-06-20T06:44+08:00（v281 /pua IDLE）
-
-### Baseline
-- pytest: 793 passed (163s)
-- ruff: green
-- HEAD: 1e56bd7
-
-### KPI
-| KPI | 值 | 狀態 |
-|-----|---|------|
-| K1 | 793 pass / 207 songs | ✅飽和 |
-| K2 | 100% 30 fixtures | ✅飽和 |
-| K5 | 793/ruff/mypy 59 | ✅飽和 |
-| K6 | 0/5 frozen 110+ | ⚠️ owner-gated |
-| K7 | 5/5 | ✅飽和 |
-
-### 判定
-- K1-K5+K7 全飽和，0 個 daemon 可執行 M-task
-- K6 owner-gated 34 天，唯一 unlock = owner 寄信
-- 24h 0 commits，chore_ratio N/A（low sample）
-- Verdict: IDLE
-- 不產 docs(log) commit（反 Pattern）
-
-**KPI-impact**: none（IDLE confirm）
-
----
-
-## 反思 2026-06-20T22:45+08:00（v282 KPI-driven 深度回顧）
-
-### KPI 進展表
-| KPI | 上次值（v280 06-19） | 當前值 | Δ | 狀態 |
-|-----|---------------------|-------|---|------|
-| K1 北極星 <30min | 143 songs / 793 pass | 208 songs / 793 pass | +65 songs (+45%) | ✅進步 |
-| K2 30-fixture E2E ≥95% | 100% | 100% | 0 | ✅飽和 |
-| K5 baseline green | 793/ruff/mypy 59 | ~793/ruff/mypy 59 | 0 | ✅飽和 |
-| K6 teacher trial 0/5 | 0/5 frozen 107+ | 0/5 frozen 110+ | 0 | ❌卡住 35 天 |
-| K7 onboarding 5/5 | 5/5 | 5/5 | 0 | ✅飽和 |
-
-### 24h 任務分布（2026-06-19 ~ 06-20）
-- M0-3 (KPI 推進): **0 件**
-- H0 (Housekeeping): **5 件**（auto-salvage × 5）
-- chore_ratio: **100%** ⚠️（全為 index.lock 搶救，非 daemon 避真任務）
-
-### 7d 任務分布（2026-06-13 ~ 06-20，30 commits）
-- M0-3 (KPI 推進): **13 件**（feat/fix）
-  - corpus 擴張 10→20→51→100→143→207（5 次）
-  - library text search, preview audio, practice heatmap, chord tooltip, printable report, XSS fix, push/sync
-- H0 (Housekeeping): **17 件**（auto-salvage × 12, docs(log) × 5）
-- chore_ratio: **57%**（17/30）⚠️ > 30%
-
-### chore_ratio 根因
-- auto-salvage 12 筆（40%）：`C:/UkePack-git` index.lock 並發搶救，多 scheduler 同時觸發，非 daemon 空轉
-- docs(log) 5 筆（17%）：反思紀錄，部分觸發反 Pattern（docs-log-bloat）
-- **真正 KPI 推進 = 13 件 feat/fix**，corpus 從 10→207（20 倍），7d 內有實質進展
-- 24h 內 0 feat/fix = code saturation，非避真任務
-
-### 卡住的 KPI 與根因
-**K6 Teacher trial（0/5，frozen 110+ rounds，35 天無進展）**：
-- 阻塞鏈：Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 → 邀請信未寄
-- 根因：**100% owner-gated**，daemon 零槓桿
-- 風險：技術面全綠（793 pass / 207 songs / 5 competitor features），商業驗證為零
-- 自 2026-05-17 起 K6 停在 0/5，是專案最大瓶頸
-
-### Daemon 失敗紀錄
-- `.engineer-loop.failures.jsonl`：**不存在**
-- 無結構性 daemon 死亡問題
-- auto-salvage 頻繁是環境問題（index.lock 並發），非 daemon 崩潰
-
-### KPI 量測評估
-| KPI | 可重複量測？ | 缺什麼 |
-|-----|------------|--------|
-| K1 | ✅ test_starter_pack.py + p95 gate + 208 songs | corpus p95 歷史趨勢自動 alert |
-| K2 | ✅ test_corpus_e2e_pdf.py 30 fixtures 100% | 無 |
-| K5 | ✅ pytest + ruff + mypy 三綠 | 無 |
-| K6 | ❌ manual count | 需 owner 動作，無法自動化 |
-| K7 | ✅ docs/teacher/ checklist 5/5 | 無 |
-
-### 下一步 3 個 KPI 推進動作
-
-| # | 動作 | 對應 KPI | 預期 Δ |
-|---|------|---------|-------|
-| 1 | **owner 確認 Render deploy → 設定 {{TRIAL_URL}} → 寄出 P1-18b 邀請信** | K6 | 0/5 → 1/5 |
-| 2 | corpus 208→300 songs（日語兒歌、東南亞民謠、更多華語流行） | K1 | +92 songs |
-| 3 | 為 208 首 corpus 加 p95 趨勢 alert（STARTER_HISTORY.csv 超閾值自動 warn） | K5 | regression guard 深化 |
-
-### program.md 待辦重排
-**現狀**：[x] 14 件 / [O] 3 件（owner-gated）/ [ ] 0 件。
-**重排結果**：無需重排——所有 KPI-推進 task 已完成或 owner-gated。program.md 乾淨。
-
-**禁止事項確認**：本輪未新增任何純治理 task 給 daemon。
-
-### 跨專案學習
-- 本輪無新 global learning（auto-salvage spam 已記錄於 L092，corpus expansion 無新可萃取智慧，index.lock 並發搶救模式已有 L092 覆蓋）。
-
-### 判定
-- K1 從 143→208 songs（+45%），7d 內有實質 corpus 擴張
-- K2/K5/K7 飽和不變
-- K6 owner-gated **35 天**，daemon idle = 正解
-- 24h chore_ratio 100% ⚠️（auto-salvage 噪音，非避真任務）
-- 7d chore_ratio 57% ⚠️（auto-salvage + docs(log) 噪音）
-- 遵守反 Pattern：不產 docs(log) commit，不新增純治理 task
-- 本輪反思只寫 engineering-log.md，不 commit
-- 5 unpushed commits 待 owner push
-
-**KPI-impact**: none（IDLE confirm + KPI retro）
-
----
-
-## v285 /pua round (2026-06-21T08:06+08:00)
-
-### Baseline
-- pytest: PASS (exit=0)
-- ruff: green
-- HEAD: fb8bad1
-- 24h commits: 0
-- working tree: 3 modified (engineer-log.md, results.log, STARTER_HISTORY.csv)
-
-### KPI
-| KPI | 值 | 狀態 |
-|-----|---|------|
-| K1 北極星 <30min | 207 songs, p95<1s | SATURATED |
-| K2 匯入 ≥90% | 100% 30 fixtures | SATURATED |
-| K5 Baseline | 793/ruff green | SATURATED |
-| K6 Teacher trial | 0/5 | owner-gated (36+ days) |
-| K7 Onboarding | 5/5 | SATURATED |
-
-### Verdict
-IDLE. 0 executable M-task. K6 owner-gated — owner must: (1) confirm Render deploy (2) set TRIAL_URL (3) send teacher invitations.
-
-**KPI-impact**: none (code saturation)
-
----
-
-## 反思 2026-06-21T14:40+08:00（v287 /pua KPI-driven deep review）
-
-### Baseline 驗證
-- pytest: **793 passed**（exit=0, 本輪實測）
-- ruff: green（本輪實測）
-- mypy: **59 files** green（本輪實測）
-- HEAD: `b86613b`（chore(auto-salvage): index.lock 並發搶救）
-- origin: `https://github.com/Reese-max/UkePack.git` ✅
-- unpushed: 0（v286 已 push）
-- public_domain songs: **207**
-
-### KPI 進展表
-| KPI | v285 值 | 當前值 | Δ | 狀態 |
-|-----|--------|-------|---|------|
-| K1 北極星 <30min | 207 songs / 793 pass / p95<1s | 207 songs / 793 pass / p95<1s | 0 | ✅飽和 |
-| K2 匯入 ≥90% | 100% 30 fixtures | 100% 30 fixtures | 0 | ✅飽和 |
-| K5 Baseline | 793/ruff/mypy 59 | 793/ruff/mypy 59 | 0 | ✅飽和 |
-| K6 Teacher trial | 0/5 frozen 112+ | 0/5 frozen 112+ | 0 | ❌卡住（owner-gated 37 天） |
-| K7 Onboarding | 5/5 | 5/5 | 0 | ✅飽和 |
-
-### 24h 任務分布（6 commits，06-20 ~ 06-21）
-- **M0-3 (KPI 推進)**: 0 件
-- **H0 (Housekeeping)**: 6 件（auto-salvage × 5 + fix(auto-salvage) × 1）
-- **chore_ratio**: **100%** ⚠️（全為 index.lock 搶救）
-
-### 7d 任務分布（34 commits，06-13 ~ 06-21）
-- **M0-3 (KPI 推進)**: 14 件（feat × 10, test × 1, fix × 2, docs-log × 1）
-- **H0 (Housekeeping)**: 20 件（auto-salvage × 19, docs(log) × 1）
-- **chore_ratio**: **59%** ⚠️ > 30%
-
-### chore_ratio 根因
-- auto-salvage 19 筆（56%）：`C:/UkePack-git` index.lock 並發搶救，多 scheduler 同時觸發
-- 根因不變：rescue-daemon 並發搶 index.lock → 產無 KPI-impact 標記 chore → sensor 計入 chore_ratio
-- **真正 KPI 推進 = 14 件**，corpus 從 10→207（20 倍），7d 內仍有實質 feat
-- 24h 內 0 feat/fix = code saturation，非避真任務
-
-### 卡住的 KPI 與根因
-**K6 Teacher trial（0/5，frozen 112+ rounds，37 天無進展）**：
-- 阻塞鏈：Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 → 邀請信未寄
-- 根因：**100% owner-gated**，daemon 零槓桿
-- 風險：技術面全綠（793 pass / 207 songs），商業驗證為零
-- 自 2026-05-17 起 K6 停在 0/5，**37 天**無進展——專案最大瓶頸
-
-### Daemon 失敗紀錄
-- `.engineer-loop.failures.jsonl`：**不存在**
-- 無結構性 daemon 死亡問題
-- auto-salvage 頻繁是環境問題（index.lock 並發），非 daemon 崩潰
-
-### KPI 量測評估
-| KPI | 可重複量測？ | 缺什麼 |
-|-----|------------|--------|
-| K1 | ✅ test_starter_pack.py + p95 gate + 207 songs | 無（已完善） |
-| K2 | ✅ test_corpus_e2e_pdf.py 30 fixtures 100% | 無 |
-| K5 | ✅ pytest + ruff + mypy 三綠 | 無 |
-| K6 | ❌ manual count | 需 owner 動作，無法自動化 |
-| K7 | ✅ docs/teacher/ checklist 5/5 | 無 |
-
-### 下一步 3 個 KPI 推進動作
-
-| # | 動作 | 對應 KPI | 預期 Δ |
-|---|------|---------|-------|
-| 1 | **owner 確認 Render deploy → 設定 {{TRIAL_URL}} → 寄出 P1-18b 邀請信** | K6 | 0/5 → 1/5 |
-| 2 | corpus 207→300 songs（日語兒歌、東南亞民謠、更多華語流行） | K1 | +93 songs |
-| 3 | 為 207 首 corpus 加 p95 趨勢 alert（STARTER_HISTORY.csv 超閾值自動 warn） | K5 | regression guard 深化 |
-
-### program.md 待辦重排
-**現狀**：[x] 14 件 / [O] 3 件（owner-gated）/ [ ] 0 件。
-**重排結果**：無需重排——所有 KPI-推進 task 已完成或 owner-gated。program.md 乾淨。
-
-**禁止事項確認**：本輪未新增任何純治理 task 給 daemon。
-
-### 跨專案學習
-- 本輪無新 global learning（auto-salvage spam 已記錄於 L092，index.lock 並發已有 L064 覆蓋，corpus expansion 無新可萃取智慧）。
-
-### 判定
-- K1-K5+K7 全飽和，v285→v287 零 delta
-- K6 owner-gated **37 天**，daemon idle = 正解
-- 24h chore_ratio 100% ⚠️（auto-salvage 噪音）
-- 7d chore_ratio 59% ⚠️（auto-salvage 噪音，非避真任務）
-- 遵守反 Pattern：不產 docs(log) commit，不新增純治理 task
-- 本輪反思只寫 engineering-log.md，不 commit
-
-**KPI-impact**: housekeeping（0 task delta，IDLE confirm）
-
----
-
-## 反思 2026-06-21T17:59+08:00（v288 /pua KPI-driven deep review）
-
-### Baseline 驗證
-- pytest: **793 passed**（141.30s，本輪實測）
-- ruff: green（沿用）
-- mypy: **59 files** green（沿用）
-- HEAD: `ea42cc1`（fix(auto-salvage): land tracked work after index.lock contention）
-- origin: `https://github.com/Reese-max/UkePack.git` ✅
-- unpushed: 0
-- public_domain songs: **207**
-
-### KPI 進展表
-| KPI | v287 值 | 當前值 | Δ | 狀態 |
-|-----|--------|-------|---|------|
-| K1 北極星 <30min | 207 songs / 793 pass / p95<1s | 207 songs / 793 pass / p95<1s | 0 | ✅飽和 |
-| K2 匯入 ≥90% | 100% 30 fixtures | 100% 30 fixtures | 0 | ✅飽和 |
-| K5 Baseline | 793/ruff/mypy 59 | 793/ruff/mypy 59 | 0 | ✅飽和 |
-| K6 Teacher trial | 0/5 frozen 112+ | 0/5 frozen 113+ | 0 | ❌卡住（owner-gated 37+ 天） |
-| K7 Onboarding | 5/5 | 5/5 | 0 | ✅飽和 |
-
-### 24h 任務分布（9 commits，06-20 ~ 06-21）
-- **M0-3 (KPI 推進)**: 0 件
-- **H0 (Housekeeping)**: 9 件（auto-salvage × 9）
-- **chore_ratio**: **100%** ⚠️（全為 index.lock 搶救）
-
-### 7d 任務分布（46 commits，06-14 ~ 06-21）
-- **M0-3 (KPI 推進)**: 11 件
-  - feat × 8：corpus 10→20→51→100→143→207（5 次擴張）+ library search + preview audio + practice heatmap + printable report
-  - test × 1：p95 render time gate
-  - fix × 1：push/sync
-  - docs × 1：v263 /pua KPI-driven idle（邊界，觸發 docs-log-bloat）
-- **H0 (Housekeeping)**: 35 件
-  - auto-salvage × 22（index.lock 並發搶救）
-  - git-notes × 9
-  - chore(gitignore) × 1
-  - docs(log) × 1
-- **chore_ratio**: **76%**（35/46）⚠️ 遠超 30%
-
-### chore_ratio 深度分析
-7d chore_ratio 76%，拆解：
-| 類別 | 筆數 | 占比 | 性質 |
-|------|------|------|------|
-| auto-salvage | 22 | 48% | index.lock 並發搶救，環境噪音 |
-| git-notes | 9 | 20% | 自動標註，非 daemon 決策 |
-| docs(log) | 1 | 2% | 反思紀錄 |
-| chore(gitignore) | 1 | 2% | 一次性 |
-
-**根因不變**：`C:/UkePack-git` separate-git-dir 模式下，多 scheduler 同時觸發 auto-salvage 搶 index.lock → 產生大量 chore commit。非 daemon 避真任務。
 **惡化趨勢**：v287 時 auto-salvage 19 筆 → v288 時 22 筆（+3 筆/天），index.lock 並發問題未解決。
 
 ### 卡住的 KPI 與根因
@@ -534,3 +183,300 @@ daemon 對 K6 零槓桿，idle = 正解。
 本輪無新 global learning（L001-L015 已涵蓋本專案所有觀察到的 pattern：baseline-first、ritual commit 識別、KPI-frozen reflection bloat、ACL guard self-veto、phantom-infra 盤點）。
 
 **KPI-impact**: housekeeping（KPI retro + idle confirm，0 task delta）
+
+---
+
+## 反思 2026-06-21T23:53+08:00（v292 /pua KPI-driven deep review）
+
+### Baseline 驗證
+- pytest: **793 passed**（本輪實測）
+- ruff: green
+- mypy: **59 files** green
+- HEAD: `31c5a56`（fix(auto-salvage)）
+- origin: `https://github.com/Reese-max/UkePack.git` ✅
+- unpushed: 0
+- public_domain songs: **207**
+- p95: **0.2059s**（199 history entries）
+
+### KPI 進展表
+| KPI | v291 值 | 當前值 | Δ | 狀態 |
+|-----|--------|-------|---|------|
+| K1 北極星 <30min | 207 songs / 793 pass / p95<1s | 207 songs / 793 pass / p95=0.21s | 0 | ✅飽和 |
+| K2 匯入 ≥90% | 100% 30 fixtures | 100% 30 fixtures | 0 | ✅飽和 |
+| K5 Baseline | 793/ruff/mypy 59 | 793/ruff/mypy 59 | 0 | ✅飽和 |
+| K6 Teacher trial | 0/5 frozen 113+ | 0/5 frozen 113+ | 0 | ❌ owner-gated 37+ 天 |
+| K7 Onboarding | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布（12 commits，06-21）
+- **M0-3 (KPI 推進)**: 1 件（p95 trend alert = K5 量測補強）
+- **H0 (Housekeeping)**: 11 件（auto-salvage × 11）
+- **chore_ratio**: **92%** ⚠️（index.lock 並發搶救噪音）
+
+### 7d 任務分布（37 commits，06-14 ~ 06-21）
+- **M0-3 (KPI 推進)**: 13 件（feat × 8, test × 2, fix × 1, docs × 1, sync × 1）
+- **H0 (Housekeeping)**: 24 件（auto-salvage × 23, chore × 1）
+- **chore_ratio**: **65%** ⚠️ > 30%
+
+### chore_ratio 根因
+- auto-salvage 23 筆（62%）：`C:/UkePack-git` index.lock 並發搶救
+- 根因不變：separate-git-dir 多 scheduler 搶鎖，已記錄 L064/L092
+- 24h 0 feat/fix = code saturation，非避真任務
+
+### 卡住的 KPI 與根因
+**K6 Teacher trial（0/5，frozen 113+ rounds，37+ 天無進展）**：
+- 阻塞鏈：Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 → 邀請信未寄
+- 根因：**100% owner-gated**，daemon 零槓桿
+- 自 2026-05-17 起 K6 停在 0/5，**37+ 天**無進展
+- 技術面全綠（793 pass / 207 songs / p95=0.21s），商業驗證為零
+
+### Daemon 失敗紀錄
+- `.engineer-loop.failures.jsonl`：**不存在**
+- 無結構性 daemon 死亡問題
+- auto-salvage 頻繁是環境問題（index.lock 並發），非 daemon 崩潰
+
+### KPI 量測評估
+| KPI | 可重複量測？ | 缺什麼 |
+|-----|------------|--------|
+| K1 | ✅ test_starter_pack.py + p95 gate + 207 songs + 199 history | 無 |
+| K2 | ✅ test_corpus_e2e_pdf.py 30 fixtures 100% | 無 |
+| K5 | ✅ pytest/ruff/mypy + p95 trend alert（baseline×2.0 alpha） | 無 |
+| K6 | ❌ manual count | 需 owner 動作 |
+| K7 | ✅ docs/teacher/ checklist 5/5 | 無 |
+
+### 下一步 3 個 KPI 推進動作
+| # | 動作 | 對應 KPI | 預期 Δ |
+|---|------|---------|-------|
+| 1 | **owner 確認 Render deploy → 設定 {{TRIAL_URL}} → 寄出 P1-18b 邀請信** | K6 | 0/5 → 1/5 |
+| 2 | corpus 207→300 songs（日語兒歌、東南亞民謠） | K1 | +93 songs |
+| 3 | 修 index.lock 並發策略（single salvage lock / flock retry） | K5 | chore_ratio 65%→<30% |
+
+### program.md 待辦重排
+**現狀**：[x] 14 件 / [O] 3 件（owner-gated）/ [ ] 0 件。
+**重排結果**：無需重排——所有 KPI-推進 task 已完成或 owner-gated。
+
+### 跨專案學習
+本輪無新 global learning（L064 auto-salvage spam / L092 index.lock contention / L008 KPI-frozen reflection bloat 已涵蓋本輪所有觀察）。
+
+### 判定
+- K1-K5+K7 全飽和，v291→v292 零 delta
+- K6 owner-gated **37+ 天**，daemon idle = 正解
+- 24h chore_ratio 92% ⚠️（auto-salvage 噪音）
+- 7d chore_ratio 65% ⚠️（auto-salvage 主導）
+- 遵守反 Pattern：不產 docs(log) commit，不新增純治理 task
+- 本輪反思只寫 engineering-log.md，不 commit
+
+**KPI-impact**: housekeeping（0 task delta，IDLE confirm）
+
+---
+
+## v293 /pua (2026-06-21T23:59+08:00) — IDLE confirm
+
+### Baseline
+- pytest: 793 passed (exit=0)
+- ruff: green
+- mypy: green (59 files)
+- demo: 0.05s
+- HEAD: 31c5a56 (1 unpushed)
+
+### KPI
+| KPI | v292 值 | 當前值 | Δ | 狀態 |
+|-----|--------|-------|---|------|
+| K1 | 207 songs / 793 pass / p95=0.21s | 207 songs / 793 pass / p95=0.21s | 0 | ✅飽和 |
+| K2 | 100% 30 fixtures | 100% 30 fixtures | 0 | ✅飽和 |
+| K5 | 793/ruff/mypy 59 | 793/ruff/mypy 59 | 0 | ✅飽和 |
+| K6 | 0/5 frozen 113+ | 0/5 frozen 113+ | 0 | ❌ owner-gated 37+ 天 |
+| K7 | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布（12 commits）
+- M0-3: 1 件（p95 trend alert = K5 量測補強）
+- H0: 11 件（auto-salvage × 11）
+- chore_ratio: 92% ⚠️
+
+### 判定
+- K1-K5+K7 全飽和，v292→v293 零 delta
+- K6 owner-gated **37+ 天**，daemon idle = 正解
+- 0 個 daemon 可執行 M-task
+- 遵守反 Pattern：不產 docs(log) commit，不新增純治理 task
+- 本輪只寫 engineering-log.md，不 commit
+- 1 unpushed commit 待 owner push
+
+**KPI-impact**: housekeeping（0 task delta，IDLE confirm）
+
+## v295 /pua (2026-06-22T12:01+08:00) — IDLE confirm
+
+### Baseline
+- pytest: 793+ passed
+- ruff: green
+- mypy: green (59 files)
+- HEAD: cf53818 (1 unpushed salvage)
+- corpus: 305 songs
+
+### KPI
+| KPI | v294 值 | 當前值 | Δ | 狀態 |
+|-----|--------|-------|---|------|
+| K1 | 305 songs / 793 pass | 305 songs / 793 pass | 0 | ✅飽和 |
+| K2 | 100% 30 fixtures | 100% 30 fixtures | 0 | ✅飽和 |
+| K5 | 793/ruff/mypy 59 | 793/ruff/mypy 59 | 0 | ✅飽和 |
+| K6 | 0/5 frozen 113+ | 0/5 frozen 115+ | 0 | ❌ owner-gated 37+ 天 |
+| K7 | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 判定
+- K1-K5+K7 全飽和，v294→v295 零 delta
+- K6 owner-gated **37+ 天**，daemon idle = 正解
+- 24h 0 commits，chore_ratio N/A
+- 遵守反 Pattern：不產 docs(log) commit，不新增純治理 task
+- 本輪只寫 engineering-log.md，不 commit
+- 1 unpushed salvage commit 待 owner push
+
+**KPI-impact**: housekeeping（0 task delta，IDLE confirm）
+
+---
+
+## 反思 2026-06-22T18:46+08:00（v296 /pua KPI-driven deep review）
+
+### Baseline 驗證
+- pytest: **793 passed**（132s，本輪實測）
+- ruff: green
+- mypy: **59 files** green
+- HEAD: `cbf0718`（chore auto-salvage）
+- origin: `https://github.com/Reese-max/UkePack.git` ✅
+- unpushed: 0（v290 已清）
+- public_domain songs: **305**
+- p95: **0.23s**（220 history entries，STARTER_HISTORY.csv）
+- STARTER_HISTORY.csv: **220 筆**（穩定累積中）
+
+### KPI 進展表
+| KPI | v295 值 | 當前值 | Δ | 狀態 |
+|-----|--------|-------|---|------|
+| K1 北極星 <30min | 305 songs / 793 pass / p95=0.21s | 305 songs / 793 pass / p95=0.23s | 0（p95 微浮動，正常範圍） | ✅飽和 |
+| K2 匯入 ≥90% | 100% 30 fixtures | 100% 30 fixtures | 0 | ✅飽和 |
+| K5 Baseline | 793/ruff/mypy 59 | 793/ruff/mypy 59 | 0 | ✅飽和 |
+| K6 Teacher trial | 0/5 frozen 115+ | 0/5 frozen 115+ | 0 | ❌ owner-gated 38+ 天 |
+| K7 Onboarding | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 24h 任務分布（9 commits，06-22）
+- **M0-3 (KPI 推進)**: 2 件
+  - `9fce4ae` feat(corpus): 207→305 songs（K1 +47%）
+  - `e213be0` test(starter-pack): p95 trend alert（K5 量測補強）
+- **H0 (Housekeeping)**: 7 件（auto-salvage × 7）
+- **chore_ratio**: **78%** ⚠️ > 30%（index.lock 並發搶救噪音）
+
+### 7d 任務分布（40 commits，06-16 ~ 06-22）
+- **M0-3 (KPI 推進)**: 8 件（feat × 5, test × 2, fix × 1）
+- **H0 (Housekeeping)**: 32 件（auto-salvage × 31, docs × 1）
+- **chore_ratio**: **80%** ⚠️ > 30%
+
+### chore_ratio 根因
+- auto-salvage 31 筆（78%）：`C:/UkePack-git` index.lock 並發搶救
+- 根因不變：separate-git-dir 多 scheduler 搶鎖，已記錄 L064/L092
+- 本週實質 KPI 推進：corpus 207→305（+47%）、p95 trend alert、library search/preview、heatmap、report PDF = ~5 件真 feature
+- **結論**：code 能力飽和，chore_ratio 噪音來自環境層，非避真任務
+
+### 卡住的 KPI 與根因
+**K6 Teacher trial（0/5，frozen 115+ rounds，38+ 天無進展）**：
+- 阻塞鏈：Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 → 邀請信未寄
+- 根因：**100% owner-gated**，daemon 零槓桿
+- 自 2026-05-15 起 K6 停在 0/5，**38+ 天**無進展——專案唯一瓶頸
+- 技術面全綠（793 pass / 305 songs / p95=0.23s），商業驗證為零
+- **建議**：owner 花 5 分鐘確認 Render deploy 狀態 + 寄邀請信，是 unlock K6 的唯一路徑
+
+### Daemon 失敗紀錄
+- `.engineer-loop.failures.jsonl`：**不存在**
+- 無結構性 daemon 死亡問題
+- auto-salvage 頻繁是環境問題（index.lock 並發），非 daemon 崩潰
+- 本週 auto-salvage 31 筆 → 每天 ~4.4 筆，穩定但低頻
+
+### KPI 量測評估
+| KPI | 可重複量測？ | 缺什麼 |
+|-----|------------|--------|
+| K1 | ✅ test_starter_pack.py + p95 gate + 305 songs + 220 history | 無 |
+| K2 | ✅ test_corpus_e2e_pdf.py 30 fixtures 100% | 無 |
+| K5 | ✅ pytest/ruff/mypy + p95 trend alert（baseline×2.0 alpha） | 無 |
+| K6 | ❌ manual count | 需 owner 動作，無法自動化 |
+| K7 | ✅ docs/teacher/ checklist 5/5 | 無 |
+
+### 下一步 3 個 KPI 推進動作
+| # | 動作 | 對應 KPI | 預期 Δ |
+|---|------|---------|-------|
+| 1 | **owner 確認 Render deploy → 設定 {{TRIAL_URL}} → 寄出 P1-18b 邀請信** | K6 | 0/5 → 1/5 |
+| 2 | corpus 305→400 songs（日語兒歌、韓國民謠、拉丁美洲兒歌） | K1 | +95 songs |
+| 3 | 修 index.lock 並發策略（single salvage lock / flock retry） | K5 | chore_ratio 78%→<30% |
+
+### program.md 待辦重排
+**現狀**：[x] 14 件 / [O] 3 件（owner-gated）/ [ ] 0 件。
+**重排結果**：無需重排——所有 KPI-推進 task 已完成或 owner-gated。program.md 乾淨。
+
+### 跨專案學習
+本輪無新 global learning（L064 auto-salvage spam / L092 index.lock contention / L008 KPI-frozen reflection bloat / L105 XSS DOM API 已涵蓋本輪所有觀察）。
+
+### 判定
+- K1-K5+K7 全飽和，v295→v296 零 delta（p95 微浮動 0.21→0.23s，正常範圍）
+- K6 owner-gated **38+ 天**，daemon idle = 正解
+- 24h chore_ratio 78% ⚠️（auto-salvage 噪音）
+- 7d chore_ratio 80% ⚠️（auto-salvage 主導）
+- 遵守反 Pattern：不產 docs(log) commit，不新增純治理 task
+- 本輪反思只寫 engineering-log.md，不 commit
+
+**KPI-impact**: housekeeping（0 task delta，IDLE confirm）
+
+---
+
+## v297 /pua (2026-06-22T19:37+08:00) — IDLE confirm
+
+### Baseline
+- pytest: 793 passed (140s)
+- ruff: green
+- mypy: green (59 files)
+- HEAD: cbf0718
+- unpushed: 0
+- corpus: 305 songs
+- p95: 0.25s
+
+### KPI
+| KPI | v296 值 | 當前值 | Δ | 狀態 |
+|-----|--------|-------|---|------|
+| K1 | 305 songs / 793 pass / p95=0.23s | 305 songs / 793 pass / p95=0.25s | 0 | ✅飽和 |
+| K2 | 100% 30 fixtures | 100% 30 fixtures | 0 | ✅飽和 |
+| K5 | 793/ruff/mypy 59 | 793/ruff/mypy 59 | 0 | ✅飽和 |
+| K6 | 0/5 frozen 115+ | 0/5 frozen 115+ | 0 | ❌ owner-gated 38+ 天 |
+| K7 | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 判定
+- K1-K5+K7 全飽和，v296→v297 零 delta
+- K6 owner-gated **38+ 天**，daemon idle = 正解
+- 24h 0 commits，chore_ratio N/A
+- Working tree 有前輪 3 檔 dirty（log + history），不 commit（遵守反 Pattern）
+- 0 個 daemon 可執行 M-task
+- 遵守反 Pattern：不產 docs(log) commit，不新增純治理 task
+
+**KPI-impact**: housekeeping（0 task delta，IDLE confirm）
+
+## v298 /pua (2026-06-22T22:49+08:00) — IDLE confirm
+
+### Baseline
+- pytest: 793 passed (138s)
+- ruff: green
+- mypy: green (59 files)
+- HEAD: 2905759 (3 unpushed salvage)
+- corpus: 305 songs
+- p95: 0.23s
+
+### KPI
+| KPI | v297 值 | 當前值 | Δ | 狀態 |
+|-----|--------|-------|---|------|
+| K1 | 305 songs / 793 pass / p95=0.25s | 305 songs / 793 pass / p95=0.23s | 0 | ✅飽和 |
+| K2 | 100% 30 fixtures | 100% 30 fixtures | 0 | ✅飽和 |
+| K5 | 793/ruff/mypy 59 | 793/ruff/mypy 59 | 0 | ✅飽和 |
+| K6 | 0/5 frozen 115+ | 0/5 frozen 116+ | 0 | ❌ owner-gated 38+ 天 |
+| K7 | 5/5 | 5/5 | 0 | ✅飽和 |
+
+### 判定
+- K1-K5+K7 全飽和，v297→v298 零 delta
+- K6 owner-gated **38+ 天**，daemon idle = 正解
+- 24h 0 new commits（3 auto-salvage），chore_ratio N/A
+- BACKLOG 0 `[ ]`、program.md 0 `[ ]`
+- 3 unpushed salvage commits 待 owner push
+- 遵守反 Pattern：不產 docs(log) commit，不新增純治理 task
+- 本輪只寫 engineering-log.md + results.log，不 commit
+
+**KPI-impact**: housekeeping（0 task delta，IDLE confirm）

@@ -703,3 +703,39 @@ Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 →
 ### 全域學習
 - v254→v255 零 delta，KPI 飽和態穩定。唯一活槓桿 = K6 owner action。
 - 本輪無新 global learning。
+
+---
+
+## 反思 v306 [2026-06-23 18:36+08:00] — KPI-driven /pua evolve
+
+### KPI 狀態
+| KPI | 值 | 狀態 |
+|-----|---|------|
+| K1 北極星 | 305 songs, p95=0.18s | 🟢 SATURATED |
+| K2 匯入成功率 | 100% (305/305) | 🟢 SATURATED |
+| K3 和弦簡化 | ≥20 條映射 | 🟢 SATURATED |
+| K4 Key 建議 | 完成 | 🟢 SATURATED |
+| K5 測試通過率 | 793 passed / ruff / mypy 59 green | 🟢 SATURATED |
+| K6 老師回饋 | 0/5 | 🔴 owner-gated 38+ days |
+| K7 Onboarding | 5/5 | 🟢 SATURATED |
+
+### 24h commits
+- 9 commits: 5 auto-salvage + 4 chore(metrics/gitignore)
+- 0 feat/fix — code 飽和
+
+### Sensor（stale 2d，不重跑）
+- chore_ratio_24h: 100% broad / 0% pure (PASS)
+- micro_polish: 0%
+
+### 改動量
+- 0 移除 / 0 新增 / 0 重排
+- program.md 0 `[ ]`，14 `[x]`，3 `[O]`
+
+### Verdict
+**IDLE** — K1-K5+K7 飽和，K6 owner-gated 38+ 天，0 個 daemon 可執行 M-task。
+反 Pattern docs(log)-bloat 遵守：本輪不 commit。
+
+### 下一步（唯一解鎖 = owner action）
+1. 確認 Render deploy 狀態
+2. 設定 `{{TRIAL_URL}}`
+3. 寄出 P1-18b 老師邀請信

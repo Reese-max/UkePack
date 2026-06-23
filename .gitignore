@@ -125,6 +125,10 @@ research/
 %TEMP%ukepack-pytest/
 runs/
 
+# Operational logs — local-only, never commit (code review 45dd123 feedback)
+results.log
+engineer-log.md
+
 # Archived logs — already committed content snapshots, no need to track originals
 # (docs/archive/ files are committed for history; these patterns prevent re-tracking
 # of new archive copies created by auto-archive hooks)

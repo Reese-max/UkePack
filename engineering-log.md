@@ -739,3 +739,33 @@ Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 →
 1. 確認 Render deploy 狀態
 2. 設定 `{{TRIAL_URL}}`
 3. 寄出 P1-18b 老師邀請信
+
+### 2026-06-27T05:20 v314 /pua IDLE
+- baseline: 793 pass / ruff green / mypy 59 green
+- K1-K5+K7 飽和零 delta
+- K6 0/5 owner-gated 42+ 天
+- BACKLOG: 0 個 daemon 可執行 M-task
+- 24h chore_ratio: ~100%（auto-salvage ×多筆 index.lock 並發搶救）
+- 0 個 M0-M3 可推進
+- verdict: IDLE — owner 必須: (1) confirm Render deploy (2) set TRIAL_URL (3) send teacher invitations for K6 0→1
+- 本輪動作: 無（不造 H0、不 commit、不 spam docs(log)）
+
+### 2026-06-29T14:38 v315 /pua IDLE
+- baseline: 793 pass / ruff green / mypy 59 green (with /tmp cache for SQLite DrvFs fix)
+- K1-K5+K7 飽和零 delta
+- K6 0/5 owner-gated 44+ 天
+- BACKLOG: 0 個 daemon 可執行 M-task
+- 0 個 M0-M3 可推進
+- verdict: IDLE — owner 必須: (1) confirm Render deploy (2) set TRIAL_URL (3) send teacher invitations for K6 0→1
+- 本輪動作: 無（不造 H0、不 commit、不 spam docs(log)）
+
+### 2026-06-30T00:12 v316 /pua IDLE
+- baseline: 793 pass / ruff green / mypy 59 green
+- K1-K5+K7 飽和零 delta
+- K6 0/5 owner-gated 45+ 天
+- BACKLOG: 0 個 daemon 可執行 M-task
+- 0 個 M0-M3 可推進
+- verdict: IDLE — owner 必須: (1) confirm Render deploy (2) set TRIAL_URL (3) send teacher invitations for K6 0→1
+- 本輪動作: log IDLE states + remote sync (pushed 4 salvage commits + 1 sync commit)
+
+

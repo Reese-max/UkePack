@@ -58,6 +58,16 @@ _VALID_LEVELS = {1, 2, 3}
 # ── Page routes ────────────────────────────────────────────────────────────
 
 
+@router.get("/tuner", response_class=HTMLResponse)
+def ukulele_tuner_page(request: Request) -> HTMLResponse:
+    """Render the interactive Ukulele Tuner page."""
+    return _TEMPLATES.TemplateResponse(
+        request=request,
+        name="tuner.html",
+        context={},
+    )
+
+
 @router.get("/new", response_class=HTMLResponse)
 def new_project_page(request: Request) -> HTMLResponse:
     """Render new-project creation form (P1-12)."""

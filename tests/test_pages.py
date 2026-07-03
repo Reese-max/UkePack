@@ -18,6 +18,17 @@ FIXTURE_DIR = Path(__file__).parent / "fixtures"
 TWINKLE = FIXTURE_DIR / "twinkle_twinkle_little_star.musicxml"
 
 
+# ── /tuner ─────────────────────────────────────────────────────────────────
+
+
+def test_ukulele_tuner_page_renders(db_client: TestClient) -> None:
+    resp = db_client.get("/tuner")
+    assert resp.status_code == 200
+    assert "text/html" in resp.headers["content-type"]
+    assert "烏克麗麗調音器" in resp.text
+    assert "自動偵測" in resp.text
+
+
 # ── /new ───────────────────────────────────────────────────────────────────
 
 

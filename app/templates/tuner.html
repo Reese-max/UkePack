@@ -1,0 +1,649 @@
+{% extends "base.html" %}
+
+{% block title %}烏克麗麗調音器 - UkePack AI{% endblock %}
+
+{% block head %}
+<style>
+    .tuner-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+        margin-top: 1rem;
+    }
+
+    .tuner-card {
+        width: 100%;
+        max-width: 500px;
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        padding: 2rem;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .gauge-wrapper {
+        width: 100%;
+        max-width: 320px;
+        position: relative;
+        margin-bottom: 1rem;
+    }
+
+    .tuner-gauge-svg {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .readout {
+        text-align: center;
+        margin-top: -1.5rem;
+        z-index: 10;
+    }
+
+    .note-display {
+        font-size: 3rem;
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1;
+        margin-bottom: 0.25rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .frequency-display {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--muted);
+        font-family: monospace;
+    }
+
+    .cents-display {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-top: 0.25rem;
+        padding: 0.2rem 0.75rem;
+        border-radius: 999px;
+        display: inline-block;
+    }
+
+    .cents-flat { background: #fef2f2; color: #b91c1c; }
+    .cents-sharp { background: #fffbeb; color: #b45309; }
+    .cents-in-tune { background: #f0fdf4; color: #15803d; font-size: 1.1rem; box-shadow: 0 0 10px rgba(74, 222, 128, 0.4); }
+
+    .string-selector {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+        width: 100%;
+        margin: 1.5rem 0;
+    }
+
+    .string-btn {
+        flex: 1;
+        max-width: 70px;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        border: 2px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 1.25rem;
+        font-weight: 800;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: var(--shadow-sm);
+        position: relative;
+    }
+
+    .string-btn:hover {
+        transform: scale(1.05);
+        border-color: var(--accent);
+    }
+
+    .string-btn.active {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent-strong);
+        transform: scale(1.1);
+        box-shadow: 0 4px 15px rgba(255, 139, 61, 0.4);
+    }
+
+    .string-btn.in-tune {
+        background: #22c55e;
+        color: #fff;
+        border-color: #15803d;
+        box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+    }
+
+    .string-note-name {
+        font-size: 1.25rem;
+        line-height: 1;
+    }
+
+    .string-freq-label {
+        font-size: 0.65rem;
+        opacity: 0.8;
+        margin-top: 0.1rem;
+        font-weight: 600;
+        font-family: monospace;
+    }
+
+    .action-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    .mode-selector {
+        display: flex;
+        border: 2px solid var(--border);
+        border-radius: 999px;
+        overflow: hidden;
+        width: 100%;
+        background: var(--bg);
+        margin-bottom: 0.5rem;
+    }
+
+    .mode-tab {
+        flex: 1;
+        padding: 0.6rem;
+        text-align: center;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.15s;
+        border: none;
+        background: none;
+        color: var(--muted);
+    }
+
+    .mode-tab.active {
+        background: var(--surface-soft);
+        color: var(--accent-strong);
+    }
+
+    .play-ref-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .visualizer-card {
+        width: 100%;
+        max-width: 500px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        text-align: center;
+    }
+
+    .visualizer-desc {
+        font-size: 0.95rem;
+        color: var(--muted);
+        margin-bottom: 0;
+    }
+
+    .status-text {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--muted);
+        text-align: center;
+        margin-top: 1rem;
+        min-height: 1.5rem;
+    }
+
+    .status-text.active-status {
+        color: var(--accent-strong);
+    }
+
+    /* Glow effect for perfect tune */
+    .glow-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle, rgba(34, 197, 94, 0.1) 0%, rgba(255,255,255,0) 70%);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+        z-index: 1;
+    }
+
+    .glow-overlay.visible {
+        opacity: 1;
+    }
+
+    .tuner-instructions {
+        max-width: 500px;
+        margin-top: 1rem;
+    }
+
+    .tuner-instructions h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .tuner-instructions ul {
+        padding-left: 1.25rem;
+        margin: 0;
+        font-size: 0.95rem;
+        color: var(--muted);
+    }
+
+    .tuner-instructions li {
+        margin-bottom: 0.35rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a class="back-link" href="/">← 返回首頁</a>
+
+<div class="tuner-container">
+    <div class="text-center">
+        <h1 class="page-title">🎸 烏克麗麗調音器</h1>
+        <p class="page-subtitle">調準琴弦，彈奏美妙童謠！支援麥克風即時偵測與耳聽示範音。</p>
+    </div>
+
+    <div class="tuner-card">
+        <div id="glow-effect" class="glow-overlay"></div>
+        
+        <div class="mode-selector">
+            <button id="mode-auto" class="mode-tab active" onclick="setTunerMode('auto')">自動偵測</button>
+            <button id="mode-manual" class="mode-tab" onclick="setTunerMode('manual')">手動鎖定</button>
+        </div>
+
+        <div class="gauge-wrapper">
+            <svg viewBox="0 0 200 120" class="tuner-gauge-svg">
+                <!-- Gauge Background Arc -->
+                <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#f1d8c7" stroke-width="8" stroke-linecap="round" />
+                
+                <!-- In-tune Green Zone -->
+                <path d="M 90 100 A 80 80 0 0 1 110 100" fill="none" stroke="#22c55e" stroke-width="10" stroke-linecap="round" />
+                
+                <!-- Zero indicator dash -->
+                <line x1="100" y1="100" x2="100" y2="20" stroke="var(--muted)" stroke-width="2" stroke-dasharray="3,3" />
+                
+                <!-- Left/Right indicator labels -->
+                <text x="25" y="115" fill="var(--muted)" font-size="8" font-weight="700" text-anchor="middle">太低 (Flat)</text>
+                <text x="175" y="115" fill="var(--muted)" font-size="8" font-weight="700" text-anchor="middle">太高 (Sharp)</text>
+                
+                <!-- Needle -->
+                <line id="needle" x1="100" y1="100" x2="100" y2="30" stroke="var(--accent-strong)" stroke-width="4" stroke-linecap="round" style="transform-origin: 100px 100px; transition: transform 0.15s ease-out; transform: rotate(0deg);" />
+                
+                <!-- Pivot Cap -->
+                <circle cx="100" cy="100" r="7" fill="var(--text)" />
+            </svg>
+        </div>
+
+        <div class="readout">
+            <div id="note-display" class="note-display">-</div>
+            <div id="frequency-display" class="frequency-display">-- Hz</div>
+            <div id="cents-badge" class="cents-display d-none">-- cents</div>
+        </div>
+
+        <div id="status-display" class="status-text">尚未啟動麥克風</div>
+
+        <div class="string-selector">
+            <button id="string-G" class="string-btn" onclick="selectString('G')">
+                <span class="string-note-name">G</span>
+                <span class="string-freq-label">392Hz</span>
+            </button>
+            <button id="string-C" class="string-btn" onclick="selectString('C')">
+                <span class="string-note-name">C</span>
+                <span class="string-freq-label">262Hz</span>
+            </button>
+            <button id="string-E" class="string-btn" onclick="selectString('E')">
+                <span class="string-note-name">E</span>
+                <span class="string-freq-label">330Hz</span>
+            </button>
+            <button id="string-A" class="string-btn" onclick="selectString('A')">
+                <span class="string-note-name">A</span>
+                <span class="string-freq-label">440Hz</span>
+            </button>
+        </div>
+
+        <div class="action-controls">
+            <button id="mic-toggle-btn" class="btn btn-primary" onclick="toggleMic()">
+                🎤 啟動麥克風調音
+            </button>
+            <button id="play-ref-btn" class="btn btn-ghost play-ref-btn" onclick="playCurrentRef()">
+                🔊 播放示範音 (對音)
+            </button>
+        </div>
+    </div>
+
+    <div class="card visualizer-card">
+        <p class="visualizer-desc">
+            💡 <strong>調音小技巧</strong>：<br>
+            從第四弦到第一弦分別為 <strong>G - C - E - A</strong>。<br>
+            使用<strong>自動偵測</strong>時，直接彈任意弦，調音器會自動找到最接近的弦。<br>
+            當指針指在中間<strong>綠色區域</strong>且顯示<strong>「調準了！」</strong>時，就代表琴弦音高正確囉！
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const STRINGS = {
+        'G': { note: 'G4', freq: 392.00 },
+        'C': { note: 'C4', freq: 261.63 },
+        'E': { note: 'E4', freq: 329.63 },
+        'A': { note: 'A4', freq: 440.00 }
+    };
+
+    let audioCtx = null;
+    let tunerMode = 'auto'; // 'auto' or 'manual'
+    let currentSelectedString = 'C'; // default for manual play/focus
+    
+    let isListening = false;
+    let micStream = null;
+    let micSource = null;
+    let analyser = null;
+    let animationId = null;
+    let buflen = 2048;
+    let buf = new Float32Array(buflen);
+
+    // Initial setup
+    document.addEventListener('DOMContentLoaded', () => {
+        selectString('C'); // set default selection focus
+    });
+
+    function setTunerMode(mode) {
+        tunerMode = mode;
+        document.getElementById('mode-auto').classList.toggle('active', mode === 'auto');
+        document.getElementById('mode-manual').classList.toggle('active', mode === 'manual');
+        
+        const statusEl = document.getElementById('status-display');
+        if (isListening) {
+            statusEl.textContent = mode === 'auto' ? '自動偵測中：請彈撥任意弦...' : `手動模式：請調撥 ${currentSelectedString} 弦`;
+        }
+        
+        resetGauge();
+    }
+
+    function selectString(stringKey) {
+        currentSelectedString = stringKey;
+        
+        // Update string buttons active status
+        Object.keys(STRINGS).forEach(key => {
+            const btn = document.getElementById(`string-${key}`);
+            btn.classList.toggle('active', key === stringKey);
+        });
+
+        const statusEl = document.getElementById('status-display');
+        if (isListening && tunerMode === 'manual') {
+            statusEl.textContent = `手動模式：請調撥 ${currentSelectedString} 弦`;
+        }
+
+        // If manual mode, reset gauge to display target note
+        if (tunerMode === 'manual') {
+            document.getElementById('note-display').textContent = STRINGS[stringKey].note;
+            document.getElementById('frequency-display').textContent = `${STRINGS[stringKey].freq.toFixed(1)} Hz`;
+            resetGauge();
+        }
+    }
+
+    function resetGauge() {
+        const needle = document.getElementById('needle');
+        needle.style.transform = 'rotate(0deg)';
+        const centsBadge = document.getElementById('cents-badge');
+        centsBadge.classList.add('d-none');
+        document.getElementById('glow-effect').classList.remove('visible');
+        
+        // Remove in-tune class from all buttons except if permanently tuned
+        Object.keys(STRINGS).forEach(key => {
+            document.getElementById(`string-${key}`).classList.remove('in-tune');
+        });
+    }
+
+    function playCurrentRef() {
+        const stringData = STRINGS[currentSelectedString];
+        if (!stringData) return;
+
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        // Triangle wave is softer and friendly for kids
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(stringData.freq, audioCtx.currentTime);
+        
+        gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        // Exponential decay for natural sound
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc.start();
+        osc.stop(audioCtx.currentTime + 1.2);
+    }
+
+    async function toggleMic() {
+        const toggleBtn = document.getElementById('mic-toggle-btn');
+        const statusEl = document.getElementById('status-display');
+
+        if (isListening) {
+            // Stop listening
+            stopMic();
+            toggleBtn.textContent = '🎤 啟動麥克風調音';
+            toggleBtn.className = 'btn btn-primary';
+            statusEl.textContent = '調音器已暫停';
+            statusEl.classList.remove('active-status');
+            resetGauge();
+            document.getElementById('note-display').textContent = '-';
+            document.getElementById('frequency-display').textContent = '-- Hz';
+        } else {
+            // Start listening
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                await audioCtx.resume();
+            }
+
+            try {
+                micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                micSource = audioCtx.createMediaStreamSource(micStream);
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 2048;
+                micSource.connect(analyser);
+                
+                isListening = true;
+                toggleBtn.textContent = '⏹ 停止麥克風';
+                toggleBtn.className = 'btn btn-ghost';
+                statusEl.textContent = tunerMode === 'auto' ? '自動偵測中：請彈撥任意弦...' : `手動模式：請調撥 ${currentSelectedString} 弦`;
+                statusEl.classList.add('active-status');
+                
+                updatePitch();
+            } catch (err) {
+                console.error("Mic access error", err);
+                alert("無法取得麥克風。請確定已給予網站使用麥克風的權限。");
+            }
+        }
+    }
+
+    function stopMic() {
+        isListening = false;
+        if (animationId) {
+            cancelAnimationFrame(animationId);
+            animationId = null;
+        }
+        if (micStream) {
+            micStream.getTracks().forEach(track => track.stop());
+            micStream = null;
+        }
+    }
+
+    function updatePitch() {
+        if (!isListening) return;
+
+        analyser.getFloatTimeDomainData(buf);
+        const pitch = autoCorrelate(buf, audioCtx.sampleRate);
+
+        const noteDisplay = document.getElementById('note-display');
+        const freqDisplay = document.getElementById('frequency-display');
+        const centsBadge = document.getElementById('cents-badge');
+        const needle = document.getElementById('needle');
+        const glowOverlay = document.getElementById('glow-effect');
+        const statusEl = document.getElementById('status-display');
+
+        // Check if a valid pitch is detected
+        if (pitch !== -1 && pitch >= 100 && pitch <= 800) {
+            let targetStringKey = currentSelectedString;
+            
+            if (tunerMode === 'auto') {
+                // Auto-detect closest string
+                let minDiff = Infinity;
+                Object.keys(STRINGS).forEach(key => {
+                    const diff = Math.abs(pitch - STRINGS[key].freq);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        targetStringKey = key;
+                    }
+                });
+                
+                // If it's a new string target, focus/highlight it
+                if (targetStringKey !== currentSelectedString) {
+                    selectString(targetStringKey);
+                }
+            }
+
+            const targetFreq = STRINGS[targetStringKey].freq;
+            const targetNote = STRINGS[targetStringKey].note;
+            
+            // Calculate cents difference
+            const cents = Math.round(1200 * Math.log2(pitch / targetFreq));
+            
+            // Display values
+            noteDisplay.textContent = targetNote;
+            freqDisplay.textContent = `${pitch.toFixed(1)} Hz`;
+            
+            centsBadge.classList.remove('d-none');
+            
+            // Rotate needle: map -50/+50 cents to -60/+60 degrees
+            const limitedCents = Math.max(-50, Math.min(50, cents));
+            const angle = (limitedCents / 50) * 60;
+            needle.style.transform = `rotate(${angle}deg)`;
+
+            // Clean previous class
+            centsBadge.className = 'cents-display';
+            glowOverlay.classList.remove('visible');
+            
+            const stringBtn = document.getElementById(`string-${targetStringKey}`);
+            stringBtn.classList.remove('in-tune');
+
+            if (Math.abs(cents) <= 3) {
+                // In tune!
+                centsBadge.textContent = '✓ 調準了！';
+                centsBadge.classList.add('cents-in-tune');
+                glowOverlay.classList.add('visible');
+                stringBtn.classList.add('in-tune');
+                statusEl.textContent = `${targetNote} 弦音高準確！`;
+            } else if (cents < 0) {
+                // Too flat
+                centsBadge.textContent = `${cents} cents (太低)`;
+                centsBadge.classList.add('cents-flat');
+                statusEl.textContent = `微調提示：請將弦擰「緊」一點`;
+            } else {
+                // Too sharp
+                centsBadge.textContent = `+${cents} cents (太高)`;
+                centsBadge.classList.add('cents-sharp');
+                statusEl.textContent = `微調提示：請將弦擰「鬆」一點`;
+            }
+        }
+
+        animationId = requestAnimationFrame(updatePitch);
+    }
+
+    // Autocorrelation pitch detection algorithm
+    function autoCorrelate(buffer, sampleRate) {
+        // Calculate Signal Power (RMS) to ignore noise
+        let rms = 0;
+        for (let i = 0; i < buffer.length; i++) {
+            const val = buffer[i];
+            rms += val * val;
+        }
+        rms = Math.sqrt(rms / buffer.length);
+        if (rms < 0.015) {
+            return -1; // Not enough signal power
+        }
+
+        // Trim buffer to find active window
+        let r1 = 0;
+        let r2 = buffer.length - 1;
+        const thres = 0.2;
+        for (let i = 0; i < buffer.length / 2; i++) {
+            if (Math.abs(buffer[i]) < thres) {
+                r1 = i;
+                break;
+            }
+        }
+        for (let i = buffer.length - 1; i >= buffer.length / 2; i--) {
+            if (Math.abs(buffer[i]) < thres) {
+                r2 = i;
+                break;
+            }
+        }
+        const trimmedBuffer = buffer.subarray(r1, r2);
+        const SIZE = trimmedBuffer.length;
+
+        // Perform Autocorrelation
+        const c = new Float32Array(SIZE);
+        for (let i = 0; i < SIZE; i++) {
+            for (let j = 0; j < SIZE - i; j++) {
+                c[i] += trimmedBuffer[j] * trimmedBuffer[j + i];
+            }
+        }
+
+        // Find the first peak
+        let d = 0;
+        while (c[d] > c[d + 1]) d++;
+        let maxval = -1;
+        let maxpos = -1;
+        for (let i = d; i < SIZE / 2; i++) {
+            if (c[i] > maxval) {
+                maxval = c[i];
+                maxpos = i;
+            }
+        }
+
+        let T0 = maxpos;
+        
+        // Parabolic interpolation for high-precision pitch detection
+        const x1 = c[T0 - 1];
+        const x2 = c[T0];
+        const x3 = c[T0 + 1];
+        const a = (x1 + x3 - 2 * x2) / 2;
+        const b = (x3 - x1) / 2;
+        if (a !== 0) {
+            T0 = T0 - b / (2 * a);
+        }
+
+        return sampleRate / T0;
+    }
+</script>
+{% endblock %}

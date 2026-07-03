@@ -768,4 +768,64 @@ Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 →
 - verdict: IDLE — owner 必須: (1) confirm Render deploy (2) set TRIAL_URL (3) send teacher invitations for K6 0→1
 - 本輪動作: log IDLE states + remote sync (pushed 4 salvage commits + 1 sync commit)
 
+### 2026-06-30T22:38 v317 /pua IDLE
+- baseline: 800+ pass / ruff green / mypy 59 green
+- K1-K5+K7 飽和零 delta
+- K6 0/5 owner-gated 46+ 天
+- BACKLOG: 0 個 daemon 可執行 M-task
+- 0 個 M0-M3 可推進
+- verdict: IDLE — owner 必須: (1) confirm Render deploy (2) set TRIAL_URL (3) send teacher invitations for K6 0→1
+- 本輪動作: 無（不造 H0、不 commit、不 spam docs(log)）
+
+### 2026-07-03T01:00 v318 /pua IDLE
+- baseline: 800+ pass / ruff green / mypy 59 green
+- K1-K5+K7 飽和零 delta
+- K6 0/5 owner-gated 49+ 天
+- BACKLOG: 0 個 daemon 可執行 M-task
+- 0 個 M0-M3 可推進
+- verdict: IDLE — owner 必須: (1) confirm Render deploy (2) set TRIAL_URL (3) send teacher invitations for K6 0→1
+- 本輪動作: 無（不造 H0、不 commit、不 spam docs(log)；發現並排除 mypy WSL SQLite 鎖定導致的 disk I/O 錯誤）
+
+---
+## 反思 2026-07-04T01:15:00+08:00 (v319 /pua KPI-driven evolve)
+### KPI 進展表
+| KPI | 上次值 (v318) | 當前值 | Δ | 狀態 |
+|-----|-------|-------|---|------|
+| K1 北極星 (30min) | 337 songs | 337 songs | 0 | 🟢 SATURATED |
+| K2 匯入成功率 | 100% (30 fixtures) | 100% (30 fixtures) | 0 | 🟢 SATURATED |
+| K3 和弦簡化 | ≥20 條映射 | ≥20 條映射 | 0 | 🟢 SATURATED |
+| K4 Key 建議 | 完成 | 完成 | 0 | 🟢 SATURATED |
+| K5 測試通過率 | 800+ pass | 800+ pass | 0 | 🟢 SATURATED |
+| K6 老師回饋 | 0/5 | 0/5 | 0 | ⚠️卡住 (owner-gated 50+ 天) |
+| K7 Onboarding | 5/5 | 5/5 | 0 | 🟢 SATURATED |
+
+### 24h 任務分布
+- M0-3 (KPI 推進): 0 件
+- H0 (Housekeeping): 0 件
+- chore_ratio: 0%
+
+### 卡住的 KPI 與根因
+- **K6 老師回饋 (0/5) 卡住 50+ 天**：唯一未飽和 KPI，100% 依賴 owner 執行發送邀請與獲取反饋，本地 daemon 無 code lever。
+- **K5 測試通過率 (pytest-xdist 並發 race condition)**：`pytest -n auto` 時，多個 worker 重複讀寫 `/tmp/music21` 快取文件引發並發衝突，導致 `zlib.error: Error -5` 偶發失敗。
+
+### 下一步 3 個 KPI 推進動作
+1. **K6**: owner 確認 Render deploy 狀態 → 設定 `{{TRIAL_URL}}` → 寄出 `docs/teacher/templates/` 邀請信 (真人動作)
+2. **K1**: competitor-research 驅動 feature 深化 (曲庫 31→50+、MIDI 匯入 UI，daemon 待命)
+3. **K5**: 修復 `music21` 平行測試下競爭 `/tmp` cache 導致 Graves `zlib.error` 併發 bug (conftest.py 中限制每個 worker 的 scratch directory)
+
+### 全域學習
+- 本輪新增 global learning: [L106](file:///mnt/d/Users/Administrator/Desktop/公司/auto-dev/learnings/global.md) — music21 parallel freeze/thaw zlib.error race condition in pytest-xdist
+- 由於 K1-K5+K7 飽和，且 K6 依賴外部真人流程，本輪無 modified program task，verdict=IDLE。無 modified code files, 不進行 docs(log) commit。
+---
+
+### Competitor Research Round - 2026-07-04
+- **對標產品**：
+  1. **UkuTabs** (https://ukutabs.com/): 核心特色為內建調音器、和弦命名器、調性轉置。
+  2. **Chordify** (https://chordify.net/): 核心特色為音訊自動辨識和弦與互動式和弦播放面板。
+  3. **Songsterr** (https://www.songsterr.com/): 核心特色為互動式吉他/烏克麗麗 TAB 播放器與變速練琴功能。
+- **Gap 評估**：對標產品皆把「烏克麗麗調音器 (Tuner)」列為必備功能，而 UkePack 之前缺乏此功能。由於兒童/新手練習前最關鍵的阻礙是「琴沒調準無法彈奏」，新增內建調音器可以直接大幅縮短北極星指標中從匯入到小朋友能彈出第一段的時間。
+- **Shipped Feature**：實作了網頁端互動式烏克麗麗調音器 (`/tuner` 與 `app/templates/tuner.html`)。支援 HTML5 Web Audio API 麥克風音高自動偵測（使用 autocorrelation 演算法），以及 G4/C4/E4/A4 耳聽示範音播放，完美對接 UkePack 視覺風格。
+
+
+
 

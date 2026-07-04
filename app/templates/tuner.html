@@ -631,8 +631,16 @@
             }
         }
 
+        // Guard: no peak found (maxpos = -1) or peak at array edge — parabolic
+        // interpolation needs c[T0-1] and c[T0+1] which are undefined at bounds.
+        // Return -1 sentinel for caller (matches "no signal" pattern); otherwise
+        // fall back to raw maxpos to avoid NaN frequency from undefined reads.
+        if (maxpos <= 0 || maxpos >= SIZE - 1) {
+            return maxpos === -1 ? -1 : sampleRate / maxpos;
+        }
+
         let T0 = maxpos;
-        
+
         // Parabolic interpolation for high-precision pitch detection
         const x1 = c[T0 - 1];
         const x2 = c[T0];

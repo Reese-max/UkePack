@@ -631,12 +631,13 @@
             }
         }
 
-        // Guard: no peak found (maxpos = -1) or peak at array edge — parabolic
-        // interpolation needs c[T0-1] and c[T0+1] which are undefined at bounds.
-        // Return -1 sentinel for caller (matches "no signal" pattern); otherwise
-        // fall back to raw maxpos to avoid NaN frequency from undefined reads.
+        // Guard: no peak found (maxpos = -1), peak at lag 0 (trivial self-correlation
+        // = no periodicity), or peak at array edge. Parabolic interpolation needs
+        // c[T0-1] and c[T0+1]; both undefined / NaN at bounds. Returning -1 sentinel
+        // (matches "no signal" pattern) avoids Infinity from sampleRate / 0 and
+        // NaN from undefined reads.
         if (maxpos <= 0 || maxpos >= SIZE - 1) {
-            return maxpos === -1 ? -1 : sampleRate / maxpos;
+            return -1;
         }
 
         let T0 = maxpos;

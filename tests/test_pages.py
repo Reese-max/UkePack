@@ -29,6 +29,25 @@ def test_ukulele_tuner_page_renders(db_client: TestClient) -> None:
     assert "自動偵測" in resp.text
 
 
+def test_ukulele_tuner_autocorrelate_boundary_guard(db_client: TestClient) -> None:
+    """autoCorrelate must return -1 for maxpos = -1, 0, and SIZE-1.
+
+    Regression: db2a033 fell back to ``sampleRate / maxpos`` for maxpos in
+    (0, SIZE-1) edge, which produced ``Infinity`` when maxpos == 0. The
+    guard must collapse all three boundary cases to the -1 sentinel so the
+    gauge never displays a non-finite frequency.
+    """
+    resp = db_client.get("/tuner")
+    assert resp.status_code == 200
+    html = resp.text
+    # The guard clause itself
+    assert "maxpos <= 0 || maxpos >= SIZE - 1" in html, "autoCorrelate missing boundary guard"
+    # All boundary branches must return -1 (no Infinity / NaN leak)
+    assert "return -1;" in html
+    # Must NOT contain the buggy fallback that produced Infinity at maxpos=0
+    assert "sampleRate / maxpos" not in html, "autoCorrelate still has Infinity-producing fallback"
+
+
 # ── /new ───────────────────────────────────────────────────────────────────
 
 

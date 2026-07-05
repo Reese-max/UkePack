@@ -66,6 +66,26 @@ def _patch_windows_pytest_basetemp() -> None:
     TempPathFactory.mktemp = _mktemp
 
 
+def _music21_scratch_dir() -> Path:
+    worker_id = os.environ.get("PYTEST_XDIST_WORKER", "")
+    suffix = worker_id if worker_id else f"master-{os.getpid()}"
+    return Path(tempfile.gettempdir()) / f"ukepack_music21_{suffix}"
+
+
+def _isolate_music21_scratch() -> Path:
+    """Point music21 temp/cache I/O at a per-worker directory.
+
+    Default scratch is shared ``<tmpdir>/music21``; pytest-xdist workers racing on
+    freeze/thaw cache files can raise intermittent ``zlib.error``.
+    """
+    scratch = _music21_scratch_dir()
+    scratch.mkdir(parents=True, exist_ok=True)
+    from music21.environment import Environment
+
+    Environment()["directoryScratch"] = str(scratch)
+    return scratch
+
+
 def pytest_configure(config: pytest.Config) -> None:
     """Isolate file storage and SQLite DB per xdist worker to prevent conflicts.
 
@@ -74,6 +94,7 @@ def pytest_configure(config: pytest.Config) -> None:
     gets its own temp directory tree so all I/O is fully disjoint.
     """
     _patch_windows_pytest_basetemp()
+    _isolate_music21_scratch()
     worker_id = os.environ.get("PYTEST_XDIST_WORKER", "")
     if worker_id:
         tmp_dir = Path(tempfile.gettempdir()) / f"ukepack_test_{worker_id}"
@@ -92,6 +113,7 @@ def pytest_unconfigure(config: pytest.Config) -> None:
     if worker_id:
         tmp_dir = Path(tempfile.gettempdir()) / f"ukepack_test_{worker_id}"
         shutil.rmtree(tmp_dir, ignore_errors=True)
+    shutil.rmtree(_music21_scratch_dir(), ignore_errors=True)
 
 
 @pytest.fixture(scope="session")

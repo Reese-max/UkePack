@@ -41,8 +41,10 @@ def _homepage_cards() -> list[dict[str, str]]:
 
 @asynccontextmanager
 async def _lifespan(application: FastAPI) -> AsyncGenerator[None, None]:
+    from app.core.auth import validate_deployment_security
     from app.core.db import create_tables
 
+    validate_deployment_security()
     create_tables()
     yield
 

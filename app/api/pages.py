@@ -14,11 +14,13 @@ from fastapi.templating import Jinja2Templates
 from sqlmodel import Session
 
 from app.api.playability import build_playability_payload
+from app.api.projects._shared import get_project_or_404
 from app.api.project_uploads import (
     import_midi_into_project,
     import_musicxml_into_project,
     save_upload_with_limit,
 )
+from app.core.auth import set_project_auth_cookies
 from app.arrangement.key_advisor import suggest_key
 from app.arrangement.level_classifier import classify
 from app.arrangement.strum_pattern import suggest_for_level
@@ -121,12 +123,16 @@ async def create_project_htmx(
             except (ValueError, RuntimeError) as exc:
                 logger.warning("htmx import failed: %s", exc, exc_info=True)
                 save_path.unlink(missing_ok=True)
-                return RedirectResponse(
+                resp = RedirectResponse(
                     url=f"/projects/{project.id}?import_error=1",
                     status_code=303,
                 )
+                set_project_auth_cookies(resp, project)
+                return resp
 
-    return RedirectResponse(url=f"/projects/{project.id}", status_code=303)
+    resp = RedirectResponse(url=f"/projects/{project.id}", status_code=303)
+    set_project_auth_cookies(resp, project)
+    return resp
 
 
 @router.get("/library/{filename}/preview-audio")
@@ -243,9 +249,7 @@ def project_analysis_page(
     session: SessionDep,
 ) -> HTMLResponse:
     """Full analysis page for a project (P1-13)."""
-    project = session.get(Project, project_id)
-    if project is None:
-        raise HTTPException(404, "Project not found")
+    project = get_project_or_404(session, project_id, request=request)
 
     analysis: dict[str, Any] | None = _build_analysis(project)
     return _TEMPLATES.TemplateResponse(
@@ -253,6 +257,8 @@ def project_analysis_page(
         name="analysis.html",
         context={
             "project": project.model_dump(),
+            "project_token": project.owner_token,
+            "csrf_token": request.cookies.get("ukepack_csrf") or "",
             "analysis": analysis,
             "selected_level": project.arrangement_level,
             "import_error": request.query_params.get("import_error") == "1",
@@ -278,9 +284,7 @@ def strum_partial(
     level: int = 1,
 ) -> HTMLResponse:
     """HTMX partial: strum-pattern fragment for selected level (P1-13)."""
-    project = session.get(Project, project_id)
-    if project is None:
-        raise HTTPException(404, "Project not found")
+    project = get_project_or_404(session, project_id, request=request)
     return _render_strum_partial(request, project, level)
 
 
@@ -292,9 +296,7 @@ def persist_strum_partial(
     level: int = Form(...),
 ) -> HTMLResponse:
     """Persist arrangement level, then return the matching strum fragment."""
-    project = session.get(Project, project_id)
-    if project is None:
-        raise HTTPException(404, "Project not found")
+    project = get_project_or_404(session, project_id, request=request)
     _validate_level(level)
     project.arrangement_level = level
     project.updated_at = datetime.now(UTC)
@@ -316,9 +318,7 @@ def chords_transposed_partial(
     If ``capo_fret`` > 0, it overrides ``semitones`` (capo fret N = shift of -N semitones
     for the shapes the player frets).
     """
-    project = session.get(Project, project_id)
-    if project is None:
-        raise HTTPException(404, "Project not found")
+    project = get_project_or_404(session, project_id, request=request)
 
     score = _score_from_project(project)
     shift = -capo_fret if capo_fret > 0 else semitones
@@ -349,13 +349,12 @@ def chords_transposed_partial(
 def save_transpose(
     project_id: int,
     session: SessionDep,
+    request: Request,
     semitones: int = 0,
     capo_fret: int = 0,
 ) -> Response:
     """Save the selected transposition permanently to the project."""
-    project = session.get(Project, project_id)
-    if project is None:
-        raise HTTPException(404, "Project not found")
+    project = get_project_or_404(session, project_id, request=request)
 
     shift = -capo_fret if capo_fret > 0 else semitones
     project.semitone_shift = shift
@@ -380,9 +379,13 @@ def _prefer_flats(key: str) -> bool:
 
 
 @router.post("/projects/{project_id}/confirm-license")
-def confirm_license_page(project_id: int, session: SessionDep) -> RedirectResponse:
+def confirm_license_page(
+    project_id: int,
+    session: SessionDep,
+    request: Request,
+) -> RedirectResponse:
     """Confirm license, then redirect back to analysis page."""
-    project = session.get(Project, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     if project is None:
         raise HTTPException(404, "Project not found")
     project.license_confirmed = True
@@ -396,12 +399,11 @@ def confirm_license_page(project_id: int, session: SessionDep) -> RedirectRespon
 def save_chords_page(
     project_id: int,
     session: SessionDep,
+    request: Request,
     chords_text: str = Form(...),
 ) -> RedirectResponse:
     """Save manual chord text and redirect to analysis page (P1-04 UI)."""
-    project = session.get(Project, project_id)
-    if project is None:
-        raise HTTPException(404, "Project not found")
+    project = get_project_or_404(session, project_id, request=request)
     score = parse_chord_sheet(project.title, chords_text)
     project.chords_text = chords_text
     project.score_json = score.model_dump_json()
@@ -416,12 +418,11 @@ def save_chords_page(
 async def import_musicxml_page(
     project_id: int,
     session: SessionDep,
+    request: Request,
     file: Annotated[UploadFile, File()],
 ) -> RedirectResponse:
     """Upload MusicXML from analysis page and redirect back (browser-friendly wrapper)."""
-    project = session.get(Project, project_id)
-    if project is None:
-        raise HTTPException(404, "Project not found")
+    project = get_project_or_404(session, project_id, request=request)
 
     suffix = Path(file.filename or "").suffix.lower()
     if suffix not in _MUSICXML_EXTS | _MIDI_EXTS:
@@ -447,11 +448,13 @@ async def import_musicxml_page(
 
 
 @router.post("/projects/{project_id}/generate-practice-audio")
-def generate_practice_audio_page(project_id: int, session: SessionDep) -> RedirectResponse:
+def generate_practice_audio_page(
+    project_id: int,
+    session: SessionDep,
+    request: Request,
+) -> RedirectResponse:
     """Generate practice audio, then redirect back to analysis page."""
-    project = session.get(Project, project_id)
-    if project is None:
-        raise HTTPException(404, "Project not found")
+    project = get_project_or_404(session, project_id, request=request)
     if not project.license_confirmed:
         return RedirectResponse(url=f"/projects/{project_id}?audio_error=1", status_code=303)
     try:
@@ -469,14 +472,14 @@ def project_preview_page(
     session: SessionDep,
 ) -> HTMLResponse:
     """PDF preview page with iframe (P1-14)."""
-    project = session.get(Project, project_id)
-    if project is None:
-        raise HTTPException(404, "Project not found")
+    project = get_project_or_404(session, project_id, request=request)
     return _TEMPLATES.TemplateResponse(
         request=request,
         name="preview.html",
         context={
             "project": project.model_dump(),
+            "project_token": project.owner_token,
+            "csrf_token": request.cookies.get("ukepack_csrf") or "",
             "practice_audio": _practice_audio_payload(project),
             "review_available": bool(project.score_json or project.chords_text),
             "review_saved": has_teacher_review(project),
@@ -498,9 +501,7 @@ def project_practice_page(
     session: SessionDep,
 ) -> Response:
     """Interactive chord practice page with audio playback and metronome."""
-    project = session.get(Project, project_id)
-    if project is None:
-        raise HTTPException(404, "Project not found")
+    project = get_project_or_404(session, project_id, request=request)
 
     analysis = _build_analysis(project)
     if analysis is None:
@@ -529,6 +530,8 @@ def project_practice_page(
         name="practice.html",
         context={
             "project": project.model_dump(),
+            "project_token": project.owner_token,
+            "csrf_token": request.cookies.get("ukepack_csrf") or "",
             "analysis": analysis,
             "unique_chords": unique_chords,
             "fingerings_json": get_fingerings_json(unique_chords),
@@ -546,9 +549,7 @@ def project_progress_page(
     session: SessionDep,
 ) -> HTMLResponse:
     """Practice progress dashboard — streak, stats, chord mastery."""
-    project = session.get(Project, project_id)
-    if project is None:
-        raise HTTPException(404, "Project not found")
+    project = get_project_or_404(session, project_id, request=request)
 
     from collections import Counter
     from datetime import timedelta
@@ -615,6 +616,8 @@ def project_progress_page(
         name="progress.html",
         context={
             "project": project.model_dump(),
+            "project_token": project.owner_token,
+            "csrf_token": request.cookies.get("ukepack_csrf") or "",
             "total_sessions": len(logs),
             "total_seconds": total_seconds,
             "total_minutes": round(total_seconds / 60, 1),
@@ -860,9 +863,13 @@ def library_quick_start(filename: str, session: SessionDep) -> RedirectResponse:
         session.commit()
     except (ValueError, RuntimeError) as exc:
         logger.warning("library import failed: %s", exc, exc_info=True)
-        return RedirectResponse(
+        resp = RedirectResponse(
             url=f"/projects/{project.id}?import_error=1",
             status_code=303,
         )
+        set_project_auth_cookies(resp, project)
+        return resp
 
-    return RedirectResponse(url=f"/projects/{project.id}", status_code=303)
+    resp = RedirectResponse(url=f"/projects/{project.id}", status_code=303)
+    set_project_auth_cookies(resp, project)
+    return resp

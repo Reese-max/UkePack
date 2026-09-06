@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Request, Response, status
 
 from app.api.playability import build_playability_payload
 from app.arrangement.key_advisor import suggest_key
 from app.arrangement.level_classifier import classify
 from app.arrangement.strum_pattern import suggest_for_level
+from app.core.auth import set_project_auth_cookies
 from app.core.chord_sheet import parse_chord_sheet
 from app.models.project import Project, ProjectCreate, ProjectRead
 from app.models.score import Score
@@ -43,25 +44,39 @@ def _analysis_response(score: Score) -> dict[str, Any]:
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-def create_project(body: ProjectCreate, session: SessionDep) -> ProjectRead:
+def create_project(
+    body: ProjectCreate,
+    session: SessionDep,
+    response: Response,
+    request: Request,
+) -> ProjectRead:
     """Create a new project."""
     project = Project(**body.model_dump())
+    owner_id = request.headers.get("X-User-Id") or request.headers.get("X-Owner-Id")
+    if owner_id:
+        project.owner_id = owner_id
     session.add(project)
     session.commit()
     session.refresh(project)
+    set_project_auth_cookies(response, project)
     return to_read(project)
 
 
 @router.get("/{project_id}")
-def get_project(project_id: int, session: SessionDep) -> ProjectRead:
+def get_project(project_id: int, session: SessionDep, request: Request) -> ProjectRead:
     """Return project metadata."""
-    return to_read(get_project_or_404(session, project_id))
+    return to_read(get_project_or_404(session, project_id, request=request))
 
 
 @router.post("/{project_id}/chords")
-def add_chords(project_id: int, body: ChordsBody, session: SessionDep) -> dict[str, Any]:
+def add_chords(
+    project_id: int,
+    body: ChordsBody,
+    session: SessionDep,
+    request: Request,
+) -> dict[str, Any]:
     """Store manual chord text and derived score metadata."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     score = parse_chord_sheet(project.title, body.text)
     project.chords_text = body.text
     project.score_json = score.model_dump_json()
@@ -78,21 +93,26 @@ def add_chords(project_id: int, body: ChordsBody, session: SessionDep) -> dict[s
 
 
 @router.get("/{project_id}/analysis")
-def get_analysis(project_id: int, session: SessionDep) -> dict[str, Any]:
+def get_analysis(project_id: int, session: SessionDep, request: Request) -> dict[str, Any]:
     """Return key, meter, chord, and difficulty analysis."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     return _analysis_response(load_score(project))
 
 
 @router.post("/{project_id}/arrange")
-def arrange(project_id: int, body: ArrangeBody, session: SessionDep) -> dict[str, Any]:
+def arrange(
+    project_id: int,
+    body: ArrangeBody,
+    session: SessionDep,
+    request: Request,
+) -> dict[str, Any]:
     """Store arrangement level and return suggested strum patterns."""
     if body.level not in (1, 2, 3):
         from fastapi import HTTPException
 
         raise HTTPException(400, "level must be 1, 2, or 3")
 
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     patterns = suggest_for_level(load_score(project), body.level)
     project.arrangement_level = body.level
     project.updated_at = utc_now()

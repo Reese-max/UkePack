@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+import secrets
 from datetime import UTC, datetime
 
 from sqlmodel import Field, SQLModel
+
+
+def _generate_owner_token() -> str:
+    return f"ukp_{secrets.token_urlsafe(32)}"
 
 
 def _utc_now() -> datetime:
@@ -43,6 +48,10 @@ class Project(ProjectBase, table=True):
     chords_text: str | None = Field(default=None)
     score_json: str | None = Field(default=None)
 
+    # Ownership & Capability Security
+    owner_token: str = Field(default_factory=_generate_owner_token, index=True)
+    owner_id: str | None = Field(default=None, index=True)
+
     created_at: datetime = Field(default_factory=_utc_now)
     updated_at: datetime = Field(default_factory=_utc_now)
 
@@ -69,5 +78,7 @@ class ProjectRead(SQLModel):
     semitone_shift: int
     musicxml_path: str | None
     midi_path: str | None
+    owner_token: str | None = None
+    owner_id: str | None = None
     created_at: datetime
     updated_at: datetime

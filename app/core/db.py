@@ -32,14 +32,13 @@ def reset_engine() -> None:
         engine.dispose()
 
 
-def create_tables() -> None:
-    """Create all SQLModel tables (idempotent)."""
-    SQLModel.metadata.create_all(get_engine())
-
-    # Defensive check and update schema for new semitone_shift column (M1 transpose)
+def migrate_project_schema(engine: Any) -> None:
+    """Ensure semitone_shift, owner_token, and owner_id columns exist and migrate legacy projects."""
+    import secrets
     from sqlalchemy import text
-    engine = get_engine()
+
     with engine.connect() as conn:
+        # Check semitone_shift
         try:
             conn.execute(text("SELECT semitone_shift FROM project LIMIT 1"))
         except Exception:
@@ -48,6 +47,54 @@ def create_tables() -> None:
                 conn.commit()
             except Exception:
                 pass
+
+        # Check owner_token
+        try:
+            conn.execute(text("SELECT owner_token FROM project LIMIT 1"))
+        except Exception:
+            try:
+                conn.execute(text("ALTER TABLE project ADD COLUMN owner_token TEXT DEFAULT NULL"))
+                conn.commit()
+            except Exception:
+                pass
+
+        # Check owner_id
+        try:
+            conn.execute(text("SELECT owner_id FROM project LIMIT 1"))
+        except Exception:
+            try:
+                conn.execute(text("ALTER TABLE project ADD COLUMN owner_id TEXT DEFAULT NULL"))
+                conn.commit()
+            except Exception:
+                pass
+
+        # Migrate existing legacy rows where owner_token IS NULL or empty
+        try:
+            result = conn.execute(text("SELECT id FROM project WHERE owner_token IS NULL OR owner_token = ''"))
+            rows = result.fetchall()
+            for (row_id,) in rows:
+                legacy_token = f"ukp_legacy_{secrets.token_urlsafe(32)}"
+                conn.execute(
+                    text("UPDATE project SET owner_token = :token WHERE id = :pid"),
+                    {"token": legacy_token, "pid": row_id},
+                )
+            if rows:
+                conn.commit()
+        except Exception:
+            pass
+
+        # Ensure index exists
+        try:
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_project_owner_token ON project (owner_token)"))
+            conn.commit()
+        except Exception:
+            pass
+
+
+def create_tables() -> None:
+    """Create all SQLModel tables (idempotent) and apply schema migrations."""
+    SQLModel.metadata.create_all(get_engine())
+    migrate_project_schema(get_engine())
 
 
 def get_session() -> Generator[Session, None, None]:

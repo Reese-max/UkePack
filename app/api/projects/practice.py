@@ -6,12 +6,13 @@ from collections import Counter
 from datetime import UTC, date, datetime, timedelta
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Request
 from sqlmodel import Session, col, select
 
 from app.core.db import get_session
 from app.models.practice_log import PracticeLog, PracticeLogCreate, PracticeLogRead
-from app.models.project import Project
+
+from ._shared import get_project_or_404
 
 router = APIRouter(prefix="/api/projects", tags=["practice"])
 
@@ -27,11 +28,10 @@ def record_practice_session(
     project_id: int,
     body: PracticeLogCreate,
     session: SessionDep,
+    request: Request,
 ) -> PracticeLog:
     """Record a completed practice session."""
-    project = session.get(Project, project_id)
-    if project is None:
-        raise HTTPException(404, "Project not found")
+    get_project_or_404(session, project_id, request=request)
 
     log = PracticeLog(
         project_id=project_id,
@@ -49,11 +49,10 @@ def record_practice_session(
 def get_practice_progress(
     project_id: int,
     session: SessionDep,
+    request: Request,
 ) -> dict[str, Any]:
     """Return aggregated practice progress stats."""
-    project = session.get(Project, project_id)
-    if project is None:
-        raise HTTPException(404, "Project not found")
+    get_project_or_404(session, project_id, request=request)
 
     logs = list(
         session.exec(

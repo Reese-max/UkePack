@@ -25,7 +25,7 @@ router = APIRouter(prefix="/api/projects", tags=["projects"])
 @router.get("/{project_id}/share-link")
 def get_share_link(project_id: int, request: Request, session: SessionDep) -> dict[str, Any]:
     """Return the project's current private-share link metadata."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     manifest = load_share_link(project)
     if manifest is None:
         raise HTTPException(404, "Share link has not been created yet")
@@ -40,7 +40,7 @@ def create_project_share_link(
     session: SessionDep,
 ) -> dict[str, Any]:
     """Create or rotate a private-share link for a project."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     try:
         manifest = create_share_link(project, expires_in_days=body.expires_in_days)
     except ShareLinkForbiddenError as exc:
@@ -59,7 +59,7 @@ def delete_project_share_link(
     session: SessionDep,
 ) -> dict[str, Any]:
     """Revoke the project's current private-share link."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     if load_share_link(project) is None:
         raise HTTPException(404, "Share link has not been created yet")
     manifest = revoke_share_link(project)

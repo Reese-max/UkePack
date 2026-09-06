@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from sqlmodel import SQLModel
 
 from app.core.teacher_review import (
@@ -39,9 +39,13 @@ class ReviewTemplateBody(SQLModel):
 
 
 @router.get("/{project_id}/review")
-def get_teacher_review(project_id: int, session: SessionDep) -> dict[str, object]:
+def get_teacher_review(
+    project_id: int,
+    session: SessionDep,
+    request: Request,
+) -> dict[str, object]:
     """Return the current teacher-review state for a project."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     review = load_teacher_review(project, load_score(project))
     return review.model_dump(mode="json")
 
@@ -51,9 +55,10 @@ def save_teacher_review_api(
     project_id: int,
     body: ReviewUpdateBody,
     session: SessionDep,
+    request: Request,
 ) -> dict[str, object]:
     """Validate and persist teacher-review edits."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     try:
         review = update_teacher_review(project, load_score(project), TeacherReviewDraft(**body.model_dump()))
     except ValueError as exc:
@@ -64,9 +69,13 @@ def save_teacher_review_api(
 
 
 @router.post("/{project_id}/review/downgrade")
-def downgrade_teacher_review_api(project_id: int, session: SessionDep) -> dict[str, object]:
+def downgrade_teacher_review_api(
+    project_id: int,
+    session: SessionDep,
+    request: Request,
+) -> dict[str, object]:
     """Mark the arrangement as too hard and lower the active level by one."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     review = downgrade_teacher_review(project, load_score(project))
     session.add(project)
     session.commit()
@@ -74,9 +83,13 @@ def downgrade_teacher_review_api(project_id: int, session: SessionDep) -> dict[s
 
 
 @router.post("/{project_id}/review/restore")
-def restore_teacher_review_api(project_id: int, session: SessionDep) -> dict[str, object]:
+def restore_teacher_review_api(
+    project_id: int,
+    session: SessionDep,
+    request: Request,
+) -> dict[str, object]:
     """Restore teacher-review edits back to the system's original suggestion."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     review = restore_teacher_review(project, load_score(project))
     session.add(project)
     session.commit()
@@ -88,9 +101,10 @@ def save_teacher_review_template_api(
     project_id: int,
     body: ReviewTemplateBody,
     session: SessionDep,
+    request: Request,
 ) -> dict[str, object]:
     """Save the current review draft as a reusable named template."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     try:
         review = save_teacher_review_template(project, load_score(project), body.name)
     except ValueError as exc:
@@ -103,9 +117,10 @@ def apply_teacher_review_template_api(
     project_id: int,
     body: ReviewTemplateBody,
     session: SessionDep,
+    request: Request,
 ) -> dict[str, object]:
     """Apply a previously saved teacher-review template to the current project."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     try:
         review = apply_teacher_review_template(project, load_score(project), body.name)
     except ValueError as exc:

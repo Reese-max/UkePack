@@ -4,7 +4,25 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}UkePack AI{% endblock %}</title>
+    {% if project_token %}
+    <meta name="project-token" content="{{ project_token }}">
+    {% endif %}
+    {% if csrf_token %}
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    {% endif %}
     <script src="https://unpkg.com/htmx.org@1.9.12/dist/htmx.min.js" defer></script>
+    <script>
+        document.addEventListener('htmx:configRequest', function(evt) {
+            var tokenMeta = document.querySelector('meta[name="project-token"]');
+            if (tokenMeta && tokenMeta.content) {
+                evt.detail.headers['X-Project-Token'] = tokenMeta.content;
+            }
+            var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            if (csrfMeta && csrfMeta.content) {
+                evt.detail.headers['X-CSRF-Token'] = csrfMeta.content;
+            }
+        });
+    </script>
     <style>
         /* ── Design tokens ── */
         :root {

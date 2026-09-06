@@ -35,11 +35,12 @@ SessionDep = Annotated[Session, Depends(get_session)]
 def create_share_link_page(
     project_id: int,
     session: SessionDep,
+    request: Request,
     expires_in_days: int = Form(7),
     return_to: str = Form("analysis"),
 ) -> RedirectResponse:
     """Create or rotate a share link, then redirect back to the requested owner page."""
-    project = _get_project_or_404(session, project_id)
+    project = _get_project_or_404(session, project_id, request=request)
     try:
         create_share_link(project, expires_in_days=expires_in_days)
     except ShareLinkError:
@@ -51,10 +52,11 @@ def create_share_link_page(
 def revoke_share_link_page(
     project_id: int,
     session: SessionDep,
+    request: Request,
     return_to: str = Form("analysis"),
 ) -> RedirectResponse:
     """Revoke a share link, then redirect back to the requested owner page."""
-    project = _get_project_or_404(session, project_id)
+    project = _get_project_or_404(session, project_id, request=request)
     try:
         revoke_share_link(project)
     except ShareLinkError:
@@ -140,10 +142,18 @@ def _resolve_shared_project(session: Session, code: str) -> tuple[Project, Share
     return project, manifest
 
 
-def _get_project_or_404(session: Session, project_id: int) -> Project:
+def _get_project_or_404(
+    session: Session,
+    project_id: int,
+    request: Request | None = None,
+) -> Project:
     project = session.get(Project, project_id)
     if project is None:
         raise HTTPException(404, "Project not found")
+    if request is not None:
+        from app.core.auth import verify_project_access
+
+        verify_project_access(project, request)
     return project
 
 

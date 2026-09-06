@@ -22,3 +22,7 @@ services:
         value: /tmp/ukepack_data/ukepack.db
       - key: DEBUG
         value: "false"
+      - key: ENVIRONMENT
+        value: production
+      - key: UKEPACK_AUTH_SECRET
+        generateValue: true

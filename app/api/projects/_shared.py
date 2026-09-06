@@ -5,9 +5,10 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Annotated
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from sqlmodel import Session, SQLModel
 
+from app.core.auth import verify_project_access
 from app.core.chord_sheet import parse_chord_sheet
 from app.core.db import get_session
 from app.models.project import Project, ProjectRead
@@ -37,11 +38,17 @@ class LicenseBody(SQLModel):
     confirmed: bool
 
 
-def get_project_or_404(session: Session, project_id: int) -> Project:
-    """Load a project row or raise a 404."""
+def get_project_or_404(
+    session: Session,
+    project_id: int,
+    request: Request | None = None,
+) -> Project:
+    """Load a project row and enforce owner authorization when request context is provided."""
     project = session.get(Project, project_id)
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
+    if request is not None:
+        verify_project_access(project, request)
     return project
 
 

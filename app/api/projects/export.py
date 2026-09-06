@@ -1,6 +1,6 @@
 """Project export routes for PDF, MusicXML, and practice-audio downloads."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, Response
 
 from app.config import get_settings
@@ -28,10 +28,11 @@ def _require_license_confirmation(license_confirmed: bool) -> None:
 def export_pdf(
     project_id: int,
     session: SessionDep,
+    request: Request,
     left_handed: bool = False,
 ) -> Response:
     """Download a practice-pack PDF after license confirmation."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     _require_license_confirmation(project.license_confirmed)
     load_score(project)
     return Response(
@@ -45,9 +46,9 @@ def export_pdf(
 
 
 @router.get("/{project_id}/export.musicxml")
-def export_musicxml(project_id: int, session: SessionDep) -> FileResponse:
+def export_musicxml(project_id: int, session: SessionDep, request: Request) -> FileResponse:
     """Download the original imported MusicXML file."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     if project.musicxml_path is None:
         raise HTTPException(404, "No MusicXML file imported for this project")
 
@@ -63,9 +64,13 @@ def export_musicxml(project_id: int, session: SessionDep) -> FileResponse:
 
 
 @router.get("/{project_id}/practice-audio")
-def get_practice_audio_manifest(project_id: int, session: SessionDep) -> dict[str, object]:
+def get_practice_audio_manifest(
+    project_id: int,
+    session: SessionDep,
+    request: Request,
+) -> dict[str, object]:
     """Return persisted practice-audio metadata for a project."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     _require_license_confirmation(project.license_confirmed)
     manifest = load_practice_audio_manifest(project)
     if manifest is None:
@@ -74,9 +79,13 @@ def get_practice_audio_manifest(project_id: int, session: SessionDep) -> dict[st
 
 
 @router.post("/{project_id}/practice-audio")
-def create_practice_audio(project_id: int, session: SessionDep) -> dict[str, object]:
+def create_practice_audio(
+    project_id: int,
+    session: SessionDep,
+    request: Request,
+) -> dict[str, object]:
     """Generate slowed practice MIDI/MP3 assets from the uploaded project MIDI."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     _require_license_confirmation(project.license_confirmed)
     try:
         manifest = generate_practice_audio(project)
@@ -93,9 +102,10 @@ def export_practice_audio(
     variant: str,
     file_format: str,
     session: SessionDep,
+    request: Request,
 ) -> FileResponse:
     """Download one generated practice-audio artifact."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     _require_license_confirmation(project.license_confirmed)
     if file_format not in {"mid", "mp3"}:
         raise HTTPException(404, "Unsupported practice-audio format")
@@ -114,14 +124,15 @@ def export_practice_audio(
 def export_practice_report(
     project_id: int,
     session: SessionDep,
+    request: Request,
 ) -> Response:
     """Download a practice session report PDF."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
 
     # Reuse the practice-progress aggregation logic
     from app.api.projects.practice import get_practice_progress
 
-    stats = get_practice_progress(project_id, session)
+    stats = get_practice_progress(project_id, session, request=request)
     if stats.get("total_sessions", 0) == 0:
         raise HTTPException(404, "No practice sessions recorded yet")
 

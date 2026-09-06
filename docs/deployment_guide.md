@@ -55,7 +55,9 @@ Repo 已公開：**https://github.com/Reese-max/UkePack**（master 最新版本 
 |-----|-------|------|
 | `DATA_DIR` | `/tmp/ukepack_data` | 暫存目錄（免費層無持久磁碟） |
 | `SQLITE_PATH` | `/tmp/ukepack_data/ukepack.db` | SQLite 路徑 |
-| `DEBUG` | `false` | |
+| `DEBUG` | `false` | 關閉除錯模式 |
+| `ENVIRONMENT` | `production` | 生產環境啟用嚴格安全驗證 |
+| `UKEPACK_AUTH_SECRET` | *(32+ 字元隨機字串)* | 專案 Capability Token 簽章金鑰（生產環境必填） |
 
 > ⚠️ **免費層重啟會清 `/tmp`**：SQLite 與上傳的專案資料在服務重啟（每 15 分鐘無流量後）會消失。老師試用時建議提前幾分鐘訪問一次讓服務保持喚醒，或升級 Starter 方案加掛 Persistent Disk（$1/月 1 GB）。
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated, Any
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 
 from app.api.project_uploads import (
     import_midi_into_project,
@@ -30,9 +30,10 @@ async def import_musicxml(
     project_id: int,
     file: Annotated[UploadFile, File()],
     session: SessionDep,
+    request: Request,
 ) -> dict[str, Any]:
     """Upload and parse a MusicXML/MXL or MIDI file into the project analysis."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     suffix = Path(file.filename or "").suffix.lower()
     if suffix not in MUSICXML_EXTS | MIDI_EXTS:
         raise HTTPException(400, f"Unsupported file type '{suffix}'. Use .musicxml / .mxl / .mid")
@@ -67,9 +68,10 @@ async def import_midi(
     project_id: int,
     file: Annotated[UploadFile, File()],
     session: SessionDep,
+    request: Request,
 ) -> dict[str, Any]:
     """Upload a MIDI file and store its saved path."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     suffix = Path(file.filename or "").suffix.lower()
     if suffix not in MIDI_EXTS:
         raise HTTPException(400, f"Unsupported MIDI extension '{suffix}'. Use .mid / .midi")

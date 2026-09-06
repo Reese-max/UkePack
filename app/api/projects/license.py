@@ -1,6 +1,6 @@
 """Project license confirmation routes."""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from ._shared import LicenseBody, SessionDep, get_project_or_404, utc_now
 
@@ -12,9 +12,10 @@ def confirm_license(
     project_id: int,
     body: LicenseBody,
     session: SessionDep,
+    request: Request,
 ) -> dict[str, bool | int]:
     """Record the user's license acknowledgment."""
-    project = get_project_or_404(session, project_id)
+    project = get_project_or_404(session, project_id, request=request)
     project.license_confirmed = body.confirmed
     project.updated_at = utc_now()
     session.add(project)

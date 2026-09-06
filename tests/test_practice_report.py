@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine, select
 from sqlmodel.pool import StaticPool
 
 from app.core.db import get_session
@@ -43,12 +43,17 @@ def project_fixture(session: Session) -> Project:
     return p
 
 
-def _make_client(session: Session):
+def _make_client(session: Session, project: Project | None = None):
     def _override():
         yield session
 
     app.dependency_overrides[get_session] = _override
-    return TestClient(app)
+    client = TestClient(app)
+    proj = project or session.exec(select(Project)).first()
+    if proj is not None and getattr(proj, "owner_token", None):
+        client.cookies.set(f"ukepack_project_{proj.id}", proj.owner_token)
+        client.cookies.set("ukepack_owner_token", proj.owner_token)
+    return client
 
 
 def _add_sessions(client: TestClient, project_id: int, count: int = 3) -> None:

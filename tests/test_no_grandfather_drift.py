@@ -41,6 +41,34 @@ _GOVERNANCE_FILES = [
 ]
 
 
+_COMMIT_SHA = re.compile(r"[0-9a-f]{7,40}", re.IGNORECASE)
+
+
+def _parse_governance_log(output: str) -> list[tuple[str, str, str]]:
+    """Parse NUL-delimited git records without altering structural separators."""
+    messages: list[tuple[str, str, str]] = []
+    for record_index, raw_record in enumerate(output.split("\0"), start=1):
+        record = raw_record.strip("\r\n")
+        if not record.strip():
+            continue
+
+        sha, separator, message = record.partition("\x1f")
+        sha = sha.strip()
+        if not separator or not _COMMIT_SHA.fullmatch(sha):
+            context = record[:80].encode("unicode_escape").decode("ascii")
+            raise AssertionError(
+                f"Malformed git log record {record_index} (sha={sha or '<missing>'}): "
+                f"expected '<sha>\\x1f<message>', got {context!r}"
+            )
+
+        normalized_message = (
+            message.replace("\r\n", "\n").replace("\r", "\n").strip("\n")
+        )
+        subject, _, body = normalized_message.partition("\n")
+        messages.append((sha, subject.strip(), body.strip()))
+    return messages
+
+
 def _recent_commits_touching_governance() -> list[tuple[str, str, str]] | None:
     """Return (sha, subject, body) only for recent commits that touch governance files."""
     result = subprocess.run(
@@ -50,8 +78,9 @@ def _recent_commits_touching_governance() -> list[tuple[str, str, str]] | None:
             "-c",
             "i18n.logOutputEncoding=utf8",
             "log",
+            "-z",
             "--since=24 hours ago",
-            "--format=%h%x1f%s%x1f%b%x1e",
+            "--format=%h%x1f%B",
             "--no-decorate",
             "--",
             *_GOVERNANCE_FILES,
@@ -65,15 +94,34 @@ def _recent_commits_touching_governance() -> list[tuple[str, str, str]] | None:
     )
     if result.returncode != 0:
         return None
+    return _parse_governance_log(result.stdout)
 
-    messages: list[tuple[str, str, str]] = []
-    for entry in result.stdout.split("\x1e"):
-        stripped = entry.strip()
-        if not stripped:
-            continue
-        sha, subject, body = stripped.split("\x1f", maxsplit=2)
-        messages.append((sha.strip(), subject.strip(), body.strip()))
-    return messages
+
+def test_parse_governance_log_valid_records() -> None:
+    output = (
+        "a1b2c3d\x1fsubject only\0"
+        "\0"
+        "b2c3d4e\x1fmultiline\n\nline one\nline two\0"
+        "c3d4e5f\x1f繁體中文主旨\r\n\r\n繁體中文內文\0"
+        "d4e5f6a\x1fcontrols\n\nbody has \x1f and \x1e markers\0"
+    )
+
+    assert _parse_governance_log(output) == [
+        ("a1b2c3d", "subject only", ""),
+        ("b2c3d4e", "multiline", "line one\nline two"),
+        ("c3d4e5f", "繁體中文主旨", "繁體中文內文"),
+        ("d4e5f6a", "controls", "body has \x1f and \x1e markers"),
+    ]
+
+
+def test_parse_governance_log_rejects_malformed_record() -> None:
+    try:
+        _parse_governance_log("not-a-record\0")
+    except AssertionError as exc:
+        assert "record 1" in str(exc)
+        assert "sha=not-a-record" in str(exc)
+    else:
+        raise AssertionError("malformed git log record was accepted")
 
 
 _GRANDFATHER_PREVENTION_PHRASES = (

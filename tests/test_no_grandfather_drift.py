@@ -42,6 +42,27 @@ _GOVERNANCE_FILES = [
 
 
 _COMMIT_SHA = re.compile(r"[0-9a-f]{40}", re.IGNORECASE)
+_COMMIT_SHA_PREFIX = re.compile(r"[0-9a-f]{7,40}", re.IGNORECASE)
+
+
+def _matches_configured_sha_prefix(sha: str, prefixes: set[str]) -> bool:
+    """Match a full SHA against a validated, globally unambiguous prefix set."""
+    if not _COMMIT_SHA.fullmatch(sha):
+        raise AssertionError(f"Expected a full 40-character commit SHA, got {sha!r}")
+
+    normalized = sorted(prefix.lower() for prefix in prefixes)
+    invalid = [prefix for prefix in normalized if not _COMMIT_SHA_PREFIX.fullmatch(prefix)]
+    if invalid:
+        raise AssertionError(f"Invalid configured commit SHA prefix: {invalid[0]!r}")
+
+    for index, prefix in enumerate(normalized):
+        for other in normalized[index + 1 :]:
+            if other.startswith(prefix):
+                raise AssertionError(
+                    f"Ambiguous configured commit SHA prefixes: {prefix!r} and {other!r}"
+                )
+
+    return any(sha.lower().startswith(prefix) for prefix in normalized)
 
 
 def _parse_governance_log(output: str) -> list[tuple[str, str, str]]:
@@ -168,6 +189,35 @@ def test_governance_log_uses_full_sha_when_core_abbrev_is_short(tmp_path: Path) 
     assert body == ""
 
 
+def test_pre_guard_relaxation_sha_prefixes_match_full_hashes() -> None:
+    for prefix in _PRE_GUARD_RELAXATION_SHAS:
+        full_sha = prefix + ("0" * (40 - len(prefix)))
+        assert _matches_configured_sha_prefix(
+            full_sha, _PRE_GUARD_RELAXATION_SHAS
+        )
+
+    assert not _matches_configured_sha_prefix(
+        "f" * 40, _PRE_GUARD_RELAXATION_SHAS
+    )
+
+
+def test_sha_prefix_matching_rejects_invalid_or_ambiguous_configuration() -> None:
+    invalid_cases = [
+        ("short", {"abcdef0"}),
+        ("a" * 40, {"not-a-sha"}),
+        ("abcdef0123456789abcdef0123456789abcdef01", {"abcdef0", "abcdef01"}),
+    ]
+    for sha, prefixes in invalid_cases:
+        try:
+            _matches_configured_sha_prefix(sha, prefixes)
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError(
+                f"invalid or ambiguous SHA prefix configuration was accepted: {prefixes!r}"
+            )
+
+
 _GRANDFATHER_PREVENTION_PHRASES = (
     "block grandfather",
     "prevent grandfather",
@@ -221,7 +271,7 @@ def test_recent_commits_do_not_relax_governance_tests() -> None:
 
     violations: list[str] = []
     for sha, subject, body in messages:
-        if sha in _PRE_GUARD_RELAXATION_SHAS:
+        if _matches_configured_sha_prefix(sha, _PRE_GUARD_RELAXATION_SHAS):
             continue
         message = f"{subject}\n{body}"
         if _has_guard_relaxation_language(message):

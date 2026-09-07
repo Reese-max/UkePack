@@ -41,7 +41,7 @@ _GOVERNANCE_FILES = [
 ]
 
 
-_COMMIT_SHA = re.compile(r"[0-9a-f]{7,40}", re.IGNORECASE)
+_COMMIT_SHA = re.compile(r"[0-9a-f]{40}", re.IGNORECASE)
 
 
 def _parse_governance_log(output: str) -> list[tuple[str, str, str]]:
@@ -80,7 +80,7 @@ def _recent_commits_touching_governance() -> list[tuple[str, str, str]] | None:
             "log",
             "-z",
             "--since=24 hours ago",
-            "--format=%h%x1f%B",
+            "--format=%H%x1f%B",
             "--no-decorate",
             "--",
             *_GOVERNANCE_FILES,
@@ -98,19 +98,23 @@ def _recent_commits_touching_governance() -> list[tuple[str, str, str]] | None:
 
 
 def test_parse_governance_log_valid_records() -> None:
+    a_sha = "a" * 40
+    b_sha = "b" * 40
+    c_sha = "c" * 40
+    d_sha = "d" * 40
     output = (
-        "a1b2c3d\x1fsubject only\0"
+        f"{a_sha}\x1fsubject only\0"
         "\0"
-        "b2c3d4e\x1fmultiline\n\nline one\nline two\0"
-        "c3d4e5f\x1f繁體中文主旨\r\n\r\n繁體中文內文\0"
-        "d4e5f6a\x1fcontrols\n\nbody has \x1f and \x1e markers\0"
+        f"{b_sha}\x1fmultiline\n\nline one\nline two\0"
+        f"{c_sha}\x1f繁體中文主旨\r\n\r\n繁體中文內文\0"
+        f"{d_sha}\x1fcontrols\n\nbody has \x1f and \x1e markers\0"
     )
 
     assert _parse_governance_log(output) == [
-        ("a1b2c3d", "subject only", ""),
-        ("b2c3d4e", "multiline", "line one\nline two"),
-        ("c3d4e5f", "繁體中文主旨", "繁體中文內文"),
-        ("d4e5f6a", "controls", "body has \x1f and \x1e markers"),
+        (a_sha, "subject only", ""),
+        (b_sha, "multiline", "line one\nline two"),
+        (c_sha, "繁體中文主旨", "繁體中文內文"),
+        (d_sha, "controls", "body has \x1f and \x1e markers"),
     ]
 
 
@@ -122,6 +126,46 @@ def test_parse_governance_log_rejects_malformed_record() -> None:
         assert "sha=not-a-record" in str(exc)
     else:
         raise AssertionError("malformed git log record was accepted")
+
+
+def test_governance_log_uses_full_sha_when_core_abbrev_is_short(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+    subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=repo, check=True)
+    subprocess.run(["git", "config", "user.name", "Test User"], cwd=repo, check=True)
+
+    governance_file = repo / "tests" / "test_no_grandfather_drift.py"
+    governance_file.parent.mkdir()
+    governance_file.write_text("# fixture\n", encoding="utf-8")
+    subprocess.run(["git", "add", str(governance_file.relative_to(repo))], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-q", "-m", "subject only"], cwd=repo, check=True)
+
+    result = subprocess.run(
+        [
+            "git",
+            "-c",
+            "core.abbrev=4",
+            "log",
+            "-z",
+            "--format=%H%x1f%B",
+            "--",
+            str(governance_file.relative_to(repo)),
+        ],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+    )
+
+    messages = _parse_governance_log(result.stdout)
+    assert len(messages) == 1
+    sha, subject, body = messages[0]
+    assert len(sha) == 40
+    assert _COMMIT_SHA.fullmatch(sha)
+    assert subject == "subject only"
+    assert body == ""
 
 
 _GRANDFATHER_PREVENTION_PHRASES = (

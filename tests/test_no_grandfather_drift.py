@@ -12,24 +12,24 @@ ROOT = Path(__file__).resolve().parent.parent
 # Pre-guard commit that motivated this test. Do not expand without a reflection
 # entry explaining why the older violation must remain exempt.
 _PRE_GUARD_RELAXATION_SHAS = {
-    "fb32b69",
+    "fb32b693dca232ab83f880a0b7c463d52271e718",
     # 0eb185d admits 6e92504 (M-notation log commit) to the log-commit allow-list.
     # Exemption: the word "grandfather" appears in the subject because it mirrors
     # the exact operation performed (adding to _GRANDFATHERED_LOG_SHAS); the
     # admission is accompanied by full rule-9 justification in the commit body
     # (same-category as 08c5d85; M-notation pre-enforcement, not a pattern).
-    "0eb185d",
+    "0eb185d49e538ba1e7e11548ca8d372529c0c093",
     # 20ea4b3 adds 0eb185d to this exemption set. Its body used the trigger word
     # in a meta-explanation context (describing the word's presence in 0eb185d,
     # not performing an actual guard relaxation). This is the terminal entry in
     # the log-commit / no-drift admission chain; no further follow-ups expected.
-    "20ea4b3",
+    "20ea4b3418ebcd745cc2e6a4763257df721f3841",
     # 2e15dd4 admitted 20ea4b3 to this same set. The commit body described why
     # 20ea4b3 needed admission and in doing so quoted the drift-guard trigger
     # term (as a meta-reference, not a real relaxation). test_no_grandfather_drift
     # detected it because the file it touches is a monitored governance file.
     # This entry closes the cascade.  Rule-9 ack: SHA justified above.
-    "2e15dd4",
+    "2e15dd4643e0bea615fd8ae0b62e9cb5ed74213e",
 }
 
 # Governance files monitored for relaxation attempts.
@@ -43,27 +43,6 @@ _GOVERNANCE_FILES = [
 
 
 _COMMIT_SHA = re.compile(r"[0-9a-f]{40}", re.IGNORECASE)
-_COMMIT_SHA_PREFIX = re.compile(r"[0-9a-f]{7,40}", re.IGNORECASE)
-
-
-def _matches_configured_sha_prefix(sha: str, prefixes: set[str]) -> bool:
-    """Match a full SHA against a validated, globally unambiguous prefix set."""
-    if not _COMMIT_SHA.fullmatch(sha):
-        raise AssertionError(f"Expected a full 40-character commit SHA, got {sha!r}")
-
-    normalized = sorted(prefix.lower() for prefix in prefixes)
-    invalid = [prefix for prefix in normalized if not _COMMIT_SHA_PREFIX.fullmatch(prefix)]
-    if invalid:
-        raise AssertionError(f"Invalid configured commit SHA prefix: {invalid[0]!r}")
-
-    for index, prefix in enumerate(normalized):
-        for other in normalized[index + 1 :]:
-            if other.startswith(prefix):
-                raise AssertionError(
-                    f"Ambiguous configured commit SHA prefixes: {prefix!r} and {other!r}"
-                )
-
-    return any(sha.lower().startswith(prefix) for prefix in normalized)
 
 
 def _parse_governance_log(output: str) -> list[tuple[str, str, str]]:
@@ -150,24 +129,31 @@ def test_parse_governance_log_rejects_malformed_record() -> None:
         raise AssertionError("malformed git log record was accepted")
 
 
+def _run_git(
+    repo: Path, *args: str, env: dict[str, str] | None = None
+) -> None:
+    subprocess.run(["git", *args], cwd=repo, check=True, env=env)
+
+
 def test_governance_log_uses_full_sha_when_core_abbrev_is_short(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     repo.mkdir()
-    sha256_default_env = {**os.environ, "GIT_DEFAULT_HASH": "sha256"}
-    subprocess.run(
-        ["git", "init", "-q", "--object-format=sha1"],
-        cwd=repo,
-        check=True,
-        env=sha256_default_env,
-    )
-    subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=repo, check=True)
-    subprocess.run(["git", "config", "user.name", "Test User"], cwd=repo, check=True)
+    global_config = tmp_path / "gitconfig"
+    global_config.write_text("[commit]\n\tgpgSign = true\n", encoding="utf-8")
+    git_env = {
+        **os.environ,
+        "GIT_DEFAULT_HASH": "sha256",
+        "GIT_CONFIG_GLOBAL": str(global_config),
+    }
+    _run_git(repo, "init", "-q", "--object-format=sha1", env=git_env)
+    _run_git(repo, "config", "user.email", "test@example.com")
+    _run_git(repo, "config", "user.name", "Test User")
 
     governance_file = repo / "tests" / "test_no_grandfather_drift.py"
     governance_file.parent.mkdir()
     governance_file.write_text("# fixture\n", encoding="utf-8")
-    subprocess.run(["git", "add", str(governance_file.relative_to(repo))], cwd=repo, check=True)
-    subprocess.run(["git", "commit", "-q", "-m", "subject only"], cwd=repo, check=True)
+    _run_git(repo, "add", str(governance_file.relative_to(repo)))
+    _run_git(repo, "commit", "--no-gpg-sign", "-q", "-m", "subject only", env=git_env)
 
     result = subprocess.run(
         [
@@ -196,33 +182,11 @@ def test_governance_log_uses_full_sha_when_core_abbrev_is_short(tmp_path: Path) 
     assert body == ""
 
 
-def test_pre_guard_relaxation_sha_prefixes_match_full_hashes() -> None:
-    for prefix in _PRE_GUARD_RELAXATION_SHAS:
-        full_sha = prefix + ("0" * (40 - len(prefix)))
-        assert _matches_configured_sha_prefix(
-            full_sha, _PRE_GUARD_RELAXATION_SHAS
-        )
-
-    assert not _matches_configured_sha_prefix(
-        "f" * 40, _PRE_GUARD_RELAXATION_SHAS
-    )
-
-
-def test_sha_prefix_matching_rejects_invalid_or_ambiguous_configuration() -> None:
-    invalid_cases = [
-        ("short", {"abcdef0"}),
-        ("a" * 40, {"not-a-sha"}),
-        ("abcdef0123456789abcdef0123456789abcdef01", {"abcdef0", "abcdef01"}),
-    ]
-    for sha, prefixes in invalid_cases:
-        try:
-            _matches_configured_sha_prefix(sha, prefixes)
-        except AssertionError:
-            pass
-        else:
-            raise AssertionError(
-                f"invalid or ambiguous SHA prefix configuration was accepted: {prefixes!r}"
-            )
+def test_pre_guard_relaxation_shas_match_exactly() -> None:
+    assert len(_PRE_GUARD_RELAXATION_SHAS) == 4
+    assert all(_COMMIT_SHA.fullmatch(sha) for sha in _PRE_GUARD_RELAXATION_SHAS)
+    assert "fb32b69" not in _PRE_GUARD_RELAXATION_SHAS
+    assert "fb32b69" + ("0" * 33) not in _PRE_GUARD_RELAXATION_SHAS
 
 
 _GRANDFATHER_PREVENTION_PHRASES = (
@@ -278,7 +242,7 @@ def test_recent_commits_do_not_relax_governance_tests() -> None:
 
     violations: list[str] = []
     for sha, subject, body in messages:
-        if _matches_configured_sha_prefix(sha, _PRE_GUARD_RELAXATION_SHAS):
+        if sha.lower() in _PRE_GUARD_RELAXATION_SHAS:
             continue
         message = f"{subject}\n{body}"
         if _has_guard_relaxation_language(message):

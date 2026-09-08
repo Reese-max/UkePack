@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -152,7 +153,13 @@ def test_parse_governance_log_rejects_malformed_record() -> None:
 def test_governance_log_uses_full_sha_when_core_abbrev_is_short(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     repo.mkdir()
-    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+    sha256_default_env = {**os.environ, "GIT_DEFAULT_HASH": "sha256"}
+    subprocess.run(
+        ["git", "init", "-q", "--object-format=sha1"],
+        cwd=repo,
+        check=True,
+        env=sha256_default_env,
+    )
     subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=repo, check=True)
     subprocess.run(["git", "config", "user.name", "Test User"], cwd=repo, check=True)
 

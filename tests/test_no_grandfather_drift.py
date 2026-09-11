@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -11,24 +12,24 @@ ROOT = Path(__file__).resolve().parent.parent
 # Pre-guard commit that motivated this test. Do not expand without a reflection
 # entry explaining why the older violation must remain exempt.
 _PRE_GUARD_RELAXATION_SHAS = {
-    "fb32b69",
+    "fb32b693dca232ab83f880a0b7c463d52271e718",
     # 0eb185d admits 6e92504 (M-notation log commit) to the log-commit allow-list.
     # Exemption: the word "grandfather" appears in the subject because it mirrors
     # the exact operation performed (adding to _GRANDFATHERED_LOG_SHAS); the
     # admission is accompanied by full rule-9 justification in the commit body
     # (same-category as 08c5d85; M-notation pre-enforcement, not a pattern).
-    "0eb185d",
+    "0eb185d49e538ba1e7e11548ca8d372529c0c093",
     # 20ea4b3 adds 0eb185d to this exemption set. Its body used the trigger word
     # in a meta-explanation context (describing the word's presence in 0eb185d,
     # not performing an actual guard relaxation). This is the terminal entry in
     # the log-commit / no-drift admission chain; no further follow-ups expected.
-    "20ea4b3",
+    "20ea4b3418ebcd745cc2e6a4763257df721f3841",
     # 2e15dd4 admitted 20ea4b3 to this same set. The commit body described why
     # 20ea4b3 needed admission and in doing so quoted the drift-guard trigger
     # term (as a meta-reference, not a real relaxation). test_no_grandfather_drift
     # detected it because the file it touches is a monitored governance file.
     # This entry closes the cascade.  Rule-9 ack: SHA justified above.
-    "2e15dd4",
+    "2e15dd4643e0bea615fd8ae0b62e9cb5ed74213e",
 }
 
 # Governance files monitored for relaxation attempts.
@@ -41,6 +42,34 @@ _GOVERNANCE_FILES = [
 ]
 
 
+_COMMIT_SHA = re.compile(r"[0-9a-f]{40}", re.IGNORECASE)
+
+
+def _parse_governance_log(output: str) -> list[tuple[str, str, str]]:
+    """Parse NUL-delimited git records without altering structural separators."""
+    messages: list[tuple[str, str, str]] = []
+    for record_index, raw_record in enumerate(output.split("\0"), start=1):
+        record = raw_record.strip("\r\n")
+        if not record.strip():
+            continue
+
+        sha, separator, message = record.partition("\x1f")
+        sha = sha.strip()
+        if not separator or not _COMMIT_SHA.fullmatch(sha):
+            context = record[:80].encode("unicode_escape").decode("ascii")
+            raise AssertionError(
+                f"Malformed git log record {record_index} (sha={sha or '<missing>'}): "
+                f"expected '<sha>\\x1f<message>', got {context!r}"
+            )
+
+        normalized_message = (
+            message.replace("\r\n", "\n").replace("\r", "\n").strip("\n")
+        )
+        subject, _, body = normalized_message.partition("\n")
+        messages.append((sha, subject.strip(), body.strip()))
+    return messages
+
+
 def _recent_commits_touching_governance() -> list[tuple[str, str, str]] | None:
     """Return (sha, subject, body) only for recent commits that touch governance files."""
     result = subprocess.run(
@@ -50,8 +79,9 @@ def _recent_commits_touching_governance() -> list[tuple[str, str, str]] | None:
             "-c",
             "i18n.logOutputEncoding=utf8",
             "log",
+            "-z",
             "--since=24 hours ago",
-            "--format=%h%x1f%s%x1f%b%x1e",
+            "--format=%H%x1f%B",
             "--no-decorate",
             "--",
             *_GOVERNANCE_FILES,
@@ -65,15 +95,98 @@ def _recent_commits_touching_governance() -> list[tuple[str, str, str]] | None:
     )
     if result.returncode != 0:
         return None
+    return _parse_governance_log(result.stdout)
 
-    messages: list[tuple[str, str, str]] = []
-    for entry in result.stdout.split("\x1e"):
-        stripped = entry.strip()
-        if not stripped:
-            continue
-        sha, subject, body = stripped.split("\x1f", maxsplit=2)
-        messages.append((sha.strip(), subject.strip(), body.strip()))
-    return messages
+
+def test_parse_governance_log_valid_records() -> None:
+    a_sha = "a" * 40
+    b_sha = "b" * 40
+    c_sha = "c" * 40
+    d_sha = "d" * 40
+    output = (
+        f"{a_sha}\x1fsubject only\0"
+        "\0"
+        f"{b_sha}\x1fmultiline\n\nline one\nline two\0"
+        f"{c_sha}\x1f繁體中文主旨\r\n\r\n繁體中文內文\0"
+        f"{d_sha}\x1fcontrols\n\nbody has \x1f and \x1e markers\0"
+    )
+
+    assert _parse_governance_log(output) == [
+        (a_sha, "subject only", ""),
+        (b_sha, "multiline", "line one\nline two"),
+        (c_sha, "繁體中文主旨", "繁體中文內文"),
+        (d_sha, "controls", "body has \x1f and \x1e markers"),
+    ]
+
+
+def test_parse_governance_log_rejects_malformed_record() -> None:
+    try:
+        _parse_governance_log("not-a-record\0")
+    except AssertionError as exc:
+        assert "record 1" in str(exc)
+        assert "sha=not-a-record" in str(exc)
+    else:
+        raise AssertionError("malformed git log record was accepted")
+
+
+def _run_git(
+    repo: Path, *args: str, env: dict[str, str] | None = None
+) -> None:
+    subprocess.run(["git", *args], cwd=repo, check=True, env=env)
+
+
+def test_governance_log_uses_full_sha_when_core_abbrev_is_short(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    global_config = tmp_path / "gitconfig"
+    global_config.write_text("[commit]\n\tgpgSign = true\n", encoding="utf-8")
+    git_env = {
+        **os.environ,
+        "GIT_DEFAULT_HASH": "sha256",
+        "GIT_CONFIG_GLOBAL": str(global_config),
+    }
+    _run_git(repo, "init", "-q", "--object-format=sha1", env=git_env)
+    _run_git(repo, "config", "user.email", "test@example.com")
+    _run_git(repo, "config", "user.name", "Test User")
+
+    governance_file = repo / "tests" / "test_no_grandfather_drift.py"
+    governance_file.parent.mkdir()
+    governance_file.write_text("# fixture\n", encoding="utf-8")
+    _run_git(repo, "add", str(governance_file.relative_to(repo)))
+    _run_git(repo, "commit", "--no-gpg-sign", "-q", "-m", "subject only", env=git_env)
+
+    result = subprocess.run(
+        [
+            "git",
+            "-c",
+            "core.abbrev=4",
+            "log",
+            "-z",
+            "--format=%H%x1f%B",
+            "--",
+            str(governance_file.relative_to(repo)),
+        ],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+    )
+
+    messages = _parse_governance_log(result.stdout)
+    assert len(messages) == 1
+    sha, subject, body = messages[0]
+    assert len(sha) == 40
+    assert _COMMIT_SHA.fullmatch(sha)
+    assert subject == "subject only"
+    assert body == ""
+
+
+def test_pre_guard_relaxation_shas_match_exactly() -> None:
+    assert len(_PRE_GUARD_RELAXATION_SHAS) == 4
+    assert all(_COMMIT_SHA.fullmatch(sha) for sha in _PRE_GUARD_RELAXATION_SHAS)
+    assert "fb32b69" not in _PRE_GUARD_RELAXATION_SHAS
+    assert "fb32b69" + ("0" * 33) not in _PRE_GUARD_RELAXATION_SHAS
 
 
 _GRANDFATHER_PREVENTION_PHRASES = (
@@ -129,7 +242,7 @@ def test_recent_commits_do_not_relax_governance_tests() -> None:
 
     violations: list[str] = []
     for sha, subject, body in messages:
-        if sha in _PRE_GUARD_RELAXATION_SHAS:
+        if sha.lower() in _PRE_GUARD_RELAXATION_SHAS:
             continue
         message = f"{subject}\n{body}"
         if _has_guard_relaxation_language(message):

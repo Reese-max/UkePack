@@ -6,6 +6,8 @@ import re
 import subprocess
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parent.parent
 
 # Pre-guard commit that motivated this test. Do not expand without a reflection
@@ -66,12 +68,24 @@ def _recent_commits_touching_governance() -> list[tuple[str, str, str]] | None:
     if result.returncode != 0:
         return None
 
+    return _parse_git_records(result.stdout)
+
+
+def _parse_git_records(stdout: str) -> list[tuple[str, str, str]]:
+    """Parse `sha\x1fsubject\x1fbody\x1e` records without eating structural separators.
+
+    str.strip() treats \x1f as whitespace, so an empty-body record loses its
+    trailing unit separator; strip only real newlines and pad missing fields.
+    """
     messages: list[tuple[str, str, str]] = []
-    for entry in result.stdout.split("\x1e"):
-        stripped = entry.strip()
-        if not stripped:
+    for entry in stdout.split("\x1e"):
+        record = entry.strip("\r\n")
+        if not record.strip():
             continue
-        sha, subject, body = stripped.split("\x1f", maxsplit=2)
+        parts = record.split("\x1f", maxsplit=2)
+        if len(parts) != 3:
+            raise ValueError(f"malformed git record (expected 3 fields): {record[:60]!r}")
+        sha, subject, body = parts
         messages.append((sha.strip(), subject.strip(), body.strip()))
     return messages
 
@@ -97,6 +111,21 @@ def _has_guard_relaxation_language(message: str) -> bool:
     return bool(_GRANDFATHER_WORD.search(lowered)) or (
         "restore" in lowered and "baseline" in lowered
     )
+
+
+def test_parse_git_records_empty_body() -> None:
+    out = "abc1234\x1ffix(tests): something\x1f\n\x1e"
+    assert _parse_git_records(out) == [("abc1234", "fix(tests): something", "")]
+
+
+def test_parse_git_records_multiline_body() -> None:
+    out = "def5678\x1ffeat: x\x1fline one\nline two\n\x1e"
+    assert _parse_git_records(out) == [("def5678", "feat: x", "line one\nline two")]
+
+
+def test_parse_git_records_malformed_raises_with_context() -> None:
+    with pytest.raises(ValueError, match="malformed git record"):
+        _parse_git_records("abc1234\x1fonly-two-fields\x1e")
 
 
 def test_guard_relaxation_language_examples() -> None:

@@ -198,6 +198,8 @@ curl http://localhost:8000/health
 uv run pytest -q
 ```
 
+CI additionally disables the pytest cache provider: `uv run pytest -q -p no:cacheprovider`.
+
 **ffmpeg**（practice audio MP3 轉檔）：Windows 可用 `winget install Gyan.FFmpeg`，macOS 用 `brew install ffmpeg`，Ubuntu / Debian 用 `apt install ffmpeg`，或直接[下載 Windows 版](https://ffmpeg.org/download.html)。
 若 ffmpeg 不在 PATH，`.mid` 仍可產出，`.mp3` 會跳過而不報錯。
 

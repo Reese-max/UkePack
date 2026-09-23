@@ -1,0 +1,12 @@
+{
+  "repo": "Reese-max/UkePack",
+  "issue": 2,
+  "base_sha": "56bcdb78da1e27529d70a9de71aa3414ddfcfb36",
+  "red_proof": "FAILED tests/test_no_grandfather_drift.py: NameError: name '_parse_commit_records' is not defined; 8 failed before implementation.",
+  "test_command": "CI=true uv run pytest -q -p no:cacheprovider",
+  "test_exit": 0,
+  "tests_passed": 802,
+  "tests_failed": 0,
+  "summary": "Added a total governance commit-record parser that preserves structural separators, accepts empty bodies and empty records, and raises an actionable malformed-record diagnostic. Added explicit fixtures for subject-only, multiline, Traditional Chinese, CRLF, control-like text, malformed records, and prohibited versus allowed governance language; existing policy semantics remain unchanged. Ruff passed and the full CI-shaped pytest suite passed 802 tests.",
+  "not_done": "No GitHub Actions run URL was attached because this worker was instructed not to push or open a PR; the driver must obtain the successful CI URL. uv run mypy app was not locally verified because the available Python 3.13 environment hung twice during analysis; no code change was made for that environment issue."
+}

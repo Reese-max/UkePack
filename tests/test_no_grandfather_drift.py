@@ -6,6 +6,8 @@ import re
 import subprocess
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parent.parent
 
 # Pre-guard commit that motivated this test. Do not expand without a reflection
@@ -66,14 +68,73 @@ def _recent_commits_touching_governance() -> list[tuple[str, str, str]] | None:
     if result.returncode != 0:
         return None
 
+    return _parse_commit_records(result.stdout)
+
+
+def _parse_commit_records(raw_output: str) -> list[tuple[str, str, str]]:
     messages: list[tuple[str, str, str]] = []
-    for entry in result.stdout.split("\x1e"):
-        stripped = entry.strip()
-        if not stripped:
+    for record_number, entry in enumerate(raw_output.split("\x1e"), start=1):
+        record = entry.rstrip("\r\n")
+        if not record:
             continue
-        sha, subject, body = stripped.split("\x1f", maxsplit=2)
-        messages.append((sha.strip(), subject.strip(), body.strip()))
+        fields = record.split("\x1f", maxsplit=2)
+        sha = fields[0].strip() if fields else ""
+        if len(fields) != 3 or not sha:
+            raise ValueError(
+                f"Malformed git commit record {record_number} (sha={sha or '<empty>'}): "
+                "expected sha, subject, and body fields"
+            )
+        subject, body = fields[1].strip(), fields[2].strip()
+        messages.append((sha, subject, body))
     return messages
+
+
+@pytest.mark.parametrize(
+    ("raw_output", "expected"),
+    [
+        ("a1\x1fsubject only\x1f\x1e", [("a1", "subject only", "")]),
+        (
+            "a2\x1fmultiline\x1fline one\nline two\x1e",
+            [("a2", "multiline", "line one\nline two")],
+        ),
+        ("a3\x1f修復治理\x1f繁體中文內容\x1e", [("a3", "修復治理", "繁體中文內容")]),
+        (
+            "a4\x1fCRLF\x1fline one\r\nline two\r\n\x1e",
+            [("a4", "CRLF", "line one\r\nline two")],
+        ),
+        (
+            "a5\x1fcontrol-like\x1fbody contains \\x1f and \\x1e markers\x1e",
+            [("a5", "control-like", "body contains \\x1f and \\x1e markers")],
+        ),
+    ],
+)
+def test_parse_commit_records_handles_valid_message_shapes(
+    raw_output: str, expected: list[tuple[str, str, str]]
+) -> None:
+    assert _parse_commit_records(raw_output) == expected
+
+
+def test_parse_commit_records_ignores_empty_records() -> None:
+    raw_output = "\x1e\r\n\x1ea1\x1fsubject\x1fbody\x1e\n\x1e"
+
+    assert _parse_commit_records(raw_output) == [("a1", "subject", "body")]
+
+
+def test_parse_commit_records_reports_malformed_record() -> None:
+    with pytest.raises(ValueError, match=r"record 1.*sha=bad-sha"):
+        _parse_commit_records("bad-sha\x1fsubject\x1e")
+
+
+def test_parser_fixtures_preserve_governance_policy_semantics() -> None:
+    raw_output = (
+        "bad1\x1fGrandfather this guard\x1fpolicy change\x1e"
+        "good1\x1fblock grandfather drift\x1fprevention\x1e"
+    )
+
+    messages = _parse_commit_records(raw_output)
+
+    assert _has_guard_relaxation_language("\n".join(messages[0][1:]))
+    assert not _has_guard_relaxation_language("\n".join(messages[1][1:]))
 
 
 _GRANDFATHER_PREVENTION_PHRASES = (

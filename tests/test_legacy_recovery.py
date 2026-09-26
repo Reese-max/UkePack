@@ -3,10 +3,10 @@
 Covers the operator-mediated handoff that keeps pre-remediation projects
 accessible after capability tokens are introduced:
 1. Migration writes an operator-only manifest binding each new token to its row.
-2. A manifest claim URL restores owner access; wrong/missing tokens are denied.
+2. A manifest claim URL establishes cookies for later token-free requests.
 3. The admin recovery endpoint is fail-closed without an operator secret and
    rejects wrong credentials when configured.
-4. Re-running the migration is idempotent and never regenerates assigned tokens.
+4. Re-running the migration is idempotent, including after a manifest write failure.
 """
 
 from __future__ import annotations
@@ -15,6 +15,7 @@ import json
 import sqlite3
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine, select
 from sqlmodel.pool import StaticPool
@@ -112,16 +113,58 @@ def _migrated_session(tmp_path: Path) -> Session:
     return Session(engine)
 
 
-def test_claim_url_restores_owner_access(tmp_path):
+def test_claim_url_restores_owner_access(tmp_path: Path) -> None:
     session = _migrated_session(tmp_path)
     tokens = {p.id: p.owner_token for p in session.exec(select(Project)).all()}
     app.dependency_overrides[get_session] = _override(session)
     try:
-        client = TestClient(app)
-        for pid, token in tokens.items():
-            assert client.get(f"/projects/{pid}", params={"token": token}).status_code == 200
-            assert client.get(f"/projects/{pid}").status_code == 401
-            assert client.get(f"/projects/{pid}", params={"token": "ukp_wrong"}).status_code == 403
+        first_id, second_id = sorted(tokens)
+        owner = TestClient(app)
+        claim = owner.get(
+            f"/projects/{first_id}", params={"token": tokens[first_id]},
+            follow_redirects=False,
+        )
+        assert claim.status_code == 303
+        assert claim.headers["location"] == f"/projects/{first_id}"
+        assert claim.headers["cache-control"] == "no-store"
+        assert claim.headers["referrer-policy"] == "no-referrer"
+        assert owner.get(claim.headers["location"]).status_code == 200
+        assert owner.get(f"/projects/{first_id}/preview").status_code == 200
+        assert owner.get(f"/api/projects/{first_id}").status_code == 200
+        assert owner.get(f"/projects/{second_id}").status_code == 403
+
+        unrelated = TestClient(app)
+        assert unrelated.get(f"/projects/{first_id}").status_code == 401
+        assert unrelated.get(
+            f"/projects/{first_id}", params={"token": tokens[second_id]},
+        ).status_code == 403
+        second_claim = unrelated.get(
+            f"/projects/{second_id}", params={"token": tokens[second_id]},
+            follow_redirects=False,
+        )
+        assert second_claim.status_code == 303
+        assert unrelated.get(second_claim.headers["location"]).status_code == 200
+        assert unrelated.get(f"/projects/{first_id}").status_code == 403
+    finally:
+        app.dependency_overrides.clear()
+        session.close()
+
+
+def test_https_claim_sets_secure_cookies(tmp_path: Path) -> None:
+    session = _migrated_session(tmp_path)
+    project = session.exec(select(Project)).first()
+    assert project is not None
+    app.dependency_overrides[get_session] = _override(session)
+    try:
+        client = TestClient(app, base_url="https://testserver")
+        claim = client.get(
+            f"/projects/{project.id}", params={"token": project.owner_token},
+            follow_redirects=False,
+        )
+        assert claim.status_code == 303
+        assert len(claim.headers.get_list("set-cookie")) == 3
+        assert all("Secure" in cookie for cookie in claim.headers.get_list("set-cookie"))
+        assert client.get(claim.headers["location"]).status_code == 200
     finally:
         app.dependency_overrides.clear()
         session.close()
@@ -171,6 +214,35 @@ def test_migration_idempotent_no_regeneration(tmp_path):
     assert len(_manifests(data_dir)) == 1
 
 
+def test_failed_manifest_write_aborts_startup_and_retry_recovers(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    db_file = _legacy_db(tmp_path)
+    data_dir = tmp_path / "data"
+    engine = create_engine(f"sqlite:///{db_file}")
+
+    def fail_replace(_source: Path, _destination: Path) -> None:
+        raise OSError("recovery volume is read-only")
+
+    with monkeypatch.context() as patch:
+        patch.setattr("app.core.db.os.replace", fail_replace)
+        with pytest.raises(OSError, match="read-only"):
+            migrate_project_schema(engine, data_dir=data_dir)
+
+    committed = _tokens(db_file)
+    assert all(token.startswith("ukp_legacy_") for token in committed.values())
+    assert _manifests(data_dir) == []
+    assert list((data_dir / "legacy-recovery").glob("*.tmp")) == []
+
+    migrate_project_schema(engine, data_dir=data_dir)
+    assert _tokens(db_file) == committed
+    assert {row["id"]: row["owner_token"] for row in json.loads(
+        _manifests(data_dir)[0].read_text(encoding="utf-8")
+    )["projects"]} == committed
+    migrate_project_schema(engine, data_dir=data_dir)
+    assert len(_manifests(data_dir)) == 1
+
+
 def test_non_legacy_tokens_not_listed(tmp_path, monkeypatch):
     engine = create_engine(
         "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
@@ -179,6 +251,7 @@ def test_non_legacy_tokens_not_listed(tmp_path, monkeypatch):
 
     session = Session(engine)
     session.add(Project(title="Modern", source_type="public_domain", owner_token="ukp_normal123"))
+    session.add(Project(title="Wildcard", source_type="public_domain", owner_token="ukpXlegacyX123"))
     session.commit()
     app.dependency_overrides[get_session] = _override(session)
     monkeypatch.setenv("UKEPACK_AUTH_SECRET", "s3cr3t-operator-key")

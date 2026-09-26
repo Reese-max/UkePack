@@ -6,6 +6,7 @@ import contextlib
 import json
 import logging
 import os
+import secrets
 from collections.abc import Generator
 from datetime import UTC, datetime
 from pathlib import Path
@@ -40,14 +41,34 @@ def reset_engine() -> None:
         engine.dispose()
 
 
-def _write_legacy_recovery_manifest(migrated: list[dict[str, Any]], data_dir: Path | None) -> None:
-    """Persist operator-only custody mapping for freshly migrated legacy projects."""
-    if not migrated or data_dir is None:
+def _manifest_matches(path: Path, projects: list[dict[str, Any]]) -> bool:
+    """Return whether a complete prior manifest covers the current legacy rows."""
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        recorded = [
+            (row["id"], row["owner_token"], row["claim_url"])
+            for row in payload["projects"]
+        ]
+        expected = [
+            (row["id"], row["owner_token"], f"/projects/{row['id']}?token={row['owner_token']}")
+            for row in projects
+        ]
+        return sorted(recorded) == sorted(expected)
+    except (OSError, ValueError, TypeError, KeyError):
+        return False
+
+
+def _write_legacy_recovery_manifest(projects: list[dict[str, Any]], data_dir: Path) -> None:
+    """Atomically persist operator custody for all currently migrated projects."""
+    if not projects:
         return
     recovery_dir = data_dir / "legacy-recovery"
     recovery_dir.mkdir(parents=True, exist_ok=True)
+    if any(_manifest_matches(path, projects) for path in recovery_dir.glob("manifest-*.json")):
+        return
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-    manifest = recovery_dir / f"manifest-{stamp}-{os.getpid()}.json"
+    manifest = recovery_dir / f"manifest-{stamp}-{os.getpid()}-{secrets.token_hex(8)}.json"
+    temporary = manifest.with_suffix(".json.tmp")
     payload = {
         "generated_at": stamp,
         "custody": "operator-mediated: hand each claim_url to the project owner; never publish this file",
@@ -58,22 +79,54 @@ def _write_legacy_recovery_manifest(migrated: list[dict[str, Any]], data_dir: Pa
                 "owner_token": row["owner_token"],
                 "claim_url": f"/projects/{row['id']}?token={row['owner_token']}",
             }
-            for row in migrated
+            for row in projects
         ],
     }
-    manifest.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    try:
+        descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+            json.dump(payload, stream, ensure_ascii=False, indent=2)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, manifest)
+    finally:
+        temporary.unlink(missing_ok=True)
     with contextlib.suppress(OSError):
         os.chmod(manifest, 0o600)
     logger.warning(
         "Migrated %d legacy project(s); operator recovery manifest written to %s",
-        len(migrated),
+        len(projects),
         manifest,
     )
 
 
+def _migrate_legacy_tokens(conn: Any, data_dir: Path) -> None:
+    """Commit capabilities, then ensure a retryable custody manifest exists."""
+    from sqlalchemy import text
+
+    rows = conn.execute(
+        text("SELECT id, title FROM project WHERE owner_token IS NULL OR owner_token = ''")
+    ).fetchall()
+    for row_id, _title in rows:
+        conn.execute(
+            text("UPDATE project SET owner_token = :token WHERE id = :pid"),
+            {"token": f"ukp_legacy_{secrets.token_urlsafe(32)}", "pid": row_id},
+        )
+    if rows:
+        conn.commit()
+    current = conn.execute(
+        text("SELECT id, title, owner_token FROM project "
+             "WHERE substr(owner_token, 1, 11) = 'ukp_legacy_'")
+    ).fetchall()
+    projects = [
+        {"id": row_id, "title": title, "owner_token": token}
+        for row_id, title, token in current
+    ]
+    _write_legacy_recovery_manifest(projects, data_dir)
+
+
 def migrate_project_schema(engine: Any, data_dir: Path | None = None) -> None:
     """Ensure semitone_shift, owner_token, and owner_id columns exist and migrate legacy projects."""
-    import secrets
     from sqlalchemy import text
 
     if data_dir is None:
@@ -110,27 +163,9 @@ def migrate_project_schema(engine: Any, data_dir: Path | None = None) -> None:
             except Exception:
                 pass
 
-        # Migrate existing legacy rows where owner_token IS NULL or empty.
-        # Each generated capability is handed to the server operator through a
-        # manifest file (operator-mediated custody) — see issue #5.
-        try:
-            result = conn.execute(
-                text("SELECT id, title FROM project WHERE owner_token IS NULL OR owner_token = ''")
-            )
-            rows = result.fetchall()
-            migrated: list[dict[str, Any]] = []
-            for row_id, title in rows:
-                legacy_token = f"ukp_legacy_{secrets.token_urlsafe(32)}"
-                conn.execute(
-                    text("UPDATE project SET owner_token = :token WHERE id = :pid"),
-                    {"token": legacy_token, "pid": row_id},
-                )
-                migrated.append({"id": row_id, "title": title, "owner_token": legacy_token})
-            if rows:
-                conn.commit()
-                _write_legacy_recovery_manifest(migrated, data_dir)
-        except Exception:
-            pass
+        # A failed manifest aborts startup; the committed tokens are recovered
+        # from SQLite and the manifest is retried on the next startup.
+        _migrate_legacy_tokens(conn, data_dir)
 
         # Ensure index exists
         try:

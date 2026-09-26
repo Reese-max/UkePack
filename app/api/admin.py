@@ -7,6 +7,7 @@ import secrets
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy import func
 from sqlmodel import Session, col, select
 
 from app.config import get_settings
@@ -40,7 +41,9 @@ def legacy_recovery(request: Request, session: SessionDep) -> dict[str, object]:
     security upgrade cannot orphan pre-remediation work.
     """
     _require_operator(request)
-    statement = select(Project).where(col(Project.owner_token).like(f"{LEGACY_TOKEN_PREFIX}%"))
+    statement = select(Project).where(
+        func.substr(col(Project.owner_token), 1, len(LEGACY_TOKEN_PREFIX)) == LEGACY_TOKEN_PREFIX
+    )
     projects = session.exec(statement).all()
     return {
         "custody": "operator-mediated: hand each claim_url to the project owner",

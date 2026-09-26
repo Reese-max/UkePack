@@ -247,9 +247,16 @@ def project_analysis_page(
     request: Request,
     project_id: int,
     session: SessionDep,
-) -> HTMLResponse:
+) -> Response:
     """Full analysis page for a project (P1-13)."""
     project = get_project_or_404(session, project_id, request=request)
+
+    if "token" in request.query_params or "project_token" in request.query_params:
+        response = RedirectResponse(url=f"/projects/{project_id}", status_code=303)
+        set_project_auth_cookies(response, project, secure=request.url.scheme == "https")
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        return response
 
     analysis: dict[str, Any] | None = _build_analysis(project)
     return _TEMPLATES.TemplateResponse(

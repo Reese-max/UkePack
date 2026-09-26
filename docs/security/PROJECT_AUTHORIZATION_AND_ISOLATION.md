@@ -41,12 +41,18 @@ UkePack 設計用於烏克麗麗編譜、和弦分析、練習追蹤與教師審
 
 ---
 
-## 4. 自動化資料庫遷移 (Legacy Database Migration)
+## 4. 自動化資料庫遷移與舊專案託管 (Legacy Database Migration & Custody)
 
 為了平滑升級舊版本已有的專案資料：
 - 系統啟動時執行 [`app.core.db.migrate_project_schema()`](../../app/core/db.py)。
 - 自動檢查 SQLite `project` 表；若缺少 `owner_token` 或 `owner_id` 欄位，自動執行 `ALTER TABLE` 新增欄位。
-- 針對既有未具備權杖的專案列，自動生成獨立的 `ukp_...` 專案權杖填補，確保系統升級後不中斷運作且不留無權限漏洞。
+- 針對既有未具備權杖的專案列，自動生成獨立的 `ukp_legacy_...` 專案權杖填補。
+
+**託管模型（operator-mediated custody）**：遷移產生的權杖只屬於伺服器操作者，升級前的使用者**不會自動取得**新權杖。操作者須經以下任一管道取回對應表，再把 `claim_url` 親手交給各專案的合法擁有者：
+- 系統將所有 `ukp_legacy_` 專案與權杖寫入 `<data_dir>/legacy-recovery/manifest-<timestamp>-<pid>-<random>.json`（僅操作者可讀，檔案以 mode 0600 建立），內含 project id、title、owner_token 與 claim_url。應將該目錄當作憑證保管，不放入公開備份或日誌。
+- 已配置 `UKEPACK_AUTH_SECRET` 的部署可呼叫 `GET /api/admin/legacy-recovery`（`Authorization: Bearer <secret>`）取得相同對應表；未配置時該端點一律 403 fail-closed，不洩漏任何權杖。
+- 擁有者開啟 `claim_url`（`/projects/{id}?token=...`）後，伺服器驗證該專案權杖、設定瀏覽器認證 cookie，再以 303 導向不含權杖的 `/projects/{id}`；之後可直接使用分析、預覽與 API。HTTPS 下 cookie 帶 `Secure`，認領回應禁止快取與轉送 Referer。錯誤或其他專案的權杖仍遭拒絕。
+- 遷移可重入：未提交的列保持空權杖；已提交的權杖不會重產。若 manifest 寫入失敗，啟動會失敗並保留已提交權杖；修復儲存空間後重新啟動，系統會從 SQLite 重建 manifest，再提供服務。操作者須確認 manifest 或受保護的管理端點可用，然後把每個認領網址交給經核實的專案擁有者。
 
 ---
 

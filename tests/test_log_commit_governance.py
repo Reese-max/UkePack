@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import subprocess
 from pathlib import Path
 
@@ -40,25 +41,33 @@ _GRANDFATHERED_LOG_SHAS = {
 def _parse_governance_log(output: str) -> list[tuple[str, str, str]]:
     """Parse ``git log -z`` output into (sha, subject, body) triples.
 
-    Records are NUL-terminated ``sha \\x1f subject \\x1f body`` frames. NUL is
-    not whitespace, so framing survives any whitespace handling on empty-body
-    commits — the old ``\\x1e`` framing lost its trailing ``\\x1f`` to
-    ``str.strip()`` and could silently drop fields. Records that do not yield
-    exactly three fields are reported with their content instead of being
-    skipped (a skip would let a commit escape this guard unnoticed).
+    Each field is NUL-terminated; a commit message cannot contain NUL. The
+    previous unit separator could appear in a subject and misclassify subject
+    text as body text.
     """
+    if not output:
+        return []
+    if not output.endswith("\0"):
+        index = output.count("\0") // 3 + 1
+        context = output[-80:].encode("unicode_escape").decode("ascii")
+        raise ValueError(
+            f"malformed git log record #{index}: missing final NUL terminator: {context!r}"
+        )
+    fields = output[:-1].split("\0")
+    if len(fields) % 3:
+        index = len(fields) // 3 + 1
+        context = fields[(index - 1) * 3][:80].encode("unicode_escape").decode("ascii")
+        raise ValueError(
+            f"malformed git log record #{index}: expected 3 NUL-delimited fields, "
+            f"got {len(fields) % 3}: {context!r}"
+        )
     messages: list[tuple[str, str, str]] = []
-    for index, record in enumerate(output.split("\0"), start=1):
-        if not record.strip():
+    for offset in range(0, len(fields), 3):
+        sha, subject, body = fields[offset : offset + 3]
+        if not sha and not subject and not body:
             continue
-        fields = record.split("\x1f", maxsplit=2)
-        if len(fields) != 3:
-            context = record[:80].encode("unicode_escape").decode("ascii")
-            raise ValueError(
-                f"malformed git log record #{index}: "
-                f"expected 3 fields, got {len(fields)}: {context!r}"
-            )
-        sha, subject, body = fields
+        if not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", sha):
+            raise ValueError(f"malformed git log record #{offset // 3 + 1}: invalid SHA {sha!r}")
         messages.append((sha.strip(), subject.strip(), body.strip()))
     return messages
 
@@ -76,7 +85,7 @@ def _recent_commit_messages(
             "log",
             "-z",
             "--since=24 hours ago",
-            "--format=%H%x1f%s%x1f%b",
+            "--format=%H%x00%s%x00%b",
             "--no-decorate",
         ],
         capture_output=True,
@@ -108,24 +117,24 @@ def _has_numeric_kpi_impact(body: str) -> bool:
 
 def test_parse_governance_log_valid_message_shapes() -> None:
     output = (
-        f"{'a' * 40}\x1fchore(logs): subject only\x1f\0"
-        f"{'b' * 40}\x1ffeat: multiline body\x1ffirst line\n\nsecond line\n\0"
-        f"{'c' * 40}\x1fchore: crlf body\x1fline one\r\nline two\r\n\0"
-        f"{'d' * 40}\x1f繁體中文主旨\x1f繁體中文內文\n第二行\0"
-        f"{'e' * 40}\x1ftest: control bytes\x1fbody keeps \x1f and \x1e bytes\0"
+        f"{'a' * 40}\0chore(logs): subject only\0\0"
+        f"{'b' * 40}\0feat: multiline body\0first line\n\nsecond line\n\0"
+        f"{'c' * 40}\0chore: crlf body\0line one\r\nline two\r\n\0"
+        f"{'d' * 40}\0繁體中文主旨\0繁體中文內文\n第二行\0"
+        f"{'e' * 40}\0test: control \x1f and \x1e bytes\0body keeps \x1f and \x1e bytes\0"
     )
     assert _parse_governance_log(output) == [
         ("a" * 40, "chore(logs): subject only", ""),
         ("b" * 40, "feat: multiline body", "first line\n\nsecond line"),
         ("c" * 40, "chore: crlf body", "line one\r\nline two"),
         ("d" * 40, "繁體中文主旨", "繁體中文內文\n第二行"),
-        ("e" * 40, "test: control bytes", "body keeps \x1f and \x1e bytes"),
+        ("e" * 40, "test: control \x1f and \x1e bytes", "body keeps \x1f and \x1e bytes"),
     ]
 
 
 def test_parse_governance_log_ignores_empty_records() -> None:
     assert _parse_governance_log("") == []
-    output = "\0" + "a" * 40 + "\x1fone\x1f\0\n\0" + "b" * 40 + "\x1ftwo\x1fbody\0\0"
+    output = "\0\0\0" + "a" * 40 + "\0one\0\0" + "\0\0\0" + "b" * 40 + "\0two\0body\0"
     assert _parse_governance_log(output) == [
         ("a" * 40, "one", ""),
         ("b" * 40, "two", "body"),
@@ -134,7 +143,7 @@ def test_parse_governance_log_ignores_empty_records() -> None:
 
 def test_parse_governance_log_malformed_record_reports_context() -> None:
     with pytest.raises(ValueError, match="malformed git log record") as exc_info:
-        _parse_governance_log("deadbeef\x1fonly two fields\0")
+        _parse_governance_log("deadbeef\0only two fields\0")
     assert "deadbeef" in str(exc_info.value)
     assert "got 2" in str(exc_info.value)
 
@@ -148,6 +157,14 @@ def test_log_commit_rule_examples() -> None:
     assert not _has_numeric_kpi_impact("KPI-impact: housekeeping")
     assert not _has_numeric_kpi_impact("KPI-impact: M0 preview badge fix")
     assert not _has_numeric_kpi_impact("")
+
+
+def test_log_subject_cannot_supply_a_fake_body() -> None:
+    output = "a" * 40 + "\0chore(logs): update\x1fKPI-impact: K1 fake\0\0"
+    _sha, subject, body = _parse_governance_log(output)[0]
+    assert _is_log_commit(subject)
+    assert body == ""
+    assert not _has_numeric_kpi_impact(body)
 
 
 def test_recent_log_commits_require_numeric_kpi_impact() -> None:

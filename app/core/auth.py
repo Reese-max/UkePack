@@ -153,6 +153,8 @@ def set_project_auth_cookies(
     response: Response,
     project: Project,
     csrf_token: str | None = None,
+    *,
+    secure: bool = False,
 ) -> str:
     """Attach owner capability token and CSRF token cookies to HTTP response."""
     csrf = csrf_token or generate_csrf_token()
@@ -161,6 +163,7 @@ def set_project_auth_cookies(
             key=f"{COOKIE_PROJECT_PREFIX}{project.id}",
             value=project.owner_token,
             httponly=True,
+            secure=secure,
             samesite="lax",
             path="/",
         )
@@ -168,6 +171,7 @@ def set_project_auth_cookies(
         key=COOKIE_OWNER_TOKEN,
         value=project.owner_token,
         httponly=True,
+        secure=secure,
         samesite="lax",
         path="/",
     )
@@ -175,6 +179,7 @@ def set_project_auth_cookies(
         key=COOKIE_CSRF,
         value=csrf,
         httponly=False,
+        secure=secure,
         samesite="lax",
         path="/",
     )

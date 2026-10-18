@@ -826,6 +826,12 @@ Push ✅ → origin ✅ → Render deploy 未確認 → {{TRIAL_URL}} 未填 →
 - **Gap 評估**：對標產品皆把「烏克麗麗調音器 (Tuner)」列為必備功能，而 UkePack 之前缺乏此功能。由於兒童/新手練習前最關鍵的阻礙是「琴沒調準無法彈奏」，新增內建調音器可以直接大幅縮短北極星指標中從匯入到小朋友能彈出第一段的時間。
 - **Shipped Feature**：實作了網頁端互動式烏克麗麗調音器 (`/tuner` 與 `app/templates/tuner.html`)。支援 HTML5 Web Audio API 麥克風音高自動偵測（使用 autocorrelation 演算法），以及 G4/C4/E4/A4 耳聽示範音播放，完美對接 UkePack 視覺風格。
 
+### 2026-10-18 — PR #7 self-review 驗證限制
+
+- 原始 head 與文件修正後的全套測試皆在 `test_pre_commit_hook_exists` 失敗；根因是既有測試要求的 per-worktree `hooks/pre-commit` 不存在，並非研究文件造成。
+- 最小重現為 `uv run --extra dev pytest -q -n0 tests/test_daemon_frozen.py::test_pre_commit_hook_exists`；已確認失敗行只檢查該路徑是否存在，停止重跑同一失敗。
+- 切換策略：保留 hook 與測試原狀，以 Git Bash 的 21 個相關文件測試驗證本次修正；全套結果 821 通過／1 失敗、coverage 96.99%、耗時 104.605 秒（未達 <60 秒），如實記入 evidence。
+
 
 
 

@@ -1,0 +1,32 @@
+{
+  "pr": 7,
+  "head": "e089dfba1842cef008eb9b114a82fdd30f5c6669",
+  "findings": [
+    {
+      "severity": "high",
+      "file": "docs/issue-3-workshop-pack-set.md",
+      "line": 50,
+      "issue": "The BUILD rule replaces the issue's joint median >=40% improvement, >=4/5 next-class preference, and no-child-PII requirements with time <50% alone. Its NARROW/REJECT branches overlap and leave intermediate results undecided. Restore the issue's BUILD/SIMPLIFY/DO NOT BUILD contract with an explicit fallback."
+    },
+    {
+      "severity": "med",
+      "file": "docs/issue-3-workshop-pack-set.md",
+      "line": 46,
+      "issue": "The protocol omits willingness-to-pay/repeated-use evidence required by #3, although low intent is used in the decision rule. Add concrete interview and recording instructions without extrapolating market size."
+    },
+    {
+      "severity": "med",
+      "file": "docs/issue-3-workshop-pack-set.md",
+      "line": 45,
+      "issue": "Privacy/copyright/support implications are only a placeholder and authorization is absent. The proposed distribution model does not define per-project management capabilities, read-only family scope, source sharing restrictions, or required PDF license notices."
+    },
+    {
+      "severity": "med",
+      "file": "docs/issue-3-workshop-pack-set.md",
+      "line": 42,
+      "issue": "The study method only schedules 10 learners and timing; it omits the specified 20/30-learner and last-minute level-change tasks and a common error-counting method for the current flow and both prototypes."
+    }
+  ],
+  "fixed": true,
+  "summary": "Corrected all four research-plan defects: decision gates, demand evidence, authorization/licensing boundaries, and observation tasks; four regressions were red before the fix and all 21 related tests now pass. Full suite: 821 passed, one existing worktree-hook check failed, coverage 96.99%; ruff and mypy passed. needs-human: recruitment and observations with at least five real teachers remain outstanding, so this plan cannot close issue #3."
+}

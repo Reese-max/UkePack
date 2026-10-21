@@ -1,0 +1,12 @@
+{
+  "repo": "Reese-max/UkePack",
+  "issue": 7,
+  "base_sha": "e089dfba1842cef008eb9b114a82fdd30f5c6669",
+  "red_proof": "Before editing the research plan, Git Bash command `uv run --extra dev pytest -q -n0 tests/test_workshop_research_plan.py` exited 1 with FFFF [100%]. E AssertionError: BUILD is missing issue #3 requirement: median. E AssertionError: Missing research safety boundary: owner_token. FAILED tests/test_workshop_research_plan.py::test_build_requires_all_issue_thresholds_and_a_fallback; FAILED tests/test_workshop_research_plan.py::test_protocol_collects_demand_evidence_without_market_extrapolation; FAILED tests/test_workshop_research_plan.py::test_protocol_defines_authorization_and_license_boundaries; FAILED tests/test_workshop_research_plan.py::test_protocol_observes_each_class_size_level_change_and_errors.",
+  "test_command": "uv run --extra dev pytest -q -n0 tests/test_workshop_research_plan.py tests/test_teacher_docs.py -rA",
+  "test_exit": 0,
+  "tests_passed": 21,
+  "tests_failed": 0,
+  "summary": "Aligned the research protocol with issue #3's joint BUILD gates and complete decision outcomes, demand interviews, capability/licensing boundaries, and 10/20/30-learner tasks with level changes and error counts. Four document regressions failed before the corrections and all 21 relevant tests passed afterward under Git Bash. Full suite with coverage: 821 passed, 1 pre-existing hook-existence failure, 96.99% coverage; ruff and mypy exited 0, and the CLI demo generated its PDF in 0.04 seconds.",
+  "not_done": "needs-human: at least five real teacher participants, prototype observations, willingness-to-pay/repeated-use evidence, and the resulting BUILD/SIMPLIFY/DO NOT BUILD decision are still outstanding; issue #3 remains unclosed. The full suite is not green: tests/test_daemon_frozen.py::test_pre_commit_hook_exists fails on both the unchanged head and corrected tree because its expected per-worktree hooks/pre-commit is absent. The final full suite took 104.605 seconds, exceeding the existing 60-second gate. These pre-existing environment/performance gates were recorded without changing hooks, skipping tests, or weakening assertions. No push or external write was performed."
+}
